@@ -1,0 +1,6 @@
+# IDE
+.claude/
+.idea/
+.vscode/
+*.swp
+.DS_Store
