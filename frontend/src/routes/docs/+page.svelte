@@ -7,23 +7,6 @@
 	<title>API Docs – Chamber of Secrets</title>
 </svelte:head>
 
-<div class="docs-container">
-	<iframe src={docsUrl} title="OpenAPI / Swagger UI"></iframe>
+<div class="fixed inset-0 top-12">
+	<iframe src={docsUrl} title="OpenAPI / Swagger UI" class="w-full h-full border-0"></iframe>
 </div>
-
-<style>
-	.docs-container {
-		/* Break out of the layout's max-width and padding */
-		position: fixed;
-		top: var(--nav-height, 48px);
-		left: 0;
-		right: 0;
-		bottom: 0;
-	}
-
-	iframe {
-		width: 100%;
-		height: 100%;
-		border: none;
-	}
-</style>

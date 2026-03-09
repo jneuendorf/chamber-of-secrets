@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
+	import { _ } from 'svelte-i18n';
 	import { api, type Product } from '$lib/api/client';
 
 	let products: Product[] = $state([]);
@@ -9,7 +11,7 @@
 		try {
 			products = await api.products.list();
 		} catch (e) {
-			error = `Failed to load inventory: ${e}`;
+			error = get(_)('inventory.failedToLoad', { values: { error: String(e) } });
 		} finally {
 			loading = false;
 		}
@@ -20,30 +22,30 @@
 	});
 </script>
 
-<h1>Inventory</h1>
+<h1 class="mt-0">{$_('nav.inventory')}</h1>
 
 {#if loading}
-	<p>Loading...</p>
+	<p>{$_('common.loading')}</p>
 {:else if error}
-	<p class="error">{error}</p>
+	<p class="text-[#e74c3c]">{error}</p>
 {:else if products.length === 0}
-	<p class="empty">No items in inventory yet. <a href="/scan">Scan something!</a></p>
+	<p class="text-center text-gray-500 my-12">{$_('inventory.empty')} <a href="/scan">{$_('inventory.scanCta')}</a></p>
 {:else}
-	<div class="product-list">
+	<div class="flex flex-col gap-3">
 		{#each products as product (product.id)}
-			<div class="product-card">
+			<div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm">
 				{#if product.image_url}
-					<img src={product.image_url} alt={product.name} />
+					<img src={product.image_url} alt={product.name} class="w-12 h-12 rounded-lg object-cover" />
 				{:else}
-					<div class="no-image">?</div>
+					<div class="w-12 h-12 rounded-lg bg-[#eee] flex items-center justify-center text-gray-400 text-xl">?</div>
 				{/if}
-				<div class="details">
-					<h3>{product.name}</h3>
+				<div class="flex-1">
+					<h3 class="m-0 text-base">{product.name}</h3>
 					{#if product.brand}
-						<p class="brand">{product.brand}</p>
+						<p class="m-0 text-gray-500 text-[0.85rem]">{product.brand}</p>
 					{/if}
 					{#if product.category}
-						<span class="category-tag">{product.category.name}</span>
+						<span class="inline-block bg-[#e8e8ff] text-[#1a1a2e] px-2 py-0.5 rounded text-xs mt-1">{product.category.name}</span>
 					{/if}
 				</div>
 				<div class="stock" class:low={product.stock <= 1} class:out={product.stock <= 0}>
@@ -55,80 +57,6 @@
 {/if}
 
 <style>
-	h1 {
-		margin-top: 0;
-	}
-
-	.error {
-		color: #e74c3c;
-	}
-
-	.empty {
-		text-align: center;
-		color: #666;
-		margin: 3rem 0;
-	}
-
-	.product-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.product-card {
-		background: white;
-		border-radius: 12px;
-		padding: 1rem;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	.product-card img {
-		width: 48px;
-		height: 48px;
-		border-radius: 8px;
-		object-fit: cover;
-	}
-
-	.no-image {
-		width: 48px;
-		height: 48px;
-		border-radius: 8px;
-		background: #eee;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #999;
-		font-size: 1.2rem;
-	}
-
-	.details {
-		flex: 1;
-	}
-
-	.details h3 {
-		margin: 0;
-		font-size: 1rem;
-	}
-
-	.brand {
-		margin: 0;
-		color: #666;
-		font-size: 0.85rem;
-	}
-
-	.category-tag {
-		display: inline-block;
-		background: #e8e8ff;
-		color: #1a1a2e;
-		padding: 0.15rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.75rem;
-		margin-top: 0.25rem;
-	}
-
 	.stock {
 		font-size: 1.5rem;
 		font-weight: 700;

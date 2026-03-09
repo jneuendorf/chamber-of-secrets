@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
+	import { _ } from 'svelte-i18n';
 	import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
 	import { api, type EANLookupResult } from '$lib/api/client';
 
@@ -19,7 +21,7 @@
 		try {
 			lookupResult = await api.products.lookupEAN(code);
 		} catch {
-			lookupError = `No product found for barcode: ${code}`;
+			lookupError = get(_)('scan.notFound', { values: { code } });
 		} finally {
 			loading = false;
 		}
@@ -32,7 +34,7 @@
 			// Create or find the product
 			const product = await api.products.create({
 				ean: lookupResult.ean,
-				name: lookupResult.name ?? 'Unknown Product',
+				name: lookupResult.name ?? get(_)('scan.unknownProduct'),
 				brand: lookupResult.brand,
 				image_url: lookupResult.image_url
 			});
@@ -45,151 +47,65 @@
 			});
 			added = true;
 		} catch (e) {
-			lookupError = `Failed to add: ${e}`;
+			lookupError = get(_)('scan.failedToAdd', { values: { error: String(e) } });
 		} finally {
 			loading = false;
 		}
 	}
 </script>
 
-<h1>Scan Item</h1>
+<h1 class="mt-0">{$_('scan.title')}</h1>
 
 <BarcodeScanner onScan={handleScan} />
 
 {#if loading}
-	<p class="status">Looking up...</p>
+	<p class="text-center my-4">{$_('scan.lookingUp')}</p>
 {/if}
 
 {#if lookupError}
-	<p class="error">{lookupError}</p>
+	<p class="text-center my-4 text-[#e74c3c]">{lookupError}</p>
 {/if}
 
 {#if lookupResult}
-	<div class="result-card">
+	<div class="bg-white rounded-xl p-6 mt-6 shadow-sm">
 		{#if lookupResult.image_url}
-			<img src={lookupResult.image_url} alt={lookupResult.name ?? 'Product'} />
+			<img src={lookupResult.image_url} alt={lookupResult.name ?? $_('scan.product')} class="max-w-[120px] rounded-lg float-right ml-4" />
 		{/if}
-		<div class="info">
-			<h2>{lookupResult.name ?? 'Unknown'}</h2>
+		<div>
+			<h2 class="mt-0 mb-1">{lookupResult.name ?? $_('common.unknown')}</h2>
 			{#if lookupResult.brand}
-				<p class="brand">{lookupResult.brand}</p>
+				<p class="text-gray-500 m-0">{lookupResult.brand}</p>
 			{/if}
-			<p class="ean">EAN: {lookupResult.ean}</p>
+			<p class="font-mono text-gray-400 text-[0.85rem]">EAN: {lookupResult.ean}</p>
 		</div>
 
 		{#if !added}
-			<div class="transaction-form">
-				<label>
-					Type
-					<select bind:value={transactionType}>
-						<option value="in">Add to inventory</option>
-						<option value="out">Remove from inventory</option>
+			<div class="flex flex-col gap-3 mt-4 clear-both">
+				<label class="flex flex-col gap-1 text-sm text-[#555]">
+					{$_('scan.type')}
+					<select bind:value={transactionType} class="px-2 py-2 border border-gray-300 rounded-md text-base">
+						<option value="in">{$_('scan.addToInventory')}</option>
+						<option value="out">{$_('scan.removeFromInventory')}</option>
 					</select>
 				</label>
-				<label>
-					Quantity
-					<input type="number" bind:value={quantity} min="0.01" step="0.01" />
+				<label class="flex flex-col gap-1 text-sm text-[#555]">
+					{$_('scan.quantity')}
+					<input type="number" bind:value={quantity} min="0.01" step="0.01" class="px-2 py-2 border border-gray-300 rounded-md text-base" />
 				</label>
-				<label>
-					Unit price (optional)
-					<input type="number" bind:value={unitPrice} min="0" step="0.01" placeholder="e.g. 1.99" />
+				<label class="flex flex-col gap-1 text-sm text-[#555]">
+					{$_('scan.unitPrice')}
+					<input type="number" bind:value={unitPrice} min="0" step="0.01" placeholder={$_('scan.pricePlaceholder')} class="px-2 py-2 border border-gray-300 rounded-md text-base" />
 				</label>
-				<button onclick={addToInventory} disabled={loading}>
-					{transactionType === 'in' ? 'Add to Inventory' : 'Remove from Inventory'}
+				<button
+					onclick={addToInventory}
+					disabled={loading}
+					class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
+				>
+					{transactionType === 'in' ? $_('scan.addBtn') : $_('scan.removeBtn')}
 				</button>
 			</div>
 		{:else}
-			<p class="success">Added to inventory!</p>
+			<p class="text-center my-4 text-[#27ae60] font-semibold">{$_('scan.addedSuccess')}</p>
 		{/if}
 	</div>
 {/if}
-
-<style>
-	h1 {
-		margin-top: 0;
-	}
-
-	.status,
-	.error,
-	.success {
-		text-align: center;
-		margin: 1rem 0;
-	}
-
-	.error {
-		color: #e74c3c;
-	}
-
-	.success {
-		color: #27ae60;
-		font-weight: 600;
-	}
-
-	.result-card {
-		background: white;
-		border-radius: 12px;
-		padding: 1.5rem;
-		margin-top: 1.5rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	.result-card img {
-		max-width: 120px;
-		border-radius: 8px;
-		float: right;
-		margin-left: 1rem;
-	}
-
-	.info h2 {
-		margin: 0 0 0.25rem;
-	}
-
-	.brand {
-		color: #666;
-		margin: 0;
-	}
-
-	.ean {
-		font-family: monospace;
-		color: #999;
-		font-size: 0.85rem;
-	}
-
-	.transaction-form {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin-top: 1rem;
-		clear: both;
-	}
-
-	.transaction-form label {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		font-size: 0.9rem;
-		color: #555;
-	}
-
-	.transaction-form input,
-	.transaction-form select {
-		padding: 0.5rem;
-		border: 1px solid #ddd;
-		border-radius: 6px;
-		font-size: 1rem;
-	}
-
-	.transaction-form button {
-		padding: 0.75rem;
-		background: #1a1a2e;
-		color: white;
-		border: none;
-		border-radius: 8px;
-		font-size: 1rem;
-		cursor: pointer;
-	}
-
-	.transaction-form button:disabled {
-		opacity: 0.5;
-	}
-</style>

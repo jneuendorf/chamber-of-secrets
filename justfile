@@ -18,6 +18,24 @@ frontend:
 dev:
     just backend & just frontend & wait
 
+# generate TLS certs with mkcert if they don't already exist
+certs:
+    if [ ! -f certs/cert.pem ] || [ ! -f certs/key.pem ]; then \
+        ./scripts/setup-certs.sh; \
+    fi
+
+# build images and start the full stack in Docker (production mode)
+up: certs
+    docker compose up --build -d
+
+# stop and remove Docker containers
+down:
+    docker compose down
+
+# tail logs from all Docker services
+logs:
+    docker compose logs -f
+
 # build the frontend for production
 build-frontend:
     cd frontend && bun run build

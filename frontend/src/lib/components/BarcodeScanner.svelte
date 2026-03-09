@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
+	import { _ } from 'svelte-i18n';
+
 	let { onScan }: { onScan: (code: string) => void } = $props();
 
 	let videoEl: HTMLVideoElement | undefined = $state();
@@ -20,7 +23,7 @@
 				detectBarcode();
 			}
 		} catch (e) {
-			error = `Camera access denied: ${e}`;
+			error = get(_)('scanner.cameraError', { values: { error: String(e) } });
 		}
 	}
 
@@ -51,7 +54,7 @@
 			};
 			detect();
 		} else {
-			error = 'BarcodeDetector API not supported. Use manual entry or try Chrome/Edge.';
+			error = get(_)('scanner.unsupported');
 			stopCamera();
 		}
 	}
@@ -65,27 +68,28 @@
 	}
 </script>
 
-<div class="scanner">
+<div class="flex flex-col items-center gap-4">
 	{#if scanning}
-		<div class="video-container">
+		<div class="relative w-full max-w-[400px] rounded-xl overflow-hidden">
 			<!-- svelte-ignore element_invalid_self_closing_tag -->
-			<video bind:this={videoEl} playsinline />
-			<div class="overlay">
+			<video bind:this={videoEl} playsinline class="w-full block" />
+			<div class="absolute inset-0 border-2 border-white/30 rounded-xl flex items-center justify-center">
 				<div class="scan-line"></div>
 			</div>
-			<button onclick={stopCamera} class="stop-btn">Stop</button>
+			<button onclick={stopCamera} class="absolute bottom-4 right-4 bg-black/60 text-white border-0 px-4 py-2 rounded-md cursor-pointer">{$_('scanner.stop')}</button>
 		</div>
 	{:else}
-		<button onclick={startCamera} class="scan-btn">Start Camera Scan</button>
+		<button onclick={startCamera} class="px-8 py-4 text-lg bg-[#1a1a2e] text-white border-0 rounded-lg cursor-pointer">{$_('scanner.startCamera')}</button>
 	{/if}
 
 	{#if error}
-		<p class="error">{error}</p>
+		<p class="text-[#e74c3c] text-sm">{error}</p>
 	{/if}
 
-	<div class="manual">
-		<span class="divider">or enter barcode manually</span>
+	<div class="w-full max-w-[400px]">
+		<span class="block text-center text-gray-400 text-[0.85rem] my-2">{$_('scanner.orManual')}</span>
 		<form
+			class="flex gap-2"
 			onsubmit={(e) => {
 				e.preventDefault();
 				submitManual();
@@ -94,46 +98,17 @@
 			<input
 				type="text"
 				bind:value={manualCode}
-				placeholder="Enter EAN / barcode"
+				placeholder={$_('scanner.barcodePlaceholder')}
 				inputmode="numeric"
 				pattern="[0-9]*"
+				class="flex-1 px-2.5 py-[0.6rem] border border-gray-300 rounded-md text-base"
 			/>
-			<button type="submit">Look up</button>
+			<button type="submit" class="px-4 py-[0.6rem] bg-[#1a1a2e] text-white border-0 rounded-md cursor-pointer">{$_('scanner.lookUp')}</button>
 		</form>
 	</div>
 </div>
 
 <style>
-	.scanner {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.video-container {
-		position: relative;
-		width: 100%;
-		max-width: 400px;
-		border-radius: 12px;
-		overflow: hidden;
-	}
-
-	video {
-		width: 100%;
-		display: block;
-	}
-
-	.overlay {
-		position: absolute;
-		inset: 0;
-		border: 2px solid rgba(255, 255, 255, 0.3);
-		border-radius: 12px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
 	.scan-line {
 		width: 80%;
 		height: 2px;
@@ -150,67 +125,5 @@
 		50% {
 			opacity: 0.3;
 		}
-	}
-
-	.stop-btn {
-		position: absolute;
-		bottom: 1rem;
-		right: 1rem;
-		background: rgba(0, 0, 0, 0.6);
-		color: white;
-		border: none;
-		padding: 0.5rem 1rem;
-		border-radius: 6px;
-		cursor: pointer;
-	}
-
-	.scan-btn {
-		padding: 1rem 2rem;
-		font-size: 1.1rem;
-		background: #1a1a2e;
-		color: white;
-		border: none;
-		border-radius: 8px;
-		cursor: pointer;
-	}
-
-	.error {
-		color: #e74c3c;
-		font-size: 0.9rem;
-	}
-
-	.manual {
-		width: 100%;
-		max-width: 400px;
-	}
-
-	.divider {
-		display: block;
-		text-align: center;
-		color: #999;
-		font-size: 0.85rem;
-		margin: 0.5rem 0;
-	}
-
-	.manual form {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.manual input {
-		flex: 1;
-		padding: 0.6rem;
-		border: 1px solid #ddd;
-		border-radius: 6px;
-		font-size: 1rem;
-	}
-
-	.manual button {
-		padding: 0.6rem 1rem;
-		background: #1a1a2e;
-		color: white;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
 	}
 </style>
