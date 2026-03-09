@@ -19,31 +19,38 @@
 		<ul class="list-none flex gap-4 m-0 p-0 flex-1">
 			<li>
 				<a
+					href="/chamber"
+					aria-current={page.url.pathname === '/chamber' ? 'page' : undefined}
+					class="nav-link">{$_('nav.chamber')}</a
+				>
+			</li>
+			<li>
+				<a
 					href="/scan"
 					aria-current={page.url.pathname === '/scan' ? 'page' : undefined}
-					class="nav-link"
-				>{$_('nav.scan')}</a>
+					class="nav-link">{$_('nav.scan')}</a
+				>
 			</li>
 			<li>
 				<a
 					href="/inventory"
 					aria-current={page.url.pathname === '/inventory' ? 'page' : undefined}
-					class="nav-link"
-				>{$_('nav.inventory')}</a>
+					class="nav-link">{$_('nav.inventory')}</a
+				>
 			</li>
 			<li>
 				<a
 					href="/analytics"
 					aria-current={page.url.pathname === '/analytics' ? 'page' : undefined}
-					class="nav-link"
-				>{$_('nav.analytics')}</a>
+					class="nav-link">{$_('nav.analytics')}</a
+				>
 			</li>
 			<li>
 				<a
 					href="/docs"
 					aria-current={page.url.pathname === '/docs' ? 'page' : undefined}
-					class="nav-link"
-				>{$_('nav.docs')}</a>
+					class="nav-link">{$_('nav.docs')}</a
+				>
 			</li>
 		</ul>
 		<LocaleSwitcher />

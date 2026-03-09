@@ -1,60 +1,94 @@
 {
-  "nav": {
-    "scan": "Scan",
-    "inventory": "Inventory",
-    "analytics": "Analytics",
-    "docs": "API Docs"
-  },
-  "dashboard": {
-    "title": "Dashboard",
-    "products": "Products",
-    "totalItems": "Total Items",
-    "categories": "Categories",
-    "scanItem": "Scan Item",
-    "viewInventory": "View Inventory",
-    "analytics": "Analytics"
-  },
-  "common": {
-    "loading": "Loading...",
-    "unknown": "Unknown"
-  },
-  "scanner": {
-    "startCamera": "Start Camera Scan",
-    "stop": "Stop",
-    "orManual": "or enter barcode manually",
-    "barcodePlaceholder": "Enter EAN / barcode",
-    "lookUp": "Look up",
-    "cameraError": "Camera access denied: {error}",
-    "unsupported": "BarcodeDetector API not supported. Use manual entry or try Chrome/Edge."
-  },
-  "scan": {
-    "title": "Scan Item",
-    "lookingUp": "Looking up...",
-    "notFound": "No product found for barcode: {code}",
-    "failedToAdd": "Failed to add: {error}",
-    "unknownProduct": "Unknown Product",
-    "product": "Product",
-    "type": "Type",
-    "addToInventory": "Add to inventory",
-    "removeFromInventory": "Remove from inventory",
-    "quantity": "Quantity",
-    "unitPrice": "Unit price (optional)",
-    "pricePlaceholder": "e.g. 1.99",
-    "addBtn": "Add to Inventory",
-    "removeBtn": "Remove from Inventory",
-    "addedSuccess": "Added to inventory!"
-  },
-  "inventory": {
-    "failedToLoad": "Failed to load inventory: {error}",
-    "empty": "No items in inventory yet.",
-    "scanCta": "Scan something!"
-  },
-  "analytics": {
-    "from": "From",
-    "to": "To",
-    "failedToLoad": "Failed to load analytics: {error}",
-    "empty": "No spending data yet. Add items with prices to see analytics.",
-    "totalSpent": "Total spent",
-    "items": "{count} items"
-  }
+	"nav": {
+		"chamber": "Chamber",
+		"scan": "Scan",
+		"inventory": "Inventory",
+		"analytics": "Analytics",
+		"docs": "API Docs"
+	},
+	"chamber": {
+		"title": "The Chamber",
+		"statsTitle": "Chamber Ledger",
+		"available": "In Stock",
+		"required": "Need Restocking",
+		"totalStock": "Total Quantity",
+		"empty": "The chamber is empty.",
+		"scanCta": "Add something!",
+		"close": "Close"
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"products": "Products",
+		"totalItems": "Total Items",
+		"categories": "Categories",
+		"scanItem": "Scan Item",
+		"viewInventory": "View Inventory",
+		"analytics": "Analytics"
+	},
+	"common": {
+		"loading": "Loading...",
+		"unknown": "Unknown"
+	},
+	"scanner": {
+		"startCamera": "Start Camera Scan",
+		"scanBarcode": "Scan Barcode",
+		"stop": "Stop",
+		"camera": "Camera",
+		"orManual": "or enter barcode manually",
+		"barcodePlaceholder": "Enter EAN / barcode",
+		"lookUp": "Look up",
+		"cameraError": "Camera access denied: {error}",
+		"unsupported": "BarcodeDetector API not supported. Use manual entry or try Chrome/Edge."
+	},
+	"scan": {
+		"title": "Scan Item",
+		"categorySuggestion": "Suggested category",
+		"applyCategory": "Apply",
+		"lookingUp": "Looking up...",
+		"notFound": "No product found for barcode: {code}",
+		"failedToAdd": "Failed to add: {error}",
+		"unknownProduct": "Unknown Product",
+		"product": "Product",
+		"type": "Type",
+		"addToInventory": "Add to inventory",
+		"removeFromInventory": "Remove from inventory",
+		"quantity": "Quantity",
+		"unitPrice": "Unit price (optional)",
+		"pricePlaceholder": "e.g. 1.99",
+		"addBtn": "Add to Inventory",
+		"removeBtn": "Remove from Inventory",
+		"addedSuccess": "Added to inventory!"
+	},
+	"category": {
+		"none": "None",
+		"batchLabel": "Category for batch",
+		"change": "Change",
+		"done": "Done",
+		"newPlaceholder": "New category...",
+		"add": "Add",
+		"addCategory": "+ Add category",
+		"failedToSave": "Could not save category: {error}",
+		"editIcon": "Edit icon",
+		"iconPlaceholder": "e.g. 🥛 or https://...",
+		"save": "Save"
+	},
+	"inventory": {
+		"failedToLoad": "Failed to load inventory: {error}",
+		"empty": "No items in inventory yet.",
+		"scanCta": "Scan something!"
+	},
+	"analytics": {
+		"from": "From",
+		"to": "To",
+		"failedToLoad": "Failed to load analytics: {error}",
+		"empty": "No items yet. Scan something to see analytics.",
+		"totalSpent": "Total spent",
+		"items": "{count} items",
+		"itemsByCategory": "Items by Category",
+		"spendingByCategory": "Spending by Category",
+		"itemsOverTime": "Items Over Time",
+		"spendingOverTime": "Spending Over Time",
+		"itemsLabel": "items",
+		"noPrices": "No prices recorded yet"
+	}
 }

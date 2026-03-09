@@ -1,60 +1,94 @@
 {
-  "nav": {
-    "scan": "Scannen",
-    "inventory": "Inventar",
-    "analytics": "Analytik",
-    "docs": "API-Dokumentation"
-  },
-  "dashboard": {
-    "title": "Dashboard",
-    "products": "Produkte",
-    "totalItems": "Artikel gesamt",
-    "categories": "Kategorien",
-    "scanItem": "Artikel scannen",
-    "viewInventory": "Inventar anzeigen",
-    "analytics": "Analytik"
-  },
-  "common": {
-    "loading": "Wird geladen...",
-    "unknown": "Unbekannt"
-  },
-  "scanner": {
-    "startCamera": "Kamerascan starten",
-    "stop": "Stopp",
-    "orManual": "oder Barcode manuell eingeben",
-    "barcodePlaceholder": "EAN / Barcode eingeben",
-    "lookUp": "Suchen",
-    "cameraError": "Kamera-Zugriff verweigert: {error}",
-    "unsupported": "BarcodeDetector-API wird nicht unterstützt. Manuelle Eingabe oder Chrome/Edge verwenden."
-  },
-  "scan": {
-    "title": "Artikel scannen",
-    "lookingUp": "Wird gesucht...",
-    "notFound": "Kein Produkt für Barcode gefunden: {code}",
-    "failedToAdd": "Hinzufügen fehlgeschlagen: {error}",
-    "unknownProduct": "Unbekanntes Produkt",
-    "product": "Produkt",
-    "type": "Typ",
-    "addToInventory": "Zum Inventar hinzufügen",
-    "removeFromInventory": "Aus Inventar entfernen",
-    "quantity": "Menge",
-    "unitPrice": "Einzelpreis (optional)",
-    "pricePlaceholder": "z. B. 1,99",
-    "addBtn": "Zum Inventar hinzufügen",
-    "removeBtn": "Aus Inventar entfernen",
-    "addedSuccess": "Zum Inventar hinzugefügt!"
-  },
-  "inventory": {
-    "failedToLoad": "Inventar konnte nicht geladen werden: {error}",
-    "empty": "Noch keine Artikel im Inventar.",
-    "scanCta": "Etwas scannen!"
-  },
-  "analytics": {
-    "from": "Von",
-    "to": "Bis",
-    "failedToLoad": "Analytik konnte nicht geladen werden: {error}",
-    "empty": "Noch keine Ausgabedaten. Artikel mit Preisen hinzufügen, um die Analytik zu sehen.",
-    "totalSpent": "Gesamt ausgegeben",
-    "items": "{count} Artikel"
-  }
+	"nav": {
+		"chamber": "Kammer",
+		"scan": "Scannen",
+		"inventory": "Inventar",
+		"analytics": "Analytik",
+		"docs": "API-Dokumentation"
+	},
+	"chamber": {
+		"title": "Die Kammer",
+		"statsTitle": "Kammerregister",
+		"available": "Vorrätig",
+		"required": "Nachbestellen",
+		"totalStock": "Gesamtmenge",
+		"empty": "Die Kammer ist leer.",
+		"scanCta": "Etwas hinzufügen!",
+		"close": "Schließen"
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"products": "Produkte",
+		"totalItems": "Artikel gesamt",
+		"categories": "Kategorien",
+		"scanItem": "Artikel scannen",
+		"viewInventory": "Inventar anzeigen",
+		"analytics": "Analytik"
+	},
+	"common": {
+		"loading": "Wird geladen...",
+		"unknown": "Unbekannt"
+	},
+	"scanner": {
+		"startCamera": "Kamerascan starten",
+		"scanBarcode": "Barcode scannen",
+		"stop": "Stopp",
+		"camera": "Kamera",
+		"orManual": "oder Barcode manuell eingeben",
+		"barcodePlaceholder": "EAN / Barcode eingeben",
+		"lookUp": "Suchen",
+		"cameraError": "Kamera-Zugriff verweigert: {error}",
+		"unsupported": "BarcodeDetector-API wird nicht unterstützt. Manuelle Eingabe oder Chrome/Edge verwenden."
+	},
+	"scan": {
+		"title": "Artikel scannen",
+		"categorySuggestion": "Vorgeschlagene Kategorie",
+		"applyCategory": "Übernehmen",
+		"lookingUp": "Wird gesucht...",
+		"notFound": "Kein Produkt für Barcode gefunden: {code}",
+		"failedToAdd": "Hinzufügen fehlgeschlagen: {error}",
+		"unknownProduct": "Unbekanntes Produkt",
+		"product": "Produkt",
+		"type": "Typ",
+		"addToInventory": "Zum Inventar hinzufügen",
+		"removeFromInventory": "Aus Inventar entfernen",
+		"quantity": "Menge",
+		"unitPrice": "Einzelpreis (optional)",
+		"pricePlaceholder": "z. B. 1,99",
+		"addBtn": "Zum Inventar hinzufügen",
+		"removeBtn": "Aus Inventar entfernen",
+		"addedSuccess": "Zum Inventar hinzugefügt!"
+	},
+	"category": {
+		"none": "Keine",
+		"batchLabel": "Kategorie für diesen Stapel",
+		"change": "Ändern",
+		"done": "Fertig",
+		"newPlaceholder": "Neue Kategorie...",
+		"add": "Hinzufügen",
+		"addCategory": "+ Kategorie hinzufügen",
+		"failedToSave": "Kategorie konnte nicht gespeichert werden: {error}",
+		"editIcon": "Symbol bearbeiten",
+		"iconPlaceholder": "z. B. 🥛 oder https://...",
+		"save": "Speichern"
+	},
+	"inventory": {
+		"failedToLoad": "Inventar konnte nicht geladen werden: {error}",
+		"empty": "Noch keine Artikel im Inventar.",
+		"scanCta": "Etwas scannen!"
+	},
+	"analytics": {
+		"from": "Von",
+		"to": "Bis",
+		"failedToLoad": "Analytik konnte nicht geladen werden: {error}",
+		"empty": "Noch keine Artikel. Scanne etwas, um die Analytik zu sehen.",
+		"totalSpent": "Gesamt ausgegeben",
+		"items": "{count} Artikel",
+		"itemsByCategory": "Artikel nach Kategorie",
+		"spendingByCategory": "Ausgaben nach Kategorie",
+		"itemsOverTime": "Artikel im Zeitverlauf",
+		"spendingOverTime": "Ausgaben im Zeitverlauf",
+		"itemsLabel": "Artikel",
+		"noPrices": "Noch keine Preise erfasst"
+	}
 }

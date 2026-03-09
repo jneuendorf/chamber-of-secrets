@@ -1,6 +1,6 @@
 <script lang="ts">
-	const apiBase = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
-	const docsUrl = apiBase.replace(/\/api$/, '/api/docs')
+	const apiBase = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api';
+	const docsUrl = apiBase.replace(/\/api$/, '/api/docs');
 </script>
 
 <svelte:head>

@@ -28,6 +28,7 @@ export interface Category {
 	id: number;
 	name: string;
 	parent_id: number | null;
+	icon: string | null;
 }
 
 export interface EANLookupResult {
@@ -54,12 +55,21 @@ export interface SpendingByCategory {
 	item_count: number;
 }
 
+export interface TimeseriesPoint {
+	date: string;
+	category: string;
+	item_count: number;
+	total_spent: number;
+}
+
 export const api = {
 	products: {
 		list: () => request<Product[]>('/products/'),
 		get: (id: number) => request<Product>(`/products/${id}`),
 		create: (data: Partial<Product>) =>
 			request<Product>('/products/', { method: 'POST', body: JSON.stringify(data) }),
+		update: (id: number, data: { category_id: number | null }) =>
+			request<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 		lookupEAN: (ean: string) => request<EANLookupResult>(`/products/lookup/${ean}`)
 	},
 	transactions: {
@@ -75,8 +85,10 @@ export const api = {
 	},
 	categories: {
 		list: () => request<Category[]>('/categories/'),
-		create: (data: { name: string; parent_id?: number }) =>
-			request<Category>('/categories/', { method: 'POST', body: JSON.stringify(data) })
+		create: (data: { name: string; parent_id?: number; icon?: string }) =>
+			request<Category>('/categories/', { method: 'POST', body: JSON.stringify(data) }),
+		update: (id: number, data: { icon: string | null }) =>
+			request<Category>(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 	},
 	analytics: {
 		spending: (since?: string, until?: string) => {
@@ -85,6 +97,13 @@ export const api = {
 			if (until) params.set('until', until);
 			const qs = params.toString();
 			return request<SpendingByCategory[]>(`/analytics/spending${qs ? `?${qs}` : ''}`);
+		},
+		timeseries: (since?: string, until?: string) => {
+			const params = new URLSearchParams();
+			if (since) params.set('since', since);
+			if (until) params.set('until', until);
+			const qs = params.toString();
+			return request<TimeseriesPoint[]>(`/analytics/timeseries${qs ? `?${qs}` : ''}`);
 		}
 	}
 };

@@ -27,7 +27,9 @@
 
 <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 mb-8">
 	<div class="bg-white rounded-xl p-6 text-center shadow-sm">
-		<span class="block text-[2rem] font-bold text-[#1a1a2e]">{loading ? '...' : products.length}</span>
+		<span class="block text-[2rem] font-bold text-[#1a1a2e]"
+			>{loading ? '...' : products.length}</span
+		>
 		<span class="text-gray-500 text-sm">{$_('dashboard.products')}</span>
 	</div>
 	<div class="bg-white rounded-xl p-6 text-center shadow-sm">
