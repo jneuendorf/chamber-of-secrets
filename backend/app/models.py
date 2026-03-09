@@ -14,6 +14,7 @@ class Category(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
+    icon: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     parent: Mapped[Category | None] = relationship(
         "Category", remote_side="Category.id", back_populates="children"

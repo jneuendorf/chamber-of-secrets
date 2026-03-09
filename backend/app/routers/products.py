@@ -4,10 +4,12 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import Product, ProductRevision
 from app.schemas import (
+    CategoryRead,
     EANLookupResult,
     ProductCreate,
     ProductRead,
     ProductRevisionRead,
+    ProductUpdate,
     ProductWithStock,
 )
 from app.services.ean_lookup import lookup_ean
@@ -15,8 +17,18 @@ from app.services.ean_lookup import lookup_ean
 router = APIRouter(prefix="/products", tags=["products"])
 
 
-def _stock(product: Product) -> float:
-    return sum(t.quantity if t.type == "in" else -t.quantity for t in product.transactions)
+def _serialize(product: Product) -> ProductWithStock:
+
+    def _stock(product: Product) -> float:
+        return sum(t.quantity if t.type == "in" else -t.quantity for t in product.transactions)
+
+    return ProductWithStock(
+        **ProductRead.model_validate(product, from_attributes=True).model_dump(),
+        stock=_stock(product),
+        category=CategoryRead.model_validate(product.category, from_attributes=True)
+        if product.category
+        else None,
+    )
 
 
 def _get_or_404(product_id: int, db: Session) -> Product:
@@ -38,16 +50,13 @@ def list_products(db: Session = Depends(get_db)) -> list[ProductWithStock]:
         .options(joinedload(Product.transactions), joinedload(Product.category))
         .all()
     )
-    return [
-        ProductWithStock.model_validate(p, update={"stock": _stock(p)})
-        for p in products
-    ]
+    return [_serialize(p) for p in products]
 
 
 @router.get("/{product_id}", response_model=ProductWithStock)
 def get_product(product_id: int, db: Session = Depends(get_db)) -> ProductWithStock:
     product = _get_or_404(product_id, db)
-    return ProductWithStock.model_validate(product, update={"stock": _stock(product)})
+    return _serialize(product)
 
 
 @router.post("/", response_model=ProductRead, status_code=201)
@@ -59,11 +68,20 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> Produc
     return product  # type: ignore[return-value]
 
 
+@router.patch("/{product_id}", response_model=ProductRead)
+def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(get_db)) -> ProductRead:
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    product.category_id = data.category_id
+    db.commit()
+    db.refresh(product)
+    return ProductRead.model_validate(product, from_attributes=True)
+
+
 @router.get("/lookup/{ean}")
 async def lookup_product_by_ean(
-    ean: str = Path(
-        openapi_examples={"haribo": {"summary": "Nutella", "value": "4008400404127"}}
-    ),
+    ean: str = Path(openapi_examples={"haribo": {"summary": "Nutella", "value": "4008400404127"}}),
     db: Session = Depends(get_db),
 ) -> EANLookupResult:
     # Cache hit: product already in the local catalog
@@ -74,6 +92,7 @@ async def lookup_product_by_ean(
             name=cached.name,
             brand=cached.brand,
             image_url=cached.image_url,
+            category=cached.category.name if cached.category else None,
             from_cache=True,
         )
 

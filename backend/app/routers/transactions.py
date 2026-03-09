@@ -21,9 +21,7 @@ def list_transactions(
 
 
 @router.post("/", response_model=TransactionRead, status_code=201)
-def create_transaction(
-    data: TransactionCreate, db: Session = Depends(get_db)
-) -> TransactionRead:
+def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)) -> TransactionRead:
     if not db.get(Product, data.product_id):
         raise HTTPException(status_code=404, detail="Product not found")
 

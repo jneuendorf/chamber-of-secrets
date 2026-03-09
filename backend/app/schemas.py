@@ -9,12 +9,18 @@ from pydantic import BaseModel
 class CategoryCreate(BaseModel):
     name: str
     parent_id: int | None = None
+    icon: str | None = None
+
+
+class CategoryUpdate(BaseModel):
+    icon: str | None = None
 
 
 class CategoryRead(BaseModel):
     id: int
     name: str
     parent_id: int | None
+    icon: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -28,6 +34,10 @@ class ProductCreate(BaseModel):
     brand: str | None = None
     category_id: int | None = None
     image_url: str | None = None
+
+
+class ProductUpdate(BaseModel):
+    category_id: int | None = None
 
 
 class ProductRead(BaseModel):
@@ -101,3 +111,10 @@ class SpendingByCategory(BaseModel):
     category: str
     total_spent: float
     item_count: int
+
+
+class TimeseriesPoint(BaseModel):
+    date: str  # "YYYY-MM-DD"
+    category: str
+    item_count: int
+    total_spent: float
