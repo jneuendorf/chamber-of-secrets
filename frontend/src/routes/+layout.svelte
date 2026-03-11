@@ -17,8 +17,8 @@
     <title>Chamber of Secrets</title>
 </svelte:head>
 
-<div class="min-h-screen">
-    <nav class="bg-[#1a1a2e] text-white px-6 flex items-center gap-8 h-12">
+<div class="layout-root" class:chamber-bg={page.url.pathname === "/chamber"}>
+    <nav class="site-nav bg-[#1a1a2e] text-white px-6 flex items-center gap-8 h-12">
         <a href="/" class="font-bold text-[1.1rem] text-white no-underline">Chamber of Secrets</a>
         <ul class="list-none flex gap-4 m-0 p-0 flex-1">
             <li>
@@ -60,12 +60,60 @@
         <LocaleSwitcher />
     </nav>
 
-    <main class="max-w-[960px] mx-auto p-6">
-        {@render children()}
+    <main class="content-root">
+        <div
+            class:content-shell={page.url.pathname !== "/chamber"}
+            class:chamber-shell={page.url.pathname === "/chamber"}
+        >
+            {@render children()}
+        </div>
     </main>
 </div>
 
 <style>
+    .layout-root {
+        min-height: 100vh;
+        background: white;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .site-nav {
+        position: relative;
+        z-index: 10;
+        flex: 0 0 auto;
+    }
+
+    .content-root {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .chamber-bg .content-root {
+        background:
+            url("/chamber-background.png") center / contain no-repeat,
+            radial-gradient(
+                ellipse at center,
+                rgb(57, 47, 25) 0%,
+                rgb(48, 39, 21) 72%,
+                rgb(28, 22, 12) 100%
+            );
+    }
+
+    .content-shell {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1.5rem;
+    }
+
+    .chamber-shell {
+        max-width: none;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
     .nav-link {
         color: #d1d5db;
         text-decoration: none;

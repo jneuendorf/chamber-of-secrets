@@ -22,6 +22,7 @@ from app.models import Category, InventoryTransaction, Product, ProductRevision
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "food_catalog.json"
 SEED_DAYS_SPAN = 30
+SEED_STOCK_MULTIPLIER = 3
 
 
 def main() -> None:
@@ -78,7 +79,7 @@ def main() -> None:
             session.add(product)
             session.flush()
 
-            stock = int(prod_def.get("stock", 0))
+            stock = int(prod_def.get("stock", 0)) * SEED_STOCK_MULTIPLIER
             if stock > 0:
                 # Deterministic but varied dates for analytics charts.
                 day_offset = idx % SEED_DAYS_SPAN

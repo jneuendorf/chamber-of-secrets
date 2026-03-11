@@ -2,6 +2,8 @@
     import { _ } from "svelte-i18n";
     import { api, type Product } from "$lib/api/client";
 
+    // const BG_ASPECT_RATIO = 1536 / 1024;
+
     let products: Product[] = $state([]);
     let loading = $state(true);
     let error = $state("");
@@ -105,26 +107,39 @@
         return h;
     }
 
-    // Cluster zones: natural spots in the dungeon scene.
-    // (x%, y%) as % of the canvas. Avoids the centre-top where the snake sits.
-    const ZONES = [
-        { cx: 10, cy: 62 }, // left chest pile
-        { cx: 18, cy: 74 }, // left floor
-        { cx: 6, cy: 81 }, // far-left corner
-        { cx: 32, cy: 70 }, // centre-left floor
-        { cx: 50, cy: 76 }, // centre floor (bags)
-        { cx: 66, cy: 70 }, // centre-right floor
-        { cx: 78, cy: 62 }, // right barrel area
-        { cx: 84, cy: 74 }, // right floor
-        { cx: 91, cy: 81 }, // far-right corner
-    ];
+    // Seeded PRNG (mulberry32) and Box-Muller for stable but well-spread randomness.
+    // Motivation:
+    // - We need deterministic placement (stable across reloads).
+    // - But we also need enough variance so points do not collapse visually.
+    // - A seeded PRNG gives independent uniform samples from one integer seed.
+    function mulberry32(seed: number): () => number {
+        let t = seed >>> 0;
+        return () => {
+            t += 0x6d2b79f5;
+            let x = Math.imul(t ^ (t >>> 15), 1 | t);
+            x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+            return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+        };
+    }
 
-    // Box-Muller: two independent standard normals from one hash seed
-    function boxMuller(seed: number): [number, number] {
-        const u1 = ((seed & 0xffff) + 1) / 65537;
-        const u2 = (((seed >> 16) & 0xffff) + 1) / 65537;
+    function randomNormalPair(seed: number): [number, number] {
+        const rand = mulberry32(seed);
+        const u1 = Math.max(rand(), 1e-12);
+        const u2 = rand();
         const r = Math.sqrt(-2 * Math.log(u1));
         return [r * Math.cos(2 * Math.PI * u2), r * Math.sin(2 * Math.PI * u2)];
+    }
+
+    function clamp(v: number, lo: number, hi: number): number {
+        return Math.max(lo, Math.min(hi, v));
+    }
+
+    // Unnormalized Gaussian bell at position x.
+    // We use it only as a relative "lift factor" (center higher, edges lower),
+    // so no normalization constant is required.
+    function normalPdf(x: number, mu: number, sigma: number): number {
+        const z = (x - mu) / sigma;
+        return Math.exp(-0.5 * z * z);
     }
 
     interface EmojiDot {
@@ -162,11 +177,38 @@
         })(),
     );
 
-    // Build one pile per category using angle-of-repose positioning.
-    // Items at the centre of a pile are elevated; edges taper to the floor.
-    function buildPile(catName: string, items: Product[]): EmojiDot[] {
-        const zone = ZONES[hash(catName) % ZONES.length];
+    // Build 2D piles: categories get x-centers based on a normal-distribution quantile,
+    // and each category forms a Gaussian blob that sits on the chamber floor.
+    function buildPile(
+        catName: string,
+        items: Product[],
+        catIndex: number,
+        catCount: number,
+    ): EmojiDot[] {
         const dots: EmojiDot[] = [];
+
+        // Map category rank -> horizontal center in screen-percent coordinates.
+        // Units:
+        // - x/y are percentages of the full scene (CSS left/top in %).
+        // - So x=50 means middle of viewport width.
+        //
+        // We transform rank to a soft S-curve so categories cluster naturally near center
+        // with thinner tails near the sides (normal-like spacing without true inverse-erf).
+        //
+        // Scene wrapper matches visible image width, so x can safely span 0..100%.
+        // We keep a tiny inner padding so large emojis don't clip against hard edges.
+        const safetyPadding = 5;
+        const safeLeft = safetyPadding;
+        const safeRight = 100 - safetyPadding;
+
+        const u = (catIndex + 0.5) / Math.max(1, catCount);
+        const centered = (u - 0.5) * 2; // -1..1
+        const gaussLike = centered / Math.sqrt(1 + 0.6 * centered * centered); // soft S-shape
+        const cx = safeLeft + ((gaussLike + 1) / 2) * (safeRight - safeLeft);
+
+        // Floor line in scene-percent coordinates.
+        // Keep it above the bottom and inside visible image content.
+        const floorY = 85;
 
         for (const product of items) {
             const catIcon = product.category?.icon ?? null;
@@ -179,26 +221,28 @@
             const count = isDepleted ? 1 : emojiCount(product.stock);
 
             for (let i = 0; i < count; i++) {
-                const seed = hash(catName + String(product.id) + String(i));
-                const [gx, gy] = boxMuller(seed);
+                // Mix seed components more aggressively to avoid near-identical streams.
+                const seed = hash(`${catName}|${product.id}|${i}|${count}|${catIndex}`);
+                const [gx, gy] = randomNormalPair(seed);
 
-                // σx grows with pile size so later items spread further out
-                const n = dots.length;
-                const σx = Math.min(2 + Math.sqrt(n + 1) * 1.2, 8);
-                const xOff = gx * σx;
+                // gx/gy are standard normal values (roughly -3..3 typical).
+                // Scale factors convert those to percentage offsets on screen.
+                // Wider x spread avoids "single emoji" collapse.
+                const x = clamp(cx + gx * 12.5, safeLeft, safeRight);
 
-                // Angle of repose (≈30°, tan≈0.58): edges fall to floor,
-                // centre rises. Negative yOff = higher on screen.
-                const SLOPE = 0.58;
-                const heapH = Math.min(3 + n * 0.25, 10);
-                const yOff = -Math.max(0, heapH - Math.abs(xOff) * SLOPE) + gy * 0.5;
+                // Vertical model:
+                // - centerLift raises points near pile center (smaller y -> visually higher)
+                // - gy term adds random depth/stack variation.
+                // Clamps keep dots in the visible chamber/floor region, especially on short viewports.
+                const centerLift = normalPdf(x, cx, 10.5) * 11.5;
+                const y = clamp(floorY - centerLift + gy * 4.6, 60, floorY);
 
                 dots.push({
                     emoji,
                     isUrl: urlEmoji,
                     src: urlEmoji ? catIcon! : "",
-                    x: Math.max(2, Math.min(96, zone.cx + xOff)),
-                    y: Math.max(46, Math.min(90, zone.cy + yOff)),
+                    x,
+                    y,
                     z: 0,
                     depleted: isDepleted,
                     title: `${product.name}${product.stock > 0 ? ` ×${product.stock}` : " (depleted)"}`,
@@ -206,20 +250,19 @@
             }
         }
 
-        // Items higher on screen (smaller y) are at the pile peak → render in front
-        if (dots.length > 0) {
-            const maxY = Math.max(...dots.map((d) => d.y));
-            const minY = Math.min(...dots.map((d) => d.y));
-            const range = maxY - minY || 1;
-            for (const d of dots) {
-                d.z = Math.round(((maxY - d.y) / range) * 30) + 1;
-            }
+        // Painter's order / layering:
+        // Larger y (closer to floor / bottom of screen) should render in front.
+        // Keep z-index intentionally low so modal layers can stay above.
+        for (const d of dots) {
+            d.z = Math.round((d.y - 50) * 0.8) + catIndex;
         }
 
         return dots;
     }
 
-    let allDots = $derived(grouped.flatMap(([catName, items]) => buildPile(catName, items)));
+    let allDots = $derived(
+        grouped.flatMap(([catName, items], idx) => buildPile(catName, items, idx, grouped.length)),
+    );
 
     let available = $derived(products.filter((p) => p.stock > 0).length);
     let depleted = $derived(products.filter((p) => p.stock <= 0).length);
@@ -231,11 +274,6 @@
 </script>
 
 <div class="chamber-root">
-    <!-- Title floats over the scene -->
-    <!-- <header class="chamber-header">
-		<h1 class="chamber-title">⚗️ {$_('chamber.title')} 🗝️</h1>
-	</header> -->
-
     {#if loading}
         <p class="state-msg">{$_("common.loading")}</p>
     {:else if error}
@@ -247,23 +285,27 @@
             <a href="/scan" class="cta-link">{$_("chamber.scanCta")}</a>
         </div>
     {:else}
-        <!-- Full-scene canvas: one emoji per dot, angle-of-repose piles per category -->
-        <div class="scene">
-            {#each allDots as dot}
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <span
-                    class="e pile-dot"
-                    class:depleted-dot={dot.depleted}
-                    style="left:{dot.x}%;top:{dot.y}%;z-index:{dot.z}"
-                    title={dot.title}
-                >
-                    {#if dot.isUrl}
-                        <img src={dot.src} alt="" class="img-e" />
-                    {:else}
-                        {dot.emoji}
-                    {/if}
-                </span>
-            {/each}
+        <!-- Full-scene canvas: one emoji per dot, 2D Gaussian piles per category -->
+        <div class="scene-frame">
+            <div class="scene">
+                <div class="item-piles">
+                    {#each allDots as dot}
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <span
+                            class="e pile-dot"
+                            class:depleted-dot={dot.depleted}
+                            style="left:{dot.x}%;top:{dot.y}%;z-index:{dot.z}"
+                            title={dot.title}
+                        >
+                            {#if dot.isUrl}
+                                <img src={dot.src} alt="" class="img-e" />
+                            {:else}
+                                {dot.emoji}
+                            {/if}
+                        </span>
+                    {/each}
+                </div>
+            </div>
         </div>
     {/if}
 </div>
@@ -320,54 +362,52 @@
 {/if}
 
 <style>
-    /* ---- Background: snake always visible at top ---- */
-    .chamber-root::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: url("/chamber-background.png") top center / cover no-repeat;
-        background-color: #0a0a14;
-        z-index: -1;
-    }
-
     /* ---- Root: full viewport canvas ---- */
     .chamber-root {
-        margin: -1.5rem;
+        min-height: calc(100vh - 3rem);
         height: calc(100vh - 3rem);
         overflow: hidden;
         position: relative;
         color: #e0e0ff;
     }
 
-    /* ---- Floating title ---- */
-    .chamber-header {
-        position: absolute;
-        top: 1rem;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 5;
-        white-space: nowrap;
-    }
-
-    .chamber-title {
-        display: inline-block;
-        margin: 0;
-        font-size: clamp(1.1rem, 3.5vw, 1.7rem);
-        font-weight: 900;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: #ffd700;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 1);
-        background: rgba(0, 0, 0, 0.55);
-        padding: 0.4rem 1.2rem;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 215, 0, 0.3);
-    }
-
-    /* ---- Scene canvas ---- */
-    .scene {
+    .scene-frame {
         position: absolute;
         inset: 0;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        background:
+            radial-gradient(
+                ellipse at center,
+                rgba(57, 47, 25, 0) 56%,
+                rgba(38, 31, 16, 0.38) 84%,
+                rgba(24, 19, 10, 0.72) 100%
+            ),
+            radial-gradient(
+                ellipse at center,
+                rgb(57, 47, 25) 0%,
+                rgb(48, 39, 21) 72%,
+                rgb(28, 22, 12) 100%
+            );
+    }
+
+    /* ---- Floating title ---- */
+    /* ---- Scene canvas ---- */
+    .scene {
+        position: relative;
+        width: min(100%, calc(100vh * 1.5));
+        height: 100%;
+        z-index: 1;
+        background: url("/chamber-background.png") center / contain no-repeat;
+    }
+
+    /* ---- Item piles ---- */
+    .item-piles {
+        position: relative;
+        width: 90%;
+        height: 100%;
+        left: 5%;
     }
 
     /* ---- Individual emoji dot ---- */
@@ -385,14 +425,15 @@
     }
 
     .e {
-        font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+        /* Height-driven so icons shrink on short screens, but grow more on tall screens */
+        font-size: clamp(1.8rem, 5.4vh, 4.3rem);
     }
 
     .img-e {
-        width: clamp(1.2rem, 2.2vw, 1.6rem);
-        height: clamp(1.2rem, 2.2vw, 1.6rem);
+        width: clamp(1.8rem, 5.4vh, 4.3rem);
+        height: clamp(1.8rem, 5.4vh, 4.3rem);
         object-fit: cover;
-        border-radius: 3px;
+        border-radius: 6px;
         display: inline-block;
     }
 
@@ -473,7 +514,7 @@
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.72);
-        z-index: 50;
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
