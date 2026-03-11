@@ -57,7 +57,8 @@
 		"pricePlaceholder": "z. B. 1,99",
 		"addBtn": "Zum Inventar hinzufügen",
 		"removeBtn": "Aus Inventar entfernen",
-		"addedSuccess": "Zum Inventar hinzugefügt!"
+		"addedSuccess": "Zum Inventar hinzugefügt!",
+		"scanNext": "Nächsten Artikel scannen"
 	},
 	"category": {
 		"none": "Keine",

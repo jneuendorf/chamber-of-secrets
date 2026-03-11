@@ -6,7 +6,7 @@
 	let { onScan }: { onScan: (code: string) => void } = $props();
 
 	let videoEl: HTMLVideoElement | undefined = $state();
-	let stream: MediaStream | null = $state(null);
+	let stream: MediaStream | null = null;
 	let scanning = $state(false);
 	let modalOpen = $state(false);
 	let error = $state('');

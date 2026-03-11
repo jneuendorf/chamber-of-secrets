@@ -57,7 +57,8 @@
 		"pricePlaceholder": "e.g. 1.99",
 		"addBtn": "Add to Inventory",
 		"removeBtn": "Remove from Inventory",
-		"addedSuccess": "Added to inventory!"
+		"addedSuccess": "Added to inventory!",
+		"scanNext": "Scan next item"
 	},
 	"category": {
 		"none": "None",

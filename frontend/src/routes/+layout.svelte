@@ -1,15 +1,19 @@
 <script lang="ts">
-	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte';
 	import { _ } from 'svelte-i18n';
+
+	import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte';
 	import { page } from '$app/state';
+	import '../app.css';
 
 	let { children } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+	<link rel="icon" href="/favicon.ico" />
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+	<meta name="apple-mobile-web-app-title" content="ChamberOfSecrets" />
+	<link rel="manifest" href="/site.webmanifest" />
 	<title>Chamber of Secrets</title>
 </svelte:head>
 

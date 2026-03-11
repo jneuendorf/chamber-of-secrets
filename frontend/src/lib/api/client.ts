@@ -62,6 +62,14 @@ export interface TimeseriesPoint {
 	total_spent: number;
 }
 
+function dateRange(since?: string, until?: string): string {
+	const params = new URLSearchParams();
+	if (since) params.set('since', since);
+	if (until) params.set('until', until);
+	const qs = params.toString();
+	return qs ? `?${qs}` : '';
+}
+
 export const api = {
 	products: {
 		list: () => request<Product[]>('/products/'),
@@ -91,19 +99,9 @@ export const api = {
 			request<Category>(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 	},
 	analytics: {
-		spending: (since?: string, until?: string) => {
-			const params = new URLSearchParams();
-			if (since) params.set('since', since);
-			if (until) params.set('until', until);
-			const qs = params.toString();
-			return request<SpendingByCategory[]>(`/analytics/spending${qs ? `?${qs}` : ''}`);
-		},
-		timeseries: (since?: string, until?: string) => {
-			const params = new URLSearchParams();
-			if (since) params.set('since', since);
-			if (until) params.set('until', until);
-			const qs = params.toString();
-			return request<TimeseriesPoint[]>(`/analytics/timeseries${qs ? `?${qs}` : ''}`);
-		}
+		spending: (since?: string, until?: string) =>
+			request<SpendingByCategory[]>(`/analytics/spending${dateRange(since, until)}`),
+		timeseries: (since?: string, until?: string) =>
+			request<TimeseriesPoint[]>(`/analytics/timeseries${dateRange(since, until)}`)
 	}
 };

@@ -60,6 +60,11 @@ db-rollback steps="1":
 db-status:
     cd backend && uv run alembic current && uv run alembic history --indicate-current
 
+# seed the database with the sample food catalog (asks for confirmation if data exists)
+seed:
+    just db-migrate
+    cd backend && uv run python scripts/seed.py
+
 # lint the backend with ruff
 lint:
     cd backend && uv run ruff check app/

@@ -1,0 +1,184 @@
+{
+  "_comment": "Sample food catalog sourced from Open Food Facts (world.openfoodfacts.org). EAN codes are real product barcodes.",
+  "categories": [
+    { "name": "Milch & Eier",          "icon": "🥛" },
+    { "name": "Butter & Streichfett",  "icon": "🧈", "parent": "Milch & Eier" },
+    { "name": "Käse & Frischkäse",     "icon": "🧀", "parent": "Milch & Eier" },
+    { "name": "Joghurt & Drinks",      "icon": "🫙", "parent": "Milch & Eier" },
+    { "name": "Getränke",              "icon": "🥤" },
+    { "name": "Wasser & Softdrinks",   "icon": "💧", "parent": "Getränke" },
+    { "name": "Brot & Teigwaren",      "icon": "🍞" },
+    { "name": "Nudeln & Fertiggerichte","icon": "🍝", "parent": "Brot & Teigwaren" },
+    { "name": "Snacks & Süßigkeiten",  "icon": "🥨" }
+  ],
+  "products": [
+    {
+      "ean": "4008452010222",
+      "name": "Butter mildgesäuert",
+      "brand": "Weihenstephan",
+      "category": "Butter & Streichfett",
+      "stock": 3
+    },
+    {
+      "ean": "4001954161010",
+      "name": "Kerrygold Original Irische Butter",
+      "brand": "Kerrygold",
+      "category": "Butter & Streichfett",
+      "stock": 2
+    },
+    {
+      "ean": "4001954165018",
+      "name": "Butter extra mit Rapsöl",
+      "brand": "Kerrygold",
+      "category": "Butter & Streichfett",
+      "stock": 1
+    },
+    {
+      "ean": "7622300315733",
+      "name": "Philadelphia Original",
+      "brand": "Philadelphia",
+      "category": "Käse & Frischkäse",
+      "stock": 2
+    },
+    {
+      "ean": "4061458047685",
+      "name": "Frischkäse natur",
+      "brand": "MILSANI",
+      "category": "Käse & Frischkäse",
+      "stock": 0
+    },
+    {
+      "ean": "4025500287955",
+      "name": "Kefir",
+      "brand": "müller",
+      "category": "Joghurt & Drinks",
+      "stock": 4
+    },
+    {
+      "ean": "7394376616501",
+      "name": "Haferdrink Barista",
+      "brand": "Oatly!",
+      "category": "Joghurt & Drinks",
+      "stock": 3
+    },
+    {
+      "ean": "5411188112709",
+      "name": "Mandeldrink ungesüßt",
+      "brand": "Alpro",
+      "category": "Joghurt & Drinks",
+      "stock": 2
+    },
+    {
+      "ean": "3057640186158",
+      "name": "Volvic naturelle",
+      "brand": "Volvic",
+      "category": "Wasser & Softdrinks",
+      "stock": 8
+    },
+    {
+      "ean": "5000112546415",
+      "name": "Coca-Cola Original",
+      "brand": "Coca-Cola",
+      "category": "Wasser & Softdrinks",
+      "stock": 6
+    },
+    {
+      "ean": "5449000017888",
+      "name": "Coca-Cola 1 Liter",
+      "brand": "Coca-Cola",
+      "category": "Wasser & Softdrinks",
+      "stock": 4
+    },
+    {
+      "ean": "4029764001807",
+      "name": "Club-Mate Original",
+      "brand": "Club Mate",
+      "category": "Wasser & Softdrinks",
+      "stock": 5
+    },
+    {
+      "ean": "4066600603405",
+      "name": "Paulaner Spezi",
+      "brand": "Paulaner",
+      "category": "Wasser & Softdrinks",
+      "stock": 3
+    },
+    {
+      "ean": "8076800195057",
+      "name": "Spaghetti n°5",
+      "brand": "Barilla",
+      "category": "Nudeln & Fertiggerichte",
+      "stock": 5
+    },
+    {
+      "ean": "8852018101024",
+      "name": "Instantnudeln Hühnchen",
+      "brand": "Yum Yum",
+      "category": "Nudeln & Fertiggerichte",
+      "stock": 6
+    },
+    {
+      "ean": "8801073116467",
+      "name": "Buldak Ramen scharf",
+      "brand": "Buldak",
+      "category": "Nudeln & Fertiggerichte",
+      "stock": 3
+    },
+    {
+      "ean": "4075600055039",
+      "name": "Maultaschen schwäbisch",
+      "brand": "BÜRGER",
+      "category": "Nudeln & Fertiggerichte",
+      "stock": 2
+    },
+    {
+      "ean": "4008366008858",
+      "name": "Pappardelle Crème Spinaci",
+      "brand": "FRoSTA",
+      "category": "Nudeln & Fertiggerichte",
+      "stock": 0
+    },
+    {
+      "ean": "4003586101310",
+      "name": "Chipsfrisch ungarisch",
+      "brand": "Funny Frisch",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 4
+    },
+    {
+      "ean": "4014400400007",
+      "name": "Toffifee 15er",
+      "brand": "Storck",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 5
+    },
+    {
+      "ean": "4004980401907",
+      "name": "Erdnüsse geröstet & gesalzen",
+      "brand": "Ültje",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 3
+    },
+    {
+      "ean": "5410041001204",
+      "name": "Tuc Original",
+      "brand": "LU",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 2
+    },
+    {
+      "ean": "4017100706004",
+      "name": "Saltletts Sticks",
+      "brand": "Lorenz",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 4
+    },
+    {
+      "ean": "4001518117316",
+      "name": "Prinzenrolle Schoko",
+      "brand": "DeBeukelaer",
+      "category": "Snacks & Süßigkeiten",
+      "stock": 0
+    }
+  ]
+}
