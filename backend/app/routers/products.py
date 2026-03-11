@@ -69,7 +69,9 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> Produc
 
 
 @router.patch("/{product_id}", response_model=ProductRead)
-def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(get_db)) -> ProductRead:
+def update_product(
+    product_id: int, data: ProductUpdate, db: Session = Depends(get_db)
+) -> ProductRead:
     product = db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
