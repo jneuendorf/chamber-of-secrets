@@ -1,10 +1,11 @@
 {
   "nav": {
+    "brand": "Chamber of Secrets",
     "chamber": "Chamber",
     "scan": "Scan",
     "inventory": "Inventory",
     "analytics": "Analytics",
-    "docs": "API Docs"
+    "docs": "API"
   },
   "chamber": {
     "title": "The Chamber",

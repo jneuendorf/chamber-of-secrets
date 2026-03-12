@@ -1,10 +1,11 @@
 {
   "nav": {
+    "brand": "Kammer des Schreckens",
     "chamber": "Kammer",
     "scan": "Scannen",
     "inventory": "Inventar",
     "analytics": "Analytik",
-    "docs": "API-Dokumentation"
+    "docs": "API"
   },
   "chamber": {
     "title": "Die Kammer",

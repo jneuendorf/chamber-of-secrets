@@ -1,7 +1,7 @@
 <script lang="ts">
     import { locale } from "svelte-i18n";
 
-    const locales = ["en", "de"] as const;
+    const locales = ["de", "en"] as const;
 </script>
 
 <div class="flex gap-1">

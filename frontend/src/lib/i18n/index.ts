@@ -4,10 +4,10 @@ register("en", () => import("./en.json"));
 register("de", () => import("./de.json"));
 
 const supported = ["en", "de"];
-const navigatorLocale = getLocaleFromNavigator() ?? "en";
-const initialLocale = supported.find((l) => navigatorLocale.startsWith(l)) ?? "en";
+const navigatorLocale = getLocaleFromNavigator() ?? "de";
+const initialLocale = supported.find((l) => navigatorLocale.startsWith(l)) ?? "de";
 
 init({
-    fallbackLocale: "en",
+    fallbackLocale: "de",
     initialLocale,
 });

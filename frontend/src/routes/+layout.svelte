@@ -18,46 +18,52 @@
 </svelte:head>
 
 <div class="layout-root" class:chamber-bg={page.url.pathname === "/chamber"}>
-    <nav class="site-nav bg-[#1a1a2e] text-white px-6 flex items-center gap-8 h-12">
-        <a href="/" class="font-bold text-[1.1rem] text-white no-underline">Chamber of Secrets</a>
-        <ul class="list-none flex gap-4 m-0 p-0 flex-1">
-            <li>
-                <a
-                    href="/chamber"
-                    aria-current={page.url.pathname === "/chamber" ? "page" : undefined}
-                    class="nav-link">{$_("nav.chamber")}</a
-                >
-            </li>
-            <li>
-                <a
-                    href="/scan"
-                    aria-current={page.url.pathname === "/scan" ? "page" : undefined}
-                    class="nav-link">{$_("nav.scan")}</a
-                >
-            </li>
-            <li>
-                <a
-                    href="/inventory"
-                    aria-current={page.url.pathname === "/inventory" ? "page" : undefined}
-                    class="nav-link">{$_("nav.inventory")}</a
-                >
-            </li>
-            <li>
-                <a
-                    href="/analytics"
-                    aria-current={page.url.pathname === "/analytics" ? "page" : undefined}
-                    class="nav-link">{$_("nav.analytics")}</a
-                >
-            </li>
-            <li>
-                <a
-                    href="/docs"
-                    aria-current={page.url.pathname === "/docs" ? "page" : undefined}
-                    class="nav-link">{$_("nav.docs")}</a
-                >
-            </li>
-        </ul>
-        <LocaleSwitcher />
+    <nav class="site-nav bg-[#1a1a2e] text-white">
+        <div class="nav-main">
+            <a href="/" class="brand-link">{$_("nav.brand")}</a>
+            <div class="nav-links-wrap">
+                <ul class="nav-links">
+                    <li>
+                        <a
+                            href="/chamber"
+                            aria-current={page.url.pathname === "/chamber" ? "page" : undefined}
+                            class="nav-link">{$_("nav.chamber")}</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/scan"
+                            aria-current={page.url.pathname === "/scan" ? "page" : undefined}
+                            class="nav-link">{$_("nav.scan")}</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/inventory"
+                            aria-current={page.url.pathname === "/inventory" ? "page" : undefined}
+                            class="nav-link">{$_("nav.inventory")}</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/analytics"
+                            aria-current={page.url.pathname === "/analytics" ? "page" : undefined}
+                            class="nav-link">{$_("nav.analytics")}</a
+                        >
+                    </li>
+                    {#if page.url.searchParams.has("api")}
+                        <li>
+                            <a
+                                href="/docs?api"
+                                aria-current={page.url.pathname === "/docs" ? "page" : undefined}
+                                class="nav-link">{$_("nav.docs")}</a
+                            >
+                        </li>
+                    {/if}
+                </ul>
+            </div>
+            <LocaleSwitcher />
+        </div>
     </nav>
 
     <main class="content-root">
@@ -85,6 +91,86 @@
         position: relative;
         z-index: 10;
         flex: 0 0 auto;
+        padding: 0.5rem 1rem;
+    }
+
+    .nav-main {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .brand-link {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: white;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .nav-links-wrap {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 0.35rem;
+        margin: 0;
+        padding: 0;
+        min-width: max-content;
+    }
+
+    @media (max-width: 760px) {
+        .site-nav {
+            padding: 0.5rem 1rem 0.25rem;
+        }
+
+        .nav-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "brand locale"
+                "links links";
+            align-items: center;
+            row-gap: 0.35rem;
+            column-gap: 0.75rem;
+            min-height: 2.5rem;
+        }
+
+        .brand-link {
+            grid-area: brand;
+        }
+
+        .nav-main :global(.flex.gap-1) {
+            grid-area: locale;
+            justify-self: end;
+        }
+
+        .nav-links-wrap {
+            grid-area: links;
+            margin-top: 0;
+        }
+
+        .nav-links {
+            padding: 0 0 0.25rem;
+        }
+    }
+
+    @media (min-width: 761px) {
+        .nav-main :global(.flex.gap-1) {
+            margin-left: auto;
+            flex: 0 0 auto;
+        }
     }
 
     .content-root {
@@ -119,11 +205,13 @@
     }
 
     .nav-link {
+        display: inline-block;
         color: #d1d5db;
         text-decoration: none;
-        padding: 0.4rem 0.8rem;
+        padding: 0.35rem 0.7rem;
         border-radius: 6px;
         transition: background 0.2s;
+        white-space: nowrap;
     }
 
     .nav-link:hover,
