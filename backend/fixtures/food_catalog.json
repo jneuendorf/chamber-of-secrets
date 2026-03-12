@@ -1,15 +1,15 @@
 {
   "_comment": "Sample food catalog sourced from Open Food Facts (world.openfoodfacts.org). EAN codes are real product barcodes.",
   "categories": [
-    { "name": "Milch & Eier",          "icon": "🥛" },
-    { "name": "Butter & Streichfett",  "icon": "🧈", "parent": "Milch & Eier" },
-    { "name": "Käse & Frischkäse",     "icon": "🧀", "parent": "Milch & Eier" },
-    { "name": "Joghurt & Drinks",      "icon": "🫙", "parent": "Milch & Eier" },
-    { "name": "Getränke",              "icon": "🥤" },
-    { "name": "Wasser & Softdrinks",   "icon": "💧", "parent": "Getränke" },
-    { "name": "Brot & Teigwaren",      "icon": "🍞" },
-    { "name": "Nudeln & Fertiggerichte","icon": "🍝", "parent": "Brot & Teigwaren" },
-    { "name": "Snacks & Süßigkeiten",  "icon": "🥨" }
+    { "name": "Milch & Eier", "icon": "🥛" },
+    { "name": "Butter & Streichfett", "icon": "🧈", "parent": "Milch & Eier" },
+    { "name": "Käse & Frischkäse", "icon": "🧀", "parent": "Milch & Eier" },
+    { "name": "Joghurt & Drinks", "icon": "🫙", "parent": "Milch & Eier" },
+    { "name": "Getränke", "icon": "🥤" },
+    { "name": "Wasser & Softdrinks", "icon": "🧃", "parent": "Getränke" },
+    { "name": "Brot & Teigwaren", "icon": "🍞" },
+    { "name": "Nudeln & Fertiggerichte", "icon": "🍝", "parent": "Brot & Teigwaren" },
+    { "name": "Snacks & Süßigkeiten", "icon": "🍰" }
   ],
   "products": [
     {
