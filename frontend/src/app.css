@@ -3,5 +3,12 @@
 @layer base {
     body {
         @apply font-sans bg-neutral-100 text-[#1a1a1a];
+        margin: 0;
+    }
+
+    html,
+    body,
+    #svelte {
+        width: 100%;
     }
 }

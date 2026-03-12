@@ -72,7 +72,10 @@
 
 <style>
     .layout-root {
+        width: 100%;
+        min-width: 100%;
         min-height: 100vh;
+        min-height: 100dvh;
         background: white;
         display: flex;
         flex-direction: column;
@@ -87,17 +90,17 @@
     .content-root {
         flex: 1 1 auto;
         min-height: 0;
+        width: 100%;
+        overflow: hidden;
     }
 
     .chamber-bg .content-root {
-        background:
-            url("/chamber-background.png") center / contain no-repeat,
-            radial-gradient(
-                ellipse at center,
-                rgb(57, 47, 25) 0%,
-                rgb(48, 39, 21) 72%,
-                rgb(28, 22, 12) 100%
-            );
+        background: radial-gradient(
+            ellipse at center,
+            rgb(57, 47, 25) 0%,
+            rgb(48, 39, 21) 72%,
+            rgb(28, 22, 12) 100%
+        );
     }
 
     .content-shell {
@@ -109,6 +112,7 @@
     .chamber-shell {
         max-width: none;
         width: 100%;
+        min-width: 100%;
         height: 100%;
         margin: 0;
         padding: 0;

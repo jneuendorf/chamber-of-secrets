@@ -365,7 +365,9 @@
     /* ---- Root: full viewport canvas ---- */
     .chamber-root {
         min-height: calc(100vh - 3rem);
+        min-height: calc(100dvh - 3rem);
         height: calc(100vh - 3rem);
+        height: calc(100dvh - 3rem);
         overflow: hidden;
         position: relative;
         color: #e0e0ff;
@@ -373,33 +375,28 @@
 
     .scene-frame {
         position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: stretch;
-        justify-content: center;
-        background:
-            radial-gradient(
-                ellipse at center,
-                rgba(57, 47, 25, 0) 56%,
-                rgba(38, 31, 16, 0.38) 84%,
-                rgba(24, 19, 10, 0.72) 100%
-            ),
-            radial-gradient(
-                ellipse at center,
-                rgb(57, 47, 25) 0%,
-                rgb(48, 39, 21) 72%,
-                rgb(28, 22, 12) 100%
-            );
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 100%;
+        width: auto;
+        aspect-ratio: 3 / 2;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     /* ---- Floating title ---- */
     /* ---- Scene canvas ---- */
     .scene {
         position: relative;
-        width: min(100%, calc(100vh * 1.5));
+        width: 100%;
         height: 100%;
         z-index: 1;
-        background: url("/chamber-background.png") center / contain no-repeat;
+        background-image: url("/chamber-background.png");
+        background-repeat: no-repeat;
+        background-position: top center;
+        background-size: auto 100%;
+        background-clip: border-box;
     }
 
     /* ---- Item piles ---- */
