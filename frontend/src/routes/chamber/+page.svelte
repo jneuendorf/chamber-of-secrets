@@ -340,20 +340,7 @@
                     </tr>
                 </tbody>
             </table>
-            {#if grouped.length > 0}
-                <div class="divider"></div>
-                <table class="stats-table">
-                    <tbody>
-                        {#each grouped as [catName, items]}
-                            {@const catStock = items.reduce((s, p) => s + Math.max(0, p.stock), 0)}
-                            <tr>
-                                <td class="stat-cat">{catName}</td>
-                                <td class="stat-val">{catStock}</td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                </table>
-            {/if}
+
             <button class="close-btn" onclick={() => (statsOpen = false)}>
                 {$_("chamber.close")}
             </button>

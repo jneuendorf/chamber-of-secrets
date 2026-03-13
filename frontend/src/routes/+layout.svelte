@@ -46,6 +46,13 @@
                     </li>
                     <li>
                         <a
+                            href="/categories"
+                            aria-current={page.url.pathname === "/categories" ? "page" : undefined}
+                            class="nav-link">{$_("nav.categories")}</a
+                        >
+                    </li>
+                    <li>
+                        <a
                             href="/analytics"
                             aria-current={page.url.pathname === "/analytics" ? "page" : undefined}
                             class="nav-link">{$_("nav.analytics")}</a

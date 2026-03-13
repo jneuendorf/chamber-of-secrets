@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -15,6 +15,9 @@ class Category(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
     icon: Mapped[str | None] = mapped_column(Text, nullable=True)
+    restock_target: Mapped[float | None] = mapped_column(nullable=True)
+    restock_min: Mapped[float | None] = mapped_column(nullable=True)
+    restock_inherit: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     parent: Mapped[Category | None] = relationship(
         "Category", remote_side="Category.id", back_populates="children"

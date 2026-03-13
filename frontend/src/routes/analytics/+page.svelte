@@ -17,6 +17,7 @@
     import {
         api,
         type Category,
+        type RestockOverviewResponse,
         type SpendingByCategory,
         type TimeseriesPoint,
     } from "$lib/api/client";
@@ -60,6 +61,11 @@
     let spending: SpendingByCategory[] = $state([]);
     let timeseries: TimeseriesPoint[] = $state([]);
     let categories: Category[] = $state([]);
+    let restockOverview: RestockOverviewResponse | null = $state(null);
+
+    let restockOpen = $state(false);
+    let restockSort: "urgency" | "missing" | "name" = $state("urgency");
+
     let loading = $state(true);
     let error = $state("");
     let since = $state(toISODate(monthStart));
@@ -69,10 +75,11 @@
         loading = true;
         error = "";
         try {
-            [spending, timeseries, categories] = await Promise.all([
+            [spending, timeseries, categories, restockOverview] = await Promise.all([
                 api.analytics.spending(since || undefined, until || undefined),
                 api.analytics.timeseries(since || undefined, until || undefined),
                 api.categories.list(),
+                api.analytics.restockOverview(),
             ]);
         } catch (e) {
             error = get(_)("analytics.failedToLoad", { values: { error: String(e) } });
@@ -86,6 +93,40 @@
     });
 
     type Agg = { category: string; total_spent: number; item_count: number };
+
+    function fmtQty(value: number): string {
+        return Number.isInteger(value) ? String(value) : value.toFixed(2);
+    }
+
+    function fmtMaybe(value: number | null): string {
+        return value == null ? "—" : fmtQty(value);
+    }
+
+    let sortedRestockRows = $derived.by(() => {
+        const rows = restockOverview?.rows ?? [];
+        const copy = [...rows];
+
+        if (restockSort === "missing") {
+            copy.sort((a, b) =>
+                b.missing_to_target === a.missing_to_target
+                    ? Number(b.below_min) - Number(a.below_min)
+                    : b.missing_to_target - a.missing_to_target,
+            );
+            return copy;
+        }
+
+        if (restockSort === "name") {
+            copy.sort((a, b) => a.name.localeCompare(b.name));
+            return copy;
+        }
+
+        copy.sort((a, b) =>
+            Number(b.below_min) === Number(a.below_min)
+                ? b.missing_to_target - a.missing_to_target
+                : Number(b.below_min) - Number(a.below_min),
+        );
+        return copy;
+    });
 
     let categoryByName = $derived(new Map(categories.map((c) => [c.name, c])));
     let categoryById = $derived(new Map(categories.map((c) => [c.id, c])));
@@ -383,65 +424,63 @@
 
 <h1 class="mt-0">{$_("nav.analytics")}</h1>
 
-<div class="flex gap-4 mb-6 flex-wrap">
-    <label class="flex flex-col gap-1 text-[0.85rem] text-gray-500">
+<div class="filters">
+    <label class="date-field">
         {$_("analytics.from")}
-        <input type="date" bind:value={since} class="p-2 border border-gray-300 rounded-md" />
+        <input type="date" bind:value={since} />
     </label>
-    <label class="flex flex-col gap-1 text-[0.85rem] text-gray-500">
+    <label class="date-field">
         {$_("analytics.to")}
-        <input type="date" bind:value={until} class="p-2 border border-gray-300 rounded-md" />
+        <input type="date" bind:value={until} />
     </label>
+</div>
+
+<div class="restock-summary">
+    <div class="summary-text">
+        Total units to buy:
+        <strong>{fmtQty(restockOverview?.total_missing_quantity ?? 0)}</strong>
+    </div>
+    <button class="restock-btn" onclick={() => (restockOpen = true)}>Restock overview</button>
 </div>
 
 {#if loading}
     <p>{$_("common.loading")}</p>
 {:else if error}
-    <p class="text-[#e74c3c]">{error}</p>
+    <p class="error">{error}</p>
 {:else if spending.length === 0}
-    <p class="text-center text-gray-500 my-12">{$_("analytics.empty")}</p>
+    <p class="empty">{$_("analytics.empty")}</p>
 {:else}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Pane: Categories -->
-        <section class="bg-[#fafafa] rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h2 class="text-base font-semibold text-[#1a1a2e] mt-0 mb-4">Items / Categories</h2>
-
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 class="text-center text-sm font-semibold text-gray-600 mt-0 mb-4">
-                        Child Categories — {$_("analytics.itemsByCategory")}
-                    </h3>
-                    <div class="relative h-56">
+        <section class="pane">
+            <h2>Items / Categories</h2>
+            <div class="stack">
+                <div class="card">
+                    <h3>Child Categories — {$_("analytics.itemsByCategory")}</h3>
+                    <div class="chart-wrap">
                         <canvas bind:this={childItemsDonutCanvas}></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 class="text-center text-sm font-semibold text-gray-600 mt-0 mb-4">
-                        Parent Categories — {$_("analytics.itemsByCategory")}
-                    </h3>
-                    <div class="relative h-56">
+                <div class="card">
+                    <h3>Parent Categories — {$_("analytics.itemsByCategory")}</h3>
+                    <div class="chart-wrap">
                         <canvas bind:this={parentItemsDonutCanvas}></canvas>
                     </div>
                 </div>
 
                 {#if childTsDates.length > 0}
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-gray-600 mt-0 mb-4">
-                            Child Categories — {$_("analytics.itemsOverTime")}
-                        </h3>
-                        <div class="relative h-56">
+                    <div class="card">
+                        <h3>Child Categories — {$_("analytics.itemsOverTime")}</h3>
+                        <div class="chart-wrap">
                             <canvas bind:this={childItemsLineCanvas}></canvas>
                         </div>
                     </div>
                 {/if}
 
                 {#if parentTsDates.length > 0}
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-gray-600 mt-0 mb-4">
-                            Parent Categories — {$_("analytics.itemsOverTime")}
-                        </h3>
-                        <div class="relative h-56">
+                    <div class="card">
+                        <h3>Parent Categories — {$_("analytics.itemsOverTime")}</h3>
+                        <div class="chart-wrap">
                             <canvas bind:this={parentItemsLineCanvas}></canvas>
                         </div>
                     </div>
@@ -449,53 +488,39 @@
             </div>
         </section>
 
-        <!-- Pane: Spendings -->
-        <section class="bg-[#fafafa] rounded-2xl p-4 sm:p-6 border border-gray-200">
-            <h2 class="text-base font-semibold text-[#1a1a2e] mt-0 mb-4">Spendings</h2>
-
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 class="text-center text-sm font-semibold text-gray-600 mt-0 mb-4">
-                        {$_("analytics.spendingByCategory")}
-                    </h3>
+        <section class="pane">
+            <h2>Spendings</h2>
+            <div class="stack">
+                <div class="card">
+                    <h3>{$_("analytics.spendingByCategory")}</h3>
                     {#if childSpendingWithPrice.length === 0}
-                        <p class="text-center text-gray-400 text-sm my-8">
-                            {$_("analytics.noPrices")}
-                        </p>
+                        <p class="muted">{$_("analytics.noPrices")}</p>
                     {:else}
-                        <div class="relative h-56">
+                        <div class="chart-wrap">
                             <canvas bind:this={spendingDonutCanvas}></canvas>
                         </div>
                     {/if}
                 </div>
 
                 {#if childTsDates.length > 0}
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-gray-600 mt-0 mb-4">
-                            {$_("analytics.spendingOverTime")}
-                        </h3>
-                        <div class="relative h-56">
+                    <div class="card">
+                        <h3>{$_("analytics.spendingOverTime")}</h3>
+                        <div class="chart-wrap">
                             <canvas bind:this={spendingLineCanvas}></canvas>
                         </div>
                     </div>
                 {/if}
 
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <h3 class="text-center text-sm font-semibold text-gray-600 mt-0 mb-4">
-                        Parent Categories — {$_("analytics.spendingByCategory")}
-                    </h3>
+                <div class="card">
+                    <h3>Parent Categories — {$_("analytics.spendingByCategory")}</h3>
                     {#if parentSpendingWithPrice.length === 0}
-                        <p class="text-center text-gray-400 text-sm my-8">
-                            {$_("analytics.noPrices")}
-                        </p>
+                        <p class="muted">{$_("analytics.noPrices")}</p>
                     {:else}
-                        <ul class="m-0 p-0 list-none divide-y divide-gray-100">
+                        <ul class="parent-list">
                             {#each parentSpendingWithPrice as row}
-                                <li class="py-2 flex items-center justify-between text-sm">
-                                    <span class="text-gray-700">{row.category}</span>
-                                    <span class="font-medium text-[#1a1a2e]"
-                                        >€{row.total_spent.toFixed(2)}</span
-                                    >
+                                <li>
+                                    <span>{row.category}</span>
+                                    <strong>€{row.total_spent.toFixed(2)}</strong>
                                 </li>
                             {/each}
                         </ul>
@@ -505,3 +530,375 @@
         </section>
     </div>
 {/if}
+
+{#if restockOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div class="restock-backdrop" onclick={() => (restockOpen = false)}>
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="restock-modal" onclick={(e) => e.stopPropagation()}>
+            <div class="restock-head">
+                <h2>Restock overview</h2>
+                <button class="icon-btn" onclick={() => (restockOpen = false)}>✕</button>
+            </div>
+
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="kpi-label">Total units to buy</div>
+                    <div class="kpi-value">
+                        {fmtQty(restockOverview?.total_missing_quantity ?? 0)}
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-label">Products needing restock</div>
+                    <div class="kpi-value">
+                        {restockOverview?.total_products_needing_restock ?? 0}
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <label>
+                    Sort by
+                    <select bind:value={restockSort}>
+                        <option value="urgency">Urgency</option>
+                        <option value="missing">Missing quantity</option>
+                        <option value="name">Name</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="restock-layout">
+                <section class="panel">
+                    <h3>Products needing restock</h3>
+                    {#if !restockOverview || sortedRestockRows.length === 0}
+                        <p class="muted">No restock-needed products right now.</p>
+                    {:else}
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Stock</th>
+                                        <th>Target</th>
+                                        <th>Min</th>
+                                        <th>Missing</th>
+                                        <th>Urgent</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {#each sortedRestockRows as row (row.id)}
+                                        <tr>
+                                            <td>{row.name}</td>
+                                            <td>{row.category_name}</td>
+                                            <td>{fmtQty(row.current_stock)}</td>
+                                            <td>{fmtMaybe(row.effective_target)}</td>
+                                            <td>{fmtMaybe(row.effective_min)}</td>
+                                            <td>{fmtQty(row.missing_to_target)}</td>
+                                            <td>{row.below_min ? "⚠️" : "—"}</td>
+                                        </tr>
+                                    {/each}
+                                </tbody>
+                            </table>
+                        </div>
+                    {/if}
+                </section>
+
+                <section class="panel">
+                    <h3>Child category totals</h3>
+                    <ul class="totals">
+                        {#each restockOverview?.by_child_category ?? [] as g}
+                            <li>
+                                <span>{g.category_name}</span>
+                                <strong
+                                    >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
+                                >
+                            </li>
+                        {/each}
+                    </ul>
+
+                    <h3 class="mt">Parent category totals</h3>
+                    <ul class="totals">
+                        {#each restockOverview?.by_parent_category ?? [] as g}
+                            <li>
+                                <span>{g.category_name}</span>
+                                <strong
+                                    >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
+                                >
+                            </li>
+                        {/each}
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+{/if}
+
+<style>
+    .filters {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+    }
+
+    .date-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .date-field input {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.4rem;
+    }
+
+    .restock-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .restock-btn {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #1a1a2e;
+        border-radius: 0.5rem;
+        padding: 0.45rem 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .summary-text {
+        color: #4b5563;
+        font-size: 0.9rem;
+    }
+
+    .error {
+        color: #e74c3c;
+    }
+
+    .empty {
+        text-align: center;
+        color: #6b7280;
+        margin: 3rem 0;
+    }
+
+    .pane {
+        background: #fafafa;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .pane h2 {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        color: #1a1a2e;
+    }
+
+    .stack {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 0.8rem;
+        padding: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .card h3 {
+        margin: 0 0 0.8rem;
+        font-size: 0.9rem;
+        color: #4b5563;
+    }
+
+    .chart-wrap {
+        position: relative;
+        height: 14rem;
+    }
+
+    .parent-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .parent-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.45rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .muted {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+    }
+
+    .restock-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .restock-modal {
+        width: min(1200px, 100%);
+        max-height: calc(100vh - 2rem);
+        overflow: auto;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.9rem;
+        padding: 1rem;
+    }
+
+    .restock-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .restock-head h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #1a1a2e;
+    }
+
+    .icon-btn {
+        border: 0;
+        background: #f3f4f6;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.45rem;
+        cursor: pointer;
+    }
+
+    .kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .kpi {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.6rem;
+        padding: 0.7rem;
+        background: #fafafa;
+    }
+
+    .kpi-label {
+        font-size: 0.78rem;
+        color: #6b7280;
+    }
+
+    .kpi-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-top: 0.1rem;
+    }
+
+    .controls {
+        margin-bottom: 0.8rem;
+    }
+
+    .controls label {
+        display: inline-flex;
+        gap: 0.5rem;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #4b5563;
+    }
+
+    .controls select {
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.35rem 0.45rem;
+    }
+
+    .restock-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .panel {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.7rem;
+        padding: 0.75rem;
+    }
+
+    .panel h3 {
+        margin: 0 0 0.55rem;
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+    .mt {
+        margin-top: 1rem !important;
+    }
+
+    .table-wrap {
+        overflow: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+    }
+
+    th,
+    td {
+        text-align: left;
+        padding: 0.45rem;
+        border-bottom: 1px solid #f3f4f6;
+        white-space: nowrap;
+    }
+
+    th {
+        background: #fafafa;
+        color: #6b7280;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+    }
+
+    .totals {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .totals li {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.38rem 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 900px) {
+        .restock-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

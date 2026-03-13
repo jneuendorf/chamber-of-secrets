@@ -29,6 +29,9 @@ export interface Category {
     name: string;
     parent_id: number | null;
     icon: string | null;
+    restock_target: number | null;
+    restock_min: number | null;
+    restock_inherit: boolean;
 }
 
 export interface EANLookupResult {
@@ -60,6 +63,36 @@ export interface TimeseriesPoint {
     category: string;
     item_count: number;
     total_spent: number;
+}
+
+export interface RestockOverviewRow {
+    id: number;
+    name: string;
+    brand: string | null;
+    category_id: number | null;
+    category_name: string;
+    current_stock: number;
+    effective_target: number | null;
+    effective_min: number | null;
+    resolved_from_category_id: number | null;
+    missing_to_target: number;
+    below_min: boolean;
+    needs_restock: boolean;
+}
+
+export interface RestockGroupTotal {
+    category_id: number | null;
+    category_name: string;
+    total_missing_to_target: number;
+    affected_products: number;
+}
+
+export interface RestockOverviewResponse {
+    rows: RestockOverviewRow[];
+    total_missing_quantity: number;
+    total_products_needing_restock: number;
+    by_child_category: RestockGroupTotal[];
+    by_parent_category: RestockGroupTotal[];
 }
 
 function dateRange(since?: string, until?: string): string {
@@ -94,9 +127,25 @@ export const api = {
     },
     categories: {
         list: () => request<Category[]>("/categories/"),
-        create: (data: { name: string; parent_id?: number; icon?: string }) =>
-            request<Category>("/categories/", { method: "POST", body: JSON.stringify(data) }),
-        update: (id: number, data: { icon: string | null }) =>
+        create: (data: {
+            name: string;
+            parent_id?: number | null;
+            icon?: string | null;
+            restock_target?: number | null;
+            restock_min?: number | null;
+            restock_inherit?: boolean;
+        }) => request<Category>("/categories/", { method: "POST", body: JSON.stringify(data) }),
+        update: (
+            id: number,
+            data: {
+                name?: string;
+                parent_id?: number | null;
+                icon?: string | null;
+                restock_target?: number | null;
+                restock_min?: number | null;
+                restock_inherit?: boolean;
+            },
+        ) =>
             request<Category>(`/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     },
     analytics: {
@@ -104,5 +153,9 @@ export const api = {
             request<SpendingByCategory[]>(`/analytics/spending${dateRange(since, until)}`),
         timeseries: (since?: string, until?: string) =>
             request<TimeseriesPoint[]>(`/analytics/timeseries${dateRange(since, until)}`),
+        restockOverview: (includeAllProducts = false) =>
+            request<RestockOverviewResponse>(
+                `/analytics/restock-overview${includeAllProducts ? "?include_all_products=true" : ""}`,
+            ),
     },
 };

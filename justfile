@@ -65,6 +65,10 @@ seed:
     just db-migrate
     cd backend && uv run python scripts/seed.py
 
+# run backend unit tests
+test-backend:
+    cd backend && uv run python -m unittest discover -s tests -v
+
 # lint the backend with ruff
 lint:
     cd backend && uv run ruff check app/
