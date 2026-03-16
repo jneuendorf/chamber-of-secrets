@@ -1,6 +1,7 @@
 <script lang="ts">
     import { get } from "svelte/store";
     import { _ } from "svelte-i18n";
+    import FuzzySearchOverlay from "$lib/components/FuzzySearchOverlay.svelte";
     import { api, type Category } from "$lib/api/client";
 
     type CategoryForm = {
@@ -25,11 +26,35 @@
     let loading = $state(true);
     let savingId: number | null = $state(null);
     let error = $state("");
+    let searchOpen = $state(false);
 
     // individual collapse state for every card (root + child)
     let expanded = $state<Set<number>>(new Set());
 
     const forms = new Map<number, CategoryForm>();
+
+    function selectCategoryFromSearch(item: unknown) {
+        const category = item as Category;
+        const chain: number[] = [];
+        const byId = categoryByIdMap();
+        let cur: Category | undefined = category;
+        const seen = new Set<number>();
+
+        while (cur && !seen.has(cur.id)) {
+            seen.add(cur.id);
+            chain.push(cur.id);
+            if (cur.parent_id == null) break;
+            cur = byId.get(cur.parent_id);
+        }
+
+        const copy = new Set(expanded);
+        for (const id of chain) copy.add(id);
+        expanded = copy;
+
+        document
+            .querySelector(`[data-category-id="${category.id}"]`)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     async function load() {
         loading = true;
@@ -224,7 +249,18 @@
     }
 </script>
 
-<h1 class="mt-0">{$_("category.managementTitle")}</h1>
+<div class="flex items-center justify-between gap-3 mt-0 mb-1">
+    <h1 class="m-0">{$_("category.managementTitle")}</h1>
+    <button
+        type="button"
+        class="search-indicator"
+        aria-label={$_("category.searchHint")}
+        title={$_("category.searchHint")}
+        onclick={() => (searchOpen = true)}
+    >
+        ⌕ {$_("common.searchIndicator")}
+    </button>
+</div>
 <p class="text-gray-500 mt-1 mb-5">
     {$_("category.managementSubtitle")}
 </p>
@@ -238,11 +274,29 @@
         {$_("category.emptyManagement")}
     </p>
 {:else}
+    <FuzzySearchOverlay
+        items={categories}
+        keys={["name", "icon"]}
+        getId={(item) => (item as Category).id}
+        getLabel={(item) => (item as Category).name}
+        getSecondaryLabel={(item) => {
+            const c = item as Category;
+            if (c.parent_id == null) return $_("category.noParent");
+            const parent = categories.find((p) => p.id === c.parent_id);
+            return parent ? parent.name : $_("common.unknown");
+        }}
+        onSelect={selectCategoryFromSearch}
+        placeholder={$_("category.searchPlaceholder")}
+        noResultsText={$_("category.searchNoResults")}
+        hintText={$_("category.searchHint")}
+        bind:open={searchOpen}
+    />
+
     <div class="tree">
         {#each roots() as root (root.id)}
             {@const rootForm = forms.get(root.id)!}
             {@const rootEff = computeEffectivePreview(root.id)}
-            <section class="node-card">
+            <section class="node-card" data-category-id={root.id}>
                 <header class="node-head">
                     <button
                         class="collapse-btn"
@@ -346,7 +400,7 @@
                         {#each childrenOf(root.id) as child (child.id)}
                             {@const childForm = forms.get(child.id)!}
                             {@const childEff = computeEffectivePreview(child.id)}
-                            <article class="child-card">
+                            <article class="child-card" data-category-id={child.id}>
                                 <header class="child-head">
                                     <button
                                         class="collapse-btn"
@@ -578,5 +632,30 @@
     .save:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .search-indicator {
+        font-size: 0.78rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        white-space: nowrap;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .search-indicator:hover {
+        background: #eef2ff;
+        color: #374151;
+        border-color: #c7d2fe;
+    }
+
+    .search-indicator:focus-visible {
+        outline: 2px solid #6366f1;
+        outline-offset: 2px;
     }
 </style>

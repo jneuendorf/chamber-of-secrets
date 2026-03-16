@@ -9,7 +9,6 @@
     "docs": "API"
   },
   "chamber": {
-    "title": "The Chamber",
     "statsTitle": "Chamber Ledger",
     "available": "In Stock",
     "required": "Need Restocking",
@@ -29,7 +28,14 @@
   },
   "common": {
     "loading": "Loading...",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "search": "Search",
+    "close": "Close",
+    "searchResults": "Search results",
+    "searchPlaceholder": "Type to search...",
+    "noResults": "No results found.",
+    "searchHint": "Use ↑/↓ to navigate, Enter to select, Esc to close",
+    "searchIndicator": "Search (Ctrl/Cmd+K)"
   },
   "scanner": {
     "startCamera": "Start Camera Scan",
@@ -97,12 +103,18 @@
     "validationNonNegative": "Target and min must be >= 0.",
     "validationTargetGteMin": "Target must be >= min.",
     "validationNameRequired": "Name cannot be empty.",
-    "validationSelfParent": "Category cannot be its own parent."
+    "validationSelfParent": "Category cannot be its own parent.",
+    "searchPlaceholder": "Search categories...",
+    "searchNoResults": "No matching categories.",
+    "searchHint": "Find categories by name or icon. Ctrl/Cmd+K to open."
   },
   "inventory": {
     "failedToLoad": "Failed to load inventory: {error}",
     "empty": "No items in inventory yet.",
-    "scanCta": "Scan something!"
+    "scanCta": "Scan something!",
+    "searchPlaceholder": "Search inventory...",
+    "searchNoResults": "No matching inventory items.",
+    "searchHint": "Find products by name, brand, barcode, or category. Ctrl/Cmd+K to open."
   },
   "analytics": {
     "from": "From",

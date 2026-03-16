@@ -320,7 +320,7 @@
 <!-- Stats modal -->
 {#if statsOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div class="modal-backdrop" onclick={() => (statsOpen = false)}>
+    <div class="modal-backdrop" onclick={() => (statsOpen = false)} role="dialog">
         <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
         <div class="modal-card" onclick={(e) => e.stopPropagation()}>
             <h2 class="modal-title">📜 {$_("chamber.statsTitle")}</h2>
@@ -545,16 +545,6 @@
 
     .stat-depleted {
         color: #f87171;
-    }
-    .stat-cat {
-        color: #9ca3af;
-        font-size: 0.78rem;
-    }
-
-    .divider {
-        height: 1px;
-        background: rgba(255, 215, 0, 0.18);
-        margin: 0.75rem 0;
     }
 
     .close-btn {

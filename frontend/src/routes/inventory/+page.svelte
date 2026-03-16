@@ -2,6 +2,7 @@
     import { get } from "svelte/store";
     import { _ } from "svelte-i18n";
     import CategoryPicker from "$lib/components/CategoryPicker.svelte";
+    import FuzzySearchOverlay from "$lib/components/FuzzySearchOverlay.svelte";
     import { api, type Category, type Product } from "$lib/api/client";
 
     let products: Product[] = $state([]);
@@ -9,6 +10,15 @@
     let loading = $state(true);
     let error = $state("");
     let editingId: number | null = $state(null);
+    let searchOpen = $state(false);
+
+    function selectProductFromSearch(item: unknown) {
+        const product = item as Product;
+        editingId = product.id;
+        document
+            .querySelector(`[data-product-id="${product.id}"]`)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     async function load() {
         try {
@@ -59,7 +69,20 @@
     }
 </script>
 
-<h1 class="mt-0">{$_("nav.inventory")}</h1>
+<div class="heading-row">
+    <h1 class="mt-0">{$_("nav.inventory")}</h1>
+    <button
+        type="button"
+        class="search-indicator"
+        title={$_("inventory.searchHint")}
+        onclick={() => {
+            searchOpen = true;
+        }}
+    >
+        <span class="search-indicator-icon" aria-hidden="true">⌕</span>
+        {$_("common.searchIndicator")}
+    </button>
+</div>
 
 {#if loading}
     <p>{$_("common.loading")}</p>
@@ -70,9 +93,26 @@
         {$_("inventory.empty")} <a href="/scan">{$_("inventory.scanCta")}</a>
     </p>
 {:else}
+    <FuzzySearchOverlay
+        items={products}
+        keys={["name", "brand", "ean", "category.name"]}
+        getId={(item) => (item as Product).id}
+        getLabel={(item) => (item as Product).name}
+        getSecondaryLabel={(item) => {
+            const p = item as Product;
+            const parts = [p.brand, p.category?.name].filter(Boolean);
+            return parts.length ? parts.join(" · ") : null;
+        }}
+        onSelect={selectProductFromSearch}
+        placeholder={$_("inventory.searchPlaceholder")}
+        noResultsText={$_("inventory.searchNoResults")}
+        hintText={$_("inventory.searchHint")}
+        bind:open={searchOpen}
+    />
+
     <div class="flex flex-col gap-3">
         {#each products as product (product.id)}
-            <div class="bg-white rounded-xl p-4 shadow-sm">
+            <div class="bg-white rounded-xl p-4 shadow-sm" data-product-id={product.id}>
                 <div class="flex items-center gap-4">
                     {#if product.image_url}
                         <img
@@ -135,6 +175,37 @@
 {/if}
 
 <style>
+    .heading-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .search-indicator {
+        font-size: 0.78rem;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        background: #f9fafb;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+    }
+
+    .search-indicator:hover {
+        background: #f3f4f6;
+    }
+
+    .search-indicator-icon {
+        font-size: 0.85rem;
+        line-height: 1;
+    }
+
     .stock {
         font-size: 1.5rem;
         font-weight: 700;

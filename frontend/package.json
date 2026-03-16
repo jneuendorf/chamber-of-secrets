@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "chart.js": "^4.5.1",
+    "fuse.js": "^7.1.0",
     "svelte-i18n": "^4.0.1"
   }
 }

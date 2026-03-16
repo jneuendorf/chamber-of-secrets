@@ -9,7 +9,6 @@
     "docs": "API"
   },
   "chamber": {
-    "title": "Die Kammer",
     "statsTitle": "Kammerregister",
     "available": "Vorrätig",
     "required": "Nachbestellen",
@@ -29,7 +28,14 @@
   },
   "common": {
     "loading": "Wird geladen...",
-    "unknown": "Unbekannt"
+    "unknown": "Unbekannt",
+    "search": "Suche",
+    "searchResults": "Suchergebnisse",
+    "searchPlaceholder": "Suche...",
+    "searchHint": "Mit ↑/↓ navigieren, Enter auswählen, Esc schließen",
+    "noResults": "Keine Treffer",
+    "close": "Schließen",
+    "searchIndicator": "Suche (Strg/Cmd+K)"
   },
   "scanner": {
     "startCamera": "Kamerascan starten",
@@ -97,12 +103,18 @@
     "validationNonNegative": "Ziel und Minimum müssen >= 0 sein.",
     "validationTargetGteMin": "Ziel muss >= Minimum sein.",
     "validationNameRequired": "Name darf nicht leer sein.",
-    "validationSelfParent": "Kategorie kann nicht ihre eigene Elternkategorie sein."
+    "validationSelfParent": "Kategorie kann nicht ihre eigene Elternkategorie sein.",
+    "searchPlaceholder": "Kategorien durchsuchen...",
+    "searchNoResults": "Keine passenden Kategorien gefunden.",
+    "searchHint": "Drücke Strg+K / Cmd+K, um die Suche zu öffnen oder zu schließen."
   },
   "inventory": {
     "failedToLoad": "Inventar konnte nicht geladen werden: {error}",
     "empty": "Noch keine Artikel im Inventar.",
-    "scanCta": "Etwas scannen!"
+    "scanCta": "Etwas scannen!",
+    "searchPlaceholder": "Inventar durchsuchen...",
+    "searchNoResults": "Keine passenden Artikel gefunden.",
+    "searchHint": "Drücke Strg+K / Cmd+K, um die Suche zu öffnen oder zu schließen."
   },
   "analytics": {
     "from": "Von",
