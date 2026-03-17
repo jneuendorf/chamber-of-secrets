@@ -2,58 +2,7 @@
     import { get } from "svelte/store";
     import { _ } from "svelte-i18n";
     import BarcodeScanner from "$lib/components/BarcodeScanner.svelte";
-    import CategoryPicker from "$lib/components/CategoryPicker.svelte";
-    import { api, type Category, type EANLookupResult } from "$lib/api/client";
-
-    // --- Batch category state ---
-    let categories: Category[] = $state([]);
-    let batchCategory: Category | null = $state(null);
-    let categoryPickerOpen = $state(false);
-    let categorySuggestion: string | null = $state(null);
-
-    async function loadCategories() {
-        categories = await api.categories.list();
-    }
-    loadCategories();
-
-    async function createAndSelectBatchCategory(name: string) {
-        const cat = await api.categories.create({ name });
-        categories = [...categories, cat];
-        batchCategory = cat;
-    }
-
-    async function handleUpdateIcon(cat: Category, icon: string | null) {
-        const updated = await api.categories.update(cat.id, { icon });
-        categories = categories.map((c) => (c.id === updated.id ? updated : c));
-        if (batchCategory?.id === updated.id) batchCategory = updated;
-    }
-
-    // Parse Open Food Facts category string → clean single name
-    // e.g. "en:beverages, en:milks, Dairy, Plant-based foods" → "Plant-based foods"
-    function parseSuggestedCategory(raw: string): string | null {
-        const parts = raw
-            .split(",")
-            .map((s) => s.trim().replace(/^[a-z]{2}:/, ""))
-            .filter(Boolean);
-        if (parts.length === 0) return null;
-        const name = parts[parts.length - 1];
-        return name.charAt(0).toUpperCase() + name.slice(1);
-    }
-
-    function applyCategorySuggestion(result: EANLookupResult) {
-        if (!result.category) return;
-        const suggestion = parseSuggestedCategory(result.category);
-        if (!suggestion) return;
-
-        if (!batchCategory) {
-            const match = categories.find((c) => c.name.toLowerCase() === suggestion.toLowerCase());
-            if (match) {
-                batchCategory = match;
-                return;
-            }
-        }
-        categorySuggestion = suggestion;
-    }
+    import { api, type EANLookupResult, type Product, type Transaction } from "$lib/api/client";
 
     // --- Scan / lookup state ---
     let lookupResult: EANLookupResult | null = $state(null);
@@ -61,44 +10,100 @@
     let loading = $state(false);
     let added = $state(false);
 
-    let quantity = $state(1);
-    let unitPrice = $state<number | undefined>(undefined);
+    // First interactive element: add/remove mode toggle
     let transactionType = $state<"in" | "out">("in");
+
+    // Mobile-friendly quantity controls
+    let quantity = $state(1);
+
+    // Optional price, prefilled from last transaction if available
+    let unitPrice = $state<number | undefined>(undefined);
+
+    // Manual barcode visibility: hidden by default, auto-shown on lookup failure
+    let manualVisible = $state(false);
+
+    function clampQuantity(value: number): number {
+        if (!Number.isFinite(value)) return 1;
+        return Math.max(1, Math.round(value));
+    }
+
+    function decrementQuantity() {
+        quantity = clampQuantity(quantity - 1);
+    }
+
+    function incrementQuantity() {
+        quantity = clampQuantity(quantity + 1);
+    }
+
+    function updateQuantityFromInput(raw: string) {
+        const parsed = Number(raw);
+        quantity = clampQuantity(parsed);
+    }
+
+    async function lookupLastUnitPriceByEAN(ean: string): Promise<number | undefined> {
+        // Best effort:
+        // 1) find existing product by EAN from product list
+        // 2) fetch latest transactions for that product
+        // 3) use first transaction with non-null unit_price (transactions are returned newest first)
+        try {
+            const products = await api.products.list();
+            const existing = products.find((p: Product) => p.ean === ean);
+            if (!existing) return undefined;
+
+            const txns = await api.transactions.list(existing.id);
+            const priced = txns.find((t: Transaction) => typeof t.unit_price === "number");
+            return priced?.unit_price ?? undefined;
+        } catch {
+            return undefined;
+        }
+    }
 
     async function handleScan(code: string) {
         loading = true;
         lookupError = "";
         lookupResult = null;
         added = false;
-        categorySuggestion = null;
-        categoryPickerOpen = false;
+        unitPrice = undefined;
+
         try {
-            lookupResult = await api.products.lookupEAN(code);
-            if (lookupResult) applyCategorySuggestion(lookupResult);
+            const result = await api.products.lookupEAN(code);
+            lookupResult = result;
+
+            // Prefill unit price from last scan/transaction of same product (if any)
+            unitPrice = await lookupLastUnitPriceByEAN(result.ean);
         } catch {
             lookupError = get(_)("scan.notFound", { values: { code } });
+            manualVisible = true; // show manual input when fetch fails
         } finally {
             loading = false;
         }
     }
 
-    async function addToInventory() {
+    async function saveInventoryTransaction() {
         if (!lookupResult) return;
         loading = true;
+
         try {
-            const product = await api.products.create({
-                ean: lookupResult.ean,
-                name: lookupResult.name ?? get(_)("scan.unknownProduct"),
-                brand: lookupResult.brand,
-                image_url: lookupResult.image_url,
-                category_id: batchCategory?.id ?? null,
-            });
+            const products = await api.products.list();
+            const existing = products.find((p: Product) => p.ean === lookupResult!.ean);
+
+            const product =
+                existing ??
+                (await api.products.create({
+                    ean: lookupResult.ean,
+                    name: lookupResult.name ?? get(_)("scan.unknownProduct"),
+                    brand: lookupResult.brand,
+                    image_url: lookupResult.image_url,
+                    category_id: null,
+                }));
+
             await api.transactions.create({
                 product_id: product.id,
                 type: transactionType,
                 quantity,
                 unit_price: unitPrice,
             });
+
             added = true;
         } catch (e) {
             lookupError = get(_)("scan.failedToAdd", { values: { error: String(e) } });
@@ -111,60 +116,47 @@
         lookupResult = null;
         lookupError = "";
         added = false;
-        categorySuggestion = null;
+        // keep chosen mode as user preference for the next scan
+        quantity = 1;
+        unitPrice = undefined;
     }
 </script>
 
-<h1 class="mt-0">{$_("scan.title")}</h1>
-
-<!-- Batch category selector -->
-{#if categoryPickerOpen}
-    <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-sm font-semibold text-gray-700">{$_("category.batchLabel")}</span>
+<div class="scan-shell">
+    <!-- 1) First interactive element: mode toggle -->
+    <div class="scan-mode-toggle bg-white rounded-xl p-2 shadow-sm mb-4">
+        <div class="grid grid-cols-2 gap-2">
             <button
-                onclick={() => (categoryPickerOpen = false)}
-                class="text-sm font-medium text-[#1a1a2e] px-3 py-1 rounded-lg bg-gray-100"
+                type="button"
+                onclick={() => (transactionType = "in")}
+                class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
+                    transactionType === "in"
+                        ? "bg-[#1f9d55] text-white"
+                        : "bg-emerald-50 text-[#166534] border border-emerald-200"
+                }`}
+                aria-pressed={transactionType === "in"}
             >
-                {$_("category.done")}
+                <span aria-hidden="true">+</span>
+                <span>{$_("scan.modeAdd")}</span>
+            </button>
+            <button
+                type="button"
+                onclick={() => (transactionType = "out")}
+                class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
+                    transactionType === "out"
+                        ? "bg-[#e74c3c] text-white"
+                        : "bg-red-50 text-[#c0392b] border border-red-200"
+                }`}
+                aria-pressed={transactionType === "out"}
+            >
+                <span aria-hidden="true">−</span>
+                <span>{$_("scan.modeRemove")}</span>
             </button>
         </div>
-        <CategoryPicker
-            {categories}
-            selected={batchCategory}
-            onSelect={(cat) => {
-                batchCategory = cat;
-                categoryPickerOpen = false;
-            }}
-            onCreateAndSelect={createAndSelectBatchCategory}
-            onUpdateIcon={handleUpdateIcon}
-        />
     </div>
-{:else}
-    <button
-        onclick={() => (categoryPickerOpen = true)}
-        class="w-full flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm mb-4 text-left"
-    >
-        <span class="text-sm text-gray-500">{$_("category.batchLabel")}</span>
-        <div class="flex items-center gap-2">
-            {#if batchCategory}
-                <span
-                    class="bg-[#e8e8ff] text-[#1a1a2e] px-3 py-0.5 rounded-full text-sm font-medium flex items-center gap-1"
-                >
-                    {#if batchCategory.icon && !batchCategory.icon.startsWith("http") && !batchCategory.icon.startsWith("data:")}
-                        {batchCategory.icon}
-                    {/if}
-                    {batchCategory.name}
-                </span>
-            {:else}
-                <span class="text-gray-400 text-sm">{$_("category.none")}</span>
-            {/if}
-            <span class="text-gray-400 text-xs">{$_("category.change")} ›</span>
-        </div>
-    </button>
-{/if}
+</div>
 
-<BarcodeScanner onScan={handleScan} />
+<BarcodeScanner onScan={handleScan} bind:manualVisible />
 
 {#if loading}
     <p class="text-center my-4">{$_("scan.lookingUp")}</p>
@@ -174,73 +166,65 @@
     <p class="text-center my-4 text-[#e74c3c]">{lookupError}</p>
 {/if}
 
-<!-- Category suggestion from EAN lookup -->
-{#if categorySuggestion && !categoryPickerOpen}
-    <div class="flex items-center justify-between bg-[#f0f0ff] rounded-xl px-4 py-2 mt-3 text-sm">
-        <span class="text-gray-600">
-            {$_("scan.categorySuggestion")}: <strong>{categorySuggestion}</strong>
-        </span>
-        <div class="flex gap-2">
-            <button
-                onclick={async () => {
-                    const s = categorySuggestion!;
-                    const match = categories.find((c) => c.name.toLowerCase() === s.toLowerCase());
-                    if (match) {
-                        batchCategory = match;
-                    } else {
-                        await createAndSelectBatchCategory(s);
-                    }
-                    categorySuggestion = null;
-                }}
-                class="text-[#1a1a2e] font-medium px-2 py-0.5 rounded bg-[#e8e8ff]"
-            >
-                {$_("scan.applyCategory")}
-            </button>
-            <button onclick={() => (categorySuggestion = null)} class="text-gray-400 px-1">✕</button
-            >
-        </div>
-    </div>
-{/if}
-
 {#if lookupResult}
-    <div class="bg-white rounded-xl p-6 mt-6 shadow-sm">
+    <div class="bg-white rounded-xl p-4 sm:p-6 mt-6 shadow-sm">
         {#if lookupResult.image_url}
             <img
                 src={lookupResult.image_url}
                 alt={lookupResult.name ?? $_("scan.product")}
-                class="max-w-[120px] rounded-lg float-right ml-4"
+                class="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-lg float-right ml-3 sm:ml-4 mb-2"
             />
         {/if}
+
         <div>
             <h2 class="mt-0 mb-1">{lookupResult.name ?? $_("common.unknown")}</h2>
             {#if lookupResult.brand}
                 <p class="text-gray-500 m-0">{lookupResult.brand}</p>
             {/if}
-            <p class="font-mono text-gray-400 text-[0.85rem]">EAN: {lookupResult.ean}</p>
+            <p class="font-mono text-gray-400 text-[0.65rem]">EAN: {lookupResult.ean}</p>
         </div>
 
         {#if !added}
-            <div class="flex flex-col gap-3 mt-4 clear-both">
-                <label class="flex flex-col gap-1 text-sm text-[#555]">
-                    {$_("scan.type")}
-                    <select
-                        bind:value={transactionType}
-                        class="px-2 py-2 border border-gray-300 rounded-md text-base"
-                    >
-                        <option value="in">{$_("scan.addToInventory")}</option>
-                        <option value="out">{$_("scan.removeFromInventory")}</option>
-                    </select>
+            <div class="flex flex-col gap-4 mt-4 clear-both">
+                <!-- 3) Mobile-friendly quantity stepper -->
+                <label class="flex flex-col gap-2 text-sm text-[#555]">
+                    <span>{$_("scan.quantity")}</span>
+
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onclick={decrementQuantity}
+                            class="h-11 w-11 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-xl leading-none"
+                            aria-label="Decrease quantity"
+                        >
+                            −
+                        </button>
+
+                        <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            inputmode="numeric"
+                            value={quantity}
+                            oninput={(e) =>
+                                updateQuantityFromInput(
+                                    (e.currentTarget as HTMLInputElement).value,
+                                )}
+                            class="h-11 flex-1 text-center px-2 border border-gray-300 rounded-md text-base"
+                        />
+
+                        <button
+                            type="button"
+                            onclick={incrementQuantity}
+                            class="h-11 w-11 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-xl leading-none"
+                            aria-label="Increase quantity"
+                        >
+                            +
+                        </button>
+                    </div>
                 </label>
-                <label class="flex flex-col gap-1 text-sm text-[#555]">
-                    {$_("scan.quantity")}
-                    <input
-                        type="number"
-                        bind:value={quantity}
-                        min="0.01"
-                        step="0.01"
-                        class="px-2 py-2 border border-gray-300 rounded-md text-base"
-                    />
-                </label>
+
+                <!-- 4) Optional unit price, prefills from last txn -->
                 <label class="flex flex-col gap-1 text-sm text-[#555]">
                     {$_("scan.unitPrice")}
                     <input
@@ -248,12 +232,14 @@
                         bind:value={unitPrice}
                         min="0"
                         step="0.01"
+                        inputmode="decimal"
                         placeholder={$_("scan.pricePlaceholder")}
                         class="px-2 py-2 border border-gray-300 rounded-md text-base"
                     />
                 </label>
+
                 <button
-                    onclick={addToInventory}
+                    onclick={saveInventoryTransaction}
                     disabled={loading}
                     class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
                 >
@@ -273,3 +259,16 @@
         {/if}
     </div>
 {/if}
+
+<style>
+    .scan-shell {
+        width: 100%;
+    }
+
+    .scan-mode-toggle {
+        width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>

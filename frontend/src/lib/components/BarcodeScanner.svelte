@@ -3,7 +3,13 @@
     import { _ } from "svelte-i18n";
     import { tick } from "svelte";
 
-    let { onScan }: { onScan: (code: string) => void } = $props();
+    let {
+        onScan,
+        manualVisible = $bindable(false),
+    }: {
+        onScan: (code: string) => void;
+        manualVisible?: boolean;
+    } = $props();
 
     let videoEl: HTMLVideoElement | undefined = $state();
     let stream: MediaStream | null = null;
@@ -87,6 +93,7 @@
             const detector = new (window as any).BarcodeDetector({
                 formats: ["ean_13", "ean_8", "upc_a", "upc_e"],
             });
+
             const detect = async () => {
                 if (!scanning || !videoEl) return;
                 try {
@@ -101,6 +108,7 @@
                 }
                 requestAnimationFrame(detect);
             };
+
             detect();
         } else {
             error = get(_)("scanner.unsupported");
@@ -119,49 +127,70 @@
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === "Escape") stopCamera();
     }
+
+    function toggleManual() {
+        manualVisible = !manualVisible;
+    }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <div class="flex flex-col items-center gap-4">
-    <button
-        onclick={startCamera}
-        class="px-8 py-4 text-lg bg-[#1a1a2e] text-white border-0 rounded-lg cursor-pointer"
-    >
-        {$_("scanner.startCamera")}
-    </button>
+    <div class="w-full max-w-100 flex items-stretch gap-2">
+        {#if manualVisible}
+            <form
+                class="flex-1 flex gap-2"
+                onsubmit={(e) => {
+                    e.preventDefault();
+                    submitManual();
+                }}
+            >
+                <input
+                    type="text"
+                    bind:value={manualCode}
+                    placeholder={$_("scanner.barcodePlaceholder")}
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    class="flex-1 h-12 px-2.5 border border-gray-300 rounded-md text-base"
+                />
+                <button
+                    type="submit"
+                    class="h-12 px-3 sm:px-4 bg-[#1a1a2e] text-white border-0 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
+                    aria-label={$_("scanner.lookUp")}
+                    title={$_("scanner.lookUp")}
+                >
+                    <span aria-hidden="true">⌕</span>
+                    <span class="hidden sm:inline">{$_("scanner.lookUp")}</span>
+                </button>
+            </form>
+        {:else}
+            <button
+                onclick={startCamera}
+                class="flex-1 h-12 px-4 text-base bg-[#1a1a2e] text-white border-0 rounded-lg cursor-pointer"
+            >
+                {$_("scanner.startCamera")}
+            </button>
+        {/if}
+
+        <button
+            type="button"
+            onclick={toggleManual}
+            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-700 bg-gray-100 border border-gray-300 rounded-lg"
+            aria-expanded={manualVisible}
+            aria-label={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
+            title={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
+        >
+            {#if manualVisible}
+                ✖️
+            {:else}
+                𝄃𝄃𝄂𝄂𝄀
+            {/if}
+        </button>
+    </div>
 
     {#if error && !modalOpen}
         <p class="text-[#e74c3c] text-sm">{error}</p>
     {/if}
-
-    <div class="w-full max-w-[400px]">
-        <span class="block text-center text-gray-400 text-[0.85rem] my-2"
-            >{$_("scanner.orManual")}</span
-        >
-        <form
-            class="flex gap-2"
-            onsubmit={(e) => {
-                e.preventDefault();
-                submitManual();
-            }}
-        >
-            <input
-                type="text"
-                bind:value={manualCode}
-                placeholder={$_("scanner.barcodePlaceholder")}
-                inputmode="numeric"
-                pattern="[0-9]*"
-                class="flex-1 px-2.5 py-[0.6rem] border border-gray-300 rounded-md text-base"
-            />
-            <button
-                type="submit"
-                class="px-4 py-[0.6rem] bg-[#1a1a2e] text-white border-0 rounded-md cursor-pointer"
-            >
-                {$_("scanner.lookUp")}
-            </button>
-        </form>
-    </div>
 </div>
 
 {#if modalOpen}
@@ -169,8 +198,17 @@
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
     <div
         class="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4"
+        role="button"
+        tabindex="0"
+        aria-label={$_("common.close")}
         onclick={(e) => {
             if (e.target === e.currentTarget) stopCamera();
+        }}
+        onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                stopCamera();
+            }
         }}
     >
         <!-- Modal -->
