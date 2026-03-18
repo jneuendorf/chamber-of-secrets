@@ -64,7 +64,10 @@
     "addBtn": "Add to Inventory",
     "removeBtn": "Remove from Inventory",
     "addedSuccess": "Added to inventory!",
-    "scanNext": "Scan next item"
+    "removedSuccess": "Removed from inventory!",
+    "scanNext": "Scan next item",
+    "dismissScanned": "Dismiss scanned item",
+    "dismissCategory": "Dismiss category suggestion"
   },
   "category": {
     "none": "None",

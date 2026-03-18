@@ -20,7 +20,7 @@
 <div class="layout-root" class:chamber-bg={page.url.pathname === "/chamber"}>
     <nav class="site-nav bg-[#1a1a2e] text-white">
         <div class="nav-main">
-            <a href="/" class="brand-link">{$_("nav.brand")}</a>
+            <a href="/chamber" class="brand-link">{$_("nav.brand")}</a>
             <div class="nav-links-wrap">
                 <ul class="nav-links">
                     <li>

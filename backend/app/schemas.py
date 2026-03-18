@@ -22,7 +22,7 @@ class CategoryCreate(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def validate_target_min_relationship(self) -> "CategoryCreate":
+    def validate_target_min_relationship(self) -> CategoryCreate:
         if (
             self.restock_target is not None
             and self.restock_min is not None
@@ -48,7 +48,7 @@ class CategoryUpdate(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def validate_target_min_relationship(self) -> "CategoryUpdate":
+    def validate_target_min_relationship(self) -> CategoryUpdate:
         if (
             self.restock_target is not None
             and self.restock_min is not None
@@ -123,6 +123,13 @@ class TransactionCreate(BaseModel):
     quantity: float = 1.0
     unit_price: float | None = None
     notes: str | None = None
+
+    @field_validator("quantity")
+    @classmethod
+    def validate_positive_quantity(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("quantity must be > 0")
+        return value
 
 
 class TransactionRead(BaseModel):

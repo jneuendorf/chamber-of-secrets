@@ -11,6 +11,7 @@
     let error = $state("");
     let editingId: number | null = $state(null);
     let searchOpen = $state(false);
+    let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0));
 
     function selectProductFromSearch(item: unknown) {
         const product = item as Product;
@@ -70,7 +71,7 @@
 </script>
 
 <div class="heading-row">
-    <h1 class="mt-0">{$_("nav.inventory")}</h1>
+    <h1 class="mt-0">{$_("nav.inventory")} ({totalItems})</h1>
     <button
         type="button"
         class="search-indicator"

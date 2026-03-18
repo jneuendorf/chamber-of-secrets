@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import InventoryTransaction, Product
@@ -22,8 +22,24 @@ def list_transactions(
 
 @router.post("/", response_model=TransactionRead, status_code=201)
 def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)) -> TransactionRead:
-    if not db.get(Product, data.product_id):
+    product = (
+        db.query(Product)
+        .options(joinedload(Product.transactions))
+        .filter(Product.id == data.product_id)
+        .one_or_none()
+    )
+    if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    if data.type == "out":
+        current_stock = sum(
+            t.quantity if t.type == "in" else -t.quantity for t in product.transactions
+        )
+        if data.quantity > current_stock:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient stock: available {current_stock}, requested {data.quantity}",
+            )
 
     transaction = InventoryTransaction(**data.model_dump())
     db.add(transaction)

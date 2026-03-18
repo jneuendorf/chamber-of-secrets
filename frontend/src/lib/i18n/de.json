@@ -64,7 +64,10 @@
     "addBtn": "Zum Inventar hinzufügen",
     "removeBtn": "Aus Inventar entfernen",
     "addedSuccess": "Zum Inventar hinzugefügt!",
-    "scanNext": "Nächsten Artikel scannen"
+    "removedSuccess": "Aus dem Inventar entfernt!",
+    "scanNext": "Nächsten Artikel scannen",
+    "dismissScanned": "Scan verwerfen",
+    "dismissCategory": "Kategorie verwerfen"
   },
   "category": {
     "none": "Keine",

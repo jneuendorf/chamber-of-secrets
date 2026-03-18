@@ -250,7 +250,7 @@
 </script>
 
 <div class="flex items-center justify-between gap-3 mt-0 mb-1">
-    <h1 class="m-0">{$_("category.managementTitle")}</h1>
+    <h1 class="m-0">{$_("category.managementTitle")} ({categories.length})</h1>
     <button
         type="button"
         class="search-indicator"
