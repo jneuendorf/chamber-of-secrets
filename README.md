@@ -21,7 +21,7 @@ A personal grocery inventory tracker. Scan product barcodes, record stock moveme
 | Frontend | SvelteKit 2 · Svelte 5 · TypeScript · Tailwind CSS 4 |
 | i18n | svelte-i18n (EN / DE) |
 | Build & package | Bun · uv |
-| Containers | Docker Compose · nginx (TLS) |
+| Containers | Docker Compose / Podman Compose · nginx (TLS) |
 | TLS (local) | mkcert |
 | Optional tunnel | Cloudflare Tunnel |
 
@@ -102,12 +102,29 @@ Backend: `http://localhost:8000` · Frontend: `http://localhost:5173`
 
 ---
 
-## Running in Docker (production)
+## Running with Docker or Podman (production)
 
 ```sh
 just up           # generate TLS certs if missing, build images, start stack
 just down         # stop and remove containers
 just logs         # tail logs from all services
+```
+
+To use Podman with the same `just` commands, set `CONTAINER_ENGINE=podman`:
+
+```sh
+CONTAINER_ENGINE=podman just up
+CONTAINER_ENGINE=podman just down
+CONTAINER_ENGINE=podman just logs
+```
+
+You can also export it once per shell session:
+
+```sh
+export CONTAINER_ENGINE=podman
+just up
+just down
+just logs
 ```
 
 On first run, `just up` calls `scripts/setup-certs.sh` which uses **mkcert** to generate a locally-trusted certificate covering `localhost` and your machine's LAN IP. Install mkcert first:

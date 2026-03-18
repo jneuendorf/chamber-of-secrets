@@ -1,6 +1,7 @@
 set dotenv-load
 
 host := "0.0.0.0"
+container_engine := env('CONTAINER_ENGINE', 'podman')
 
 # list available recipes
 default:
@@ -24,17 +25,19 @@ certs:
         ./scripts/setup-certs.sh; \
     fi
 
-# build images and start the full stack in Docker (production mode)
+# build images and start the full stack in containers (production mode)
+
+# set CONTAINER_ENGINE=docker to use Docker instead of Podman
 up: certs
-    docker compose up --build -d
+    {{ container_engine }} compose up --build -d
 
-# stop and remove Docker containers
+# stop and remove containers
 down:
-    docker compose down
+    {{ container_engine }} compose down
 
-# tail logs from all Docker services
+# tail logs from all container services
 logs:
-    docker compose logs -f
+    {{ container_engine }} compose logs -f
 
 # build the frontend for production
 build-frontend:
