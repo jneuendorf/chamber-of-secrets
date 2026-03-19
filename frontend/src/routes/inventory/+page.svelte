@@ -113,7 +113,10 @@
 
     <div class="flex flex-col gap-3">
         {#each products as product (product.id)}
-            <div class="bg-white rounded-xl p-4 shadow-sm" data-product-id={product.id}>
+            <div
+                class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-4 shadow-sm"
+                data-product-id={product.id}
+            >
                 <div class="flex items-center gap-4">
                     {#if product.image_url}
                         <img
@@ -123,15 +126,15 @@
                         />
                     {:else}
                         <div
-                            class="w-12 h-12 rounded-lg bg-[#eee] flex items-center justify-center text-gray-400 text-xl"
+                            class="w-12 h-12 rounded-lg bg-[#26221b] border border-[#4f4534] flex items-center justify-center text-gray-300 text-xl"
                         >
                             ?
                         </div>
                     {/if}
                     <div class="flex-1 min-w-0">
-                        <h3 class="m-0 text-base">{product.name}</h3>
+                        <h3 class="m-0 text-base text-gray-100">{product.name}</h3>
                         {#if product.brand}
-                            <p class="m-0 text-gray-500 text-[0.85rem]">{product.brand}</p>
+                            <p class="m-0 text-gray-300 text-[0.85rem]">{product.brand}</p>
                         {/if}
                         <button
                             onclick={() =>
@@ -140,14 +143,14 @@
                         >
                             {#if product.category}
                                 <span
-                                    class="bg-[#e8e8ff] text-[#1a1a2e] px-2 py-0.5 rounded text-xs"
+                                    class="bg-[#3b3327] text-[#f3f4f6] px-2 py-0.5 rounded text-xs border border-[#5b4f3a]"
                                 >
                                     {product.category.name}
                                 </span>
                             {:else}
-                                <span class="text-gray-400 text-xs">{$_("category.none")}</span>
+                                <span class="text-gray-300 text-xs">{$_("category.none")}</span>
                             {/if}
-                            <span class="text-gray-400 text-xs">{$_("category.change")} ›</span>
+                            <span class="text-gray-300 text-xs">{$_("category.change")} ›</span>
                         </button>
                     </div>
                     <div
@@ -160,7 +163,7 @@
                 </div>
 
                 {#if editingId === product.id}
-                    <div class="mt-3 pt-3 border-t border-gray-100">
+                    <div class="mt-3 pt-3 border-t border-[#4f4534]">
                         <CategoryPicker
                             {categories}
                             selected={product.category}
@@ -186,20 +189,22 @@
 
     .search-indicator {
         font-size: 0.78rem;
-        color: #6b7280;
-        border: 1px solid #d1d5db;
+        color: #d1d5db;
+        background: #111827;
+        border: 1px solid #374151;
         border-radius: 999px;
         padding: 0.2rem 0.55rem;
-        background: #f9fafb;
         white-space: nowrap;
+        cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        cursor: pointer;
     }
 
     .search-indicator:hover {
-        background: #f3f4f6;
+        background: #2f2a22;
+        color: #f3f4f6;
+        border-color: #5b4f3a;
     }
 
     .search-indicator-icon {

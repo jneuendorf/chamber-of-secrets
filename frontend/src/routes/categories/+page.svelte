@@ -527,8 +527,8 @@
 
     .node-card,
     .child-card {
-        background: white;
-        border: 1px solid #e5e7eb;
+        background: #2f2a22;
+        border: 1px solid #5b4f3a;
         border-radius: 12px;
         padding: 1rem;
     }
@@ -553,16 +553,18 @@
         width: 1.7rem;
         height: 1.7rem;
         border-radius: 0.4rem;
-        border: 1px solid #d1d5db;
-        background: #f9fafb;
+        border: 1px solid #4b5563;
+        background: #111827;
+        color: #e5e7eb;
         cursor: pointer;
     }
 
     .pill {
         margin-left: auto;
         font-size: 0.75rem;
-        color: #6b7280;
-        background: #f3f4f6;
+        color: #d1d5db;
+        background: #111827;
+        border: 1px solid #374151;
         border-radius: 999px;
         padding: 0.15rem 0.5rem;
     }
@@ -583,10 +585,12 @@
 
     input,
     select {
-        border: 1px solid #d1d5db;
+        border: 1px solid #4b5563;
         border-radius: 8px;
         padding: 0.5rem 0.6rem;
         font-size: 0.95rem;
+        background: #111827;
+        color: #f3f4f6;
     }
 
     .toggle {
@@ -602,13 +606,14 @@
         margin-top: 0.75rem;
         padding: 0.6rem 0.75rem;
         border-radius: 8px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: #111827;
+        border: 1px solid #374151;
+        color: #e5e7eb;
         font-size: 0.9rem;
     }
 
     .muted {
-        color: #6b7280;
+        color: #9ca3af;
         font-size: 0.8rem;
         margin-top: 0.2rem;
     }
@@ -636,9 +641,9 @@
 
     .search-indicator {
         font-size: 0.78rem;
-        color: #6b7280;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        color: #d1d5db;
+        background: #111827;
+        border: 1px solid #374151;
         border-radius: 999px;
         padding: 0.2rem 0.55rem;
         white-space: nowrap;
@@ -649,9 +654,9 @@
     }
 
     .search-indicator:hover {
-        background: #eef2ff;
-        color: #374151;
-        border-color: #c7d2fe;
+        background: #2f2a22;
+        color: #f3f4f6;
+        border-color: #5b4f3a;
     }
 
     .search-indicator:focus-visible {

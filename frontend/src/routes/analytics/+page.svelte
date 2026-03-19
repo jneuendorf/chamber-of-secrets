@@ -200,10 +200,10 @@
                 ctx.save();
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillStyle = "#1a1a2e";
+                ctx.fillStyle = "#f3f4f6";
                 ctx.font = "bold 20px sans-serif";
                 ctx.fillText(line1, cx, cy - 8);
-                ctx.fillStyle = "#999";
+                ctx.fillStyle = "#d1d5db";
                 ctx.font = "11px sans-serif";
                 ctx.fillText(line2, cx, cy + 10);
                 ctx.restore();
@@ -256,7 +256,10 @@
                 cutout: "60%",
                 responsive: true,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (ctx) =>
@@ -289,7 +292,10 @@
                 cutout: "60%",
                 responsive: true,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (ctx) =>
@@ -325,7 +331,10 @@
                 cutout: "60%",
                 responsive: true,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                     tooltip: {
                         callbacks: {
                             label: (ctx) =>
@@ -358,9 +367,22 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                 },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                scales: {
+                    x: {
+                        ticks: { color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+                    },
+                },
             },
         });
         return () => chart.destroy();
@@ -383,9 +405,22 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                 },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                scales: {
+                    x: {
+                        ticks: { color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+                    },
+                },
             },
         });
         return () => chart.destroy();
@@ -408,12 +443,20 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
+                    },
                 },
                 scales: {
+                    x: {
+                        ticks: { color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+                    },
                     y: {
                         beginAtZero: true,
-                        ticks: { callback: (v) => `€${v}` },
+                        ticks: { callback: (v) => `€${v}`, color: "#d1d5db" },
+                        grid: { color: "rgba(209, 213, 219, 0.15)" },
                     },
                 },
             },
@@ -652,8 +695,10 @@
 
     .date-field input {
         padding: 0.5rem;
-        border: 1px solid #d1d5db;
+        border: 1px solid #4b5563;
         border-radius: 0.4rem;
+        background: #111827;
+        color: #f3f4f6;
     }
 
     .restock-summary {
@@ -666,9 +711,9 @@
     }
 
     .restock-btn {
-        border: 1px solid #d1d5db;
-        background: #fff;
-        color: #1a1a2e;
+        border: 1px solid #5b4f3a;
+        background: #2f2a22;
+        color: #f3f4f6;
         border-radius: 0.5rem;
         padding: 0.45rem 0.85rem;
         font-weight: 600;
@@ -676,7 +721,7 @@
     }
 
     .summary-text {
-        color: #4b5563;
+        color: #d1d5db;
         font-size: 0.9rem;
     }
 
@@ -686,13 +731,13 @@
 
     .empty {
         text-align: center;
-        color: #6b7280;
+        color: #9ca3af;
         margin: 3rem 0;
     }
 
     .pane {
-        background: #fafafa;
-        border: 1px solid #e5e7eb;
+        background: #2f2a22;
+        border: 1px solid #5b4f3a;
         border-radius: 1rem;
         padding: 1rem 1.25rem;
     }
@@ -700,7 +745,7 @@
     .pane h2 {
         margin: 0 0 1rem;
         font-size: 1rem;
-        color: #1a1a2e;
+        color: #f3f4f6;
     }
 
     .stack {
@@ -709,16 +754,17 @@
     }
 
     .card {
-        background: #fff;
+        background: #26221b;
+        border: 1px solid #4f4534;
         border-radius: 0.8rem;
         padding: 1rem;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .card h3 {
         margin: 0 0 0.8rem;
         font-size: 0.9rem;
-        color: #4b5563;
+        color: #d1d5db;
     }
 
     .chart-wrap {
@@ -736,8 +782,9 @@
         display: flex;
         justify-content: space-between;
         padding: 0.45rem 0;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid #374151;
         font-size: 0.9rem;
+        color: #e5e7eb;
     }
 
     .muted {
@@ -761,10 +808,11 @@
         width: min(1200px, 100%);
         max-height: calc(100vh - 2rem);
         overflow: auto;
-        background: #fff;
-        border: 1px solid #e5e7eb;
+        background: #2f2a22;
+        border: 1px solid #5b4f3a;
         border-radius: 0.9rem;
         padding: 1rem;
+        color: #e5e7eb;
     }
 
     .restock-head {
@@ -777,12 +825,13 @@
     .restock-head h2 {
         margin: 0;
         font-size: 1.1rem;
-        color: #1a1a2e;
+        color: #f3f4f6;
     }
 
     .icon-btn {
-        border: 0;
-        background: #f3f4f6;
+        border: 1px solid #5b4f3a;
+        background: #26221b;
+        color: #f3f4f6;
         width: 2rem;
         height: 2rem;
         border-radius: 0.45rem;
@@ -797,21 +846,21 @@
     }
 
     .kpi {
-        border: 1px solid #e5e7eb;
+        border: 1px solid #4f4534;
         border-radius: 0.6rem;
         padding: 0.7rem;
-        background: #fafafa;
+        background: #26221b;
     }
 
     .kpi-label {
         font-size: 0.78rem;
-        color: #6b7280;
+        color: #9ca3af;
     }
 
     .kpi-value {
         font-size: 1.15rem;
         font-weight: 700;
-        color: #1a1a2e;
+        color: #f3f4f6;
         margin-top: 0.1rem;
     }
 
@@ -824,13 +873,15 @@
         gap: 0.5rem;
         align-items: center;
         font-size: 0.85rem;
-        color: #4b5563;
+        color: #d1d5db;
     }
 
     .controls select {
-        border: 1px solid #d1d5db;
+        border: 1px solid #5b4f3a;
         border-radius: 0.5rem;
         padding: 0.35rem 0.45rem;
+        background: #26221b;
+        color: #f3f4f6;
     }
 
     .restock-layout {
@@ -840,15 +891,16 @@
     }
 
     .panel {
-        border: 1px solid #e5e7eb;
+        border: 1px solid #4f4534;
         border-radius: 0.7rem;
         padding: 0.75rem;
+        background: #26221b;
     }
 
     .panel h3 {
         margin: 0 0 0.55rem;
         font-size: 0.95rem;
-        color: #374151;
+        color: #e5e7eb;
     }
 
     .mt {
@@ -869,13 +921,14 @@
     td {
         text-align: left;
         padding: 0.45rem;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #374151;
         white-space: nowrap;
+        color: #e5e7eb;
     }
 
     th {
-        background: #fafafa;
-        color: #6b7280;
+        background: #2f2a22;
+        color: #d1d5db;
         font-weight: 600;
         position: sticky;
         top: 0;
@@ -892,8 +945,9 @@
         justify-content: space-between;
         gap: 0.5rem;
         padding: 0.38rem 0;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid #374151;
         font-size: 0.85rem;
+        color: #e5e7eb;
     }
 
     @media (max-width: 900px) {

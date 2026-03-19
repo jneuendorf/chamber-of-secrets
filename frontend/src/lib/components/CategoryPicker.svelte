@@ -63,7 +63,7 @@
         onclick={() => onSelect(null)}
         class="px-4 py-2 rounded-full text-sm font-medium border transition-colors {!selected
             ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
-            : 'bg-white text-gray-600 border-gray-300 active:bg-gray-100'}"
+            : 'bg-[#2f2a22] text-gray-200 border-[#5b4f3a] active:bg-[#26221b]'}"
     >
         {$_("category.none")}
     </button>
@@ -73,7 +73,7 @@
             class="px-4 py-2 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5 {selected?.id ===
             cat.id
                 ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
-                : 'bg-white text-gray-600 border-gray-300 active:bg-gray-100'}"
+                : 'bg-[#2f2a22] text-gray-200 border-[#5b4f3a] active:bg-[#26221b]'}"
         >
             {#if cat.icon}
                 {#if isUrl(cat.icon)}
@@ -100,14 +100,16 @@
 {#if editingIconId !== null && onUpdateIcon}
     {@const editCat = categories.find((c) => c.id === editingIconId)}
     {#if editCat}
-        <div class="flex gap-2 mb-3 items-center bg-gray-50 rounded-lg px-3 py-2">
-            <span class="text-sm text-gray-500 shrink-0">{editCat.name}:</span>
+        <div
+            class="flex gap-2 mb-3 items-center bg-[#111827] border border-[#374151] rounded-lg px-3 py-2"
+        >
+            <span class="text-sm text-gray-300 shrink-0">{editCat.name}:</span>
             <input
                 type="text"
                 bind:value={editingIconValue}
                 placeholder={$_("category.iconPlaceholder")}
                 disabled={savingIcon}
-                class="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded-md text-sm"
+                class="flex-1 min-w-0 px-2 py-1 border border-[#5b4f3a] bg-[#2f2a22] text-gray-100 rounded-md text-sm"
             />
             <button
                 onclick={saveIcon}
@@ -116,7 +118,7 @@
             >
                 {$_("category.save")}
             </button>
-            <button onclick={() => (editingIconId = null)} class="text-gray-400 text-sm px-1"
+            <button onclick={() => (editingIconId = null)} class="text-gray-300 text-sm px-1"
                 >✕</button
             >
         </div>
@@ -135,7 +137,7 @@
         bind:value={newName}
         placeholder={$_("category.newPlaceholder")}
         disabled={creating}
-        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        class="flex-1 px-3 py-2 border border-[#5b4f3a] bg-[#2f2a22] text-gray-100 rounded-lg text-sm"
     />
     <button
         type="submit"

@@ -89,7 +89,12 @@
         min-width: 100%;
         min-height: 100vh;
         min-height: 100dvh;
-        background: white;
+        background: radial-gradient(
+            ellipse at center,
+            rgb(57, 47, 25) 0%,
+            rgb(48, 39, 21) 72%,
+            rgb(28, 22, 12) 100%
+        );
         display: flex;
         flex-direction: column;
     }
@@ -188,18 +193,14 @@
     }
 
     .chamber-bg .content-root {
-        background: radial-gradient(
-            ellipse at center,
-            rgb(57, 47, 25) 0%,
-            rgb(48, 39, 21) 72%,
-            rgb(28, 22, 12) 100%
-        );
+        background: transparent;
     }
 
     .content-shell {
         max-width: 960px;
         margin: 0 auto;
         padding: 1.5rem;
+        color: #f3f4f6;
     }
 
     .chamber-shell {

@@ -155,7 +155,7 @@
                 />
                 <button
                     type="submit"
-                    class="h-12 px-3 sm:px-4 bg-[#1a1a2e] text-white border-0 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
+                    class="flex-1 h-12 px-3 sm:px-4 bg-[#3a3125] text-white border border-[#5b4f3a] rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
                     aria-label={$_("scanner.lookUp")}
                     title={$_("scanner.lookUp")}
                 >
@@ -166,7 +166,7 @@
         {:else}
             <button
                 onclick={startCamera}
-                class="flex-1 h-12 px-4 text-base bg-[#1a1a2e] text-white border-0 rounded-lg cursor-pointer"
+                class="flex-1 h-12 px-4 text-base bg-[#3a3125] text-white border border-[#5b4f3a] rounded-lg cursor-pointer"
             >
                 {$_("scanner.startCamera")}
             </button>
@@ -175,7 +175,7 @@
         <button
             type="button"
             onclick={toggleManual}
-            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-700 bg-gray-100 border border-gray-300 rounded-lg"
+            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-[#2a251d] border border-[#5b4f3a] rounded-lg"
             aria-expanded={manualVisible}
             aria-label={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
             title={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
@@ -213,14 +213,14 @@
     >
         <!-- Modal -->
         <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
+            class="bg-[#2f2a22] border border-[#5b4f3a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
         >
             <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                <span class="font-semibold text-[#1a1a2e]">{$_("scanner.scanBarcode")}</span>
+            <div class="flex items-center justify-between px-4 py-3 border-b border-[#5b4f3a]">
+                <span class="font-semibold text-gray-100">{$_("scanner.scanBarcode")}</span>
                 <button
                     onclick={stopCamera}
-                    class="text-gray-500 hover:text-gray-800 text-2xl leading-none border-0 bg-transparent cursor-pointer"
+                    class="text-gray-300 hover:text-gray-100 text-2xl leading-none border-0 bg-transparent cursor-pointer"
                     aria-label={$_("scanner.stop")}
                 >
                     &times;
@@ -251,12 +251,12 @@
 
                 {#if cameras.length > 1}
                     <div class="flex items-center gap-2">
-                        <label for="camera-select" class="text-sm text-gray-600 shrink-0">
+                        <label for="camera-select" class="text-sm text-gray-300 shrink-0">
                             {$_("scanner.camera")}
                         </label>
                         <select
                             id="camera-select"
-                            class="flex-1 px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+                            class="flex-1 px-2 py-1.5 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-sm"
                             value={selectedDeviceId}
                             onchange={(e) => switchCamera((e.target as HTMLSelectElement).value)}
                         >
@@ -271,7 +271,7 @@
 
                 <button
                     onclick={stopCamera}
-                    class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0 rounded-lg text-sm cursor-pointer"
+                    class="w-full py-2 bg-[#26221b] hover:bg-[#211d17] text-gray-100 border border-[#5b4f3a] rounded-lg text-sm cursor-pointer"
                 >
                     {$_("scanner.stop")}
                 </button>

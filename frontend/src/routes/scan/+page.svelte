@@ -193,7 +193,7 @@
 
 <div class="scan-root">
     <!-- 1) First interactive element: mode toggle -->
-    <div class="bg-white rounded-xl p-2 shadow-sm mb-4">
+    <div class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-2 shadow-sm mb-4">
         <div class="grid grid-cols-2 gap-2">
             <button
                 type="button"
@@ -201,7 +201,7 @@
                 class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
                     transactionType === "in"
                         ? "bg-[#1f9d55] text-white"
-                        : "bg-emerald-50 text-[#166534] border border-emerald-200"
+                        : "bg-[#111827] text-[#86efac] border border-[#14532d]"
                 }`}
                 aria-pressed={transactionType === "in"}
             >
@@ -214,7 +214,7 @@
                 class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
                     transactionType === "out"
                         ? "bg-[#e74c3c] text-white"
-                        : "bg-red-50 text-[#c0392b] border border-red-200"
+                        : "bg-[#111827] text-[#fca5a5] border border-[#7f1d1d]"
                 }`}
                 aria-pressed={transactionType === "out"}
             >
@@ -234,12 +234,14 @@
     {/if}
 
     {#if lookupResult}
-        <div class="bg-white rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative">
+        <div
+            class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-gray-100"
+        >
             {#if !added}
                 <button
                     type="button"
                     onclick={dismissScannedItem}
-                    class="absolute top-2 right-2 h-6 w-6 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 border border-gray-200 inline-flex items-center justify-center"
+                    class="absolute top-2 right-2 h-6 w-6 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
                     aria-label={$_("scan.dismissScanned")}
                     title={$_("scan.dismissScanned")}
                 >
@@ -257,12 +259,12 @@
             <div>
                 <h2 class="mt-0 mb-1">{lookupResult.name ?? $_("common.unknown")}</h2>
                 {#if lookupResult.brand}
-                    <p class="text-gray-500 m-0">{lookupResult.brand}</p>
+                    <p class="text-gray-300 m-0">{lookupResult.brand}</p>
                 {/if}
                 <p class="font-mono text-gray-400 text-[0.65rem]">EAN: {lookupResult.ean}</p>
 
                 {#if categorySuggestionName}
-                    <div class="m-0 mt-1 text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+                    <div class="m-0 mt-1 text-xs text-gray-300 flex items-center gap-2 flex-wrap">
                         <span>
                             Category:
                             <strong>
@@ -276,7 +278,7 @@
                             <button
                                 type="button"
                                 onclick={dismissCategorySuggestion}
-                                class="h-5 w-5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 border border-gray-200 inline-flex items-center justify-center"
+                                class="h-5 w-5 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
                                 aria-label={$_("scan.dismissCategory")}
                                 title={$_("scan.dismissCategory")}
                             >
@@ -290,14 +292,14 @@
             {#if !added}
                 <div class="flex flex-col gap-4 mt-4 clear-both">
                     <!-- 3) Mobile-friendly quantity stepper -->
-                    <label class="flex flex-col gap-2 text-sm text-[#555]">
+                    <label class="flex flex-col gap-2 text-sm text-gray-200">
                         <span>{$_("scan.quantity")}</span>
 
                         <div class="flex items-center gap-2">
                             <button
                                 type="button"
                                 onclick={decrementQuantity}
-                                class="h-11 w-11 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-xl leading-none"
+                                class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
                                 aria-label="Decrease quantity"
                             >
                                 −
@@ -313,13 +315,13 @@
                                     updateQuantityFromInput(
                                         (e.currentTarget as HTMLInputElement).value,
                                     )}
-                                class="h-11 flex-1 text-center px-2 border border-gray-300 rounded-md text-base"
+                                class="h-11 flex-1 text-center px-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
                             />
 
                             <button
                                 type="button"
                                 onclick={incrementQuantity}
-                                class="h-11 w-11 shrink-0 rounded-lg border border-gray-300 bg-gray-100 text-xl leading-none"
+                                class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
                                 aria-label="Increase quantity"
                             >
                                 +
@@ -328,7 +330,7 @@
                     </label>
 
                     <!-- 4) Optional unit price, prefills from last txn -->
-                    <label class="flex flex-col gap-1 text-sm text-[#555]">
+                    <label class="flex flex-col gap-1 text-sm text-gray-200">
                         {$_("scan.unitPrice")}
                         <input
                             type="number"
@@ -337,7 +339,7 @@
                             step="0.01"
                             inputmode="decimal"
                             placeholder={$_("scan.pricePlaceholder")}
-                            class="px-2 py-2 border border-gray-300 rounded-md text-base"
+                            class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
                         />
                     </label>
 

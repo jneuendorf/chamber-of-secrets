@@ -217,8 +217,8 @@
         left: 50%;
         transform: translateX(-50%);
         width: min(680px, calc(100vw - 2rem));
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
+        background: #2f2a22;
+        border: 1px solid #5b4f3a;
         border-radius: 14px;
         box-shadow:
             0 20px 40px rgba(15, 23, 42, 0.2),
@@ -231,12 +231,12 @@
         display: flex;
         align-items: center;
         gap: 0.55rem;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #5b4f3a;
         padding: 0.7rem 0.85rem;
     }
 
     .fuzzy-overlay-icon {
-        color: #6b7280;
+        color: #9ca3af;
         font-size: 0.95rem;
     }
 
@@ -245,14 +245,14 @@
         outline: none;
         width: 100%;
         font-size: 0.98rem;
-        color: #111827;
+        color: #f3f4f6;
         background: transparent;
     }
 
     .fuzzy-overlay-close {
-        border: 1px solid #d1d5db;
-        background: #f9fafb;
-        color: #374151;
+        border: 1px solid #5b4f3a;
+        background: #26221b;
+        color: #f3f4f6;
         border-radius: 0.45rem;
         padding: 0.2rem 0.5rem;
         font-size: 0.75rem;
@@ -262,13 +262,13 @@
 
     .fuzzy-overlay-hint {
         padding: 0.45rem 0.9rem 0.2rem;
-        color: #6b7280;
+        color: #9ca3af;
         font-size: 0.78rem;
     }
 
     .fuzzy-overlay-empty {
         padding: 1rem 0.9rem 1.1rem;
-        color: #6b7280;
+        color: #9ca3af;
         font-size: 0.9rem;
     }
 
@@ -295,17 +295,17 @@
 
     .fuzzy-overlay-item:hover,
     .fuzzy-overlay-item.active {
-        background: #eef2ff;
+        background: #4a3f2f;
     }
 
     .fuzzy-overlay-item .primary {
-        color: #111827;
+        color: #f3f4f6;
         font-size: 0.92rem;
         font-weight: 500;
     }
 
     .fuzzy-overlay-item .secondary {
-        color: #6b7280;
+        color: #cbd5e1;
         font-size: 0.8rem;
     }
 </style>
