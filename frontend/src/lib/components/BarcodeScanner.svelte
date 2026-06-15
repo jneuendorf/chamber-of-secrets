@@ -6,9 +6,11 @@
     let {
         onScan,
         manualVisible = $bindable(false),
+        restartSignal = 0,
     }: {
         onScan: (code: string) => void;
         manualVisible?: boolean;
+        restartSignal?: number;
     } = $props();
 
     let videoEl: HTMLVideoElement | undefined = $state();
@@ -20,6 +22,13 @@
 
     let cameras: MediaDeviceInfo[] = $state([]);
     let selectedDeviceId = $state("");
+    let detectorLoading = $state(false);
+
+    type DetectorCtor = new (options?: { formats: string[] }) => {
+        detect(image: ImageBitmapSource): Promise<{ rawValue: string; format: string }[]>;
+    };
+
+    let detectorCtor: DetectorCtor | null = null;
 
     async function enumerateCameras() {
         // getUserMedia must have been called first to get device labels
@@ -85,12 +94,34 @@
         modalOpen = false;
     }
 
+    async function resolveDetectorCtor(): Promise<DetectorCtor> {
+        if (detectorCtor) return detectorCtor;
+
+        // Native support first
+        if ("BarcodeDetector" in window) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            detectorCtor = (window as any).BarcodeDetector as DetectorCtor;
+            return detectorCtor;
+        }
+
+        detectorLoading = true;
+        try {
+            const mod = await import("@undecaf/barcode-detector-polyfill");
+            detectorCtor = mod.BarcodeDetectorPolyfill as DetectorCtor;
+            return detectorCtor;
+        } finally {
+            detectorLoading = false;
+        }
+    }
+
     async function detectBarcode() {
         if (!scanning || !videoEl) return;
 
-        if ("BarcodeDetector" in window) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const detector = new (window as any).BarcodeDetector({
+        try {
+            const ctor = await resolveDetectorCtor();
+            if (!scanning || !videoEl) return;
+
+            const detector = new ctor({
                 formats: ["ean_13", "ean_8", "upc_a", "upc_e"],
             });
 
@@ -110,8 +141,8 @@
             };
 
             detect();
-        } else {
-            error = get(_)("scanner.unsupported");
+        } catch (e) {
+            error = get(_)("scanner.unsupported") + ` (${String(e)})`;
             stopCamera();
         }
     }
@@ -131,6 +162,20 @@
     function toggleManual() {
         manualVisible = !manualVisible;
     }
+
+    let lastRestartSignal = $state(0);
+
+    $effect(() => {
+        const signal = restartSignal;
+
+        if (signal !== lastRestartSignal) {
+            lastRestartSignal = signal;
+
+            if (modalOpen) {
+                startCamera();
+            }
+        }
+    });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -241,6 +286,16 @@
                         {/if}
                     </div>
                 </div>
+
+                {#if detectorLoading}
+                    <div class="absolute inset-0 bg-black/55 flex items-center justify-center z-10">
+                        <div class="flex flex-col items-center gap-2 text-white text-sm">
+                            <div class="loader" aria-hidden="true"></div>
+                            <span>{$_("common.loading")}</span>
+                            <span class="text-xs text-gray-200">{$_("scanner.preparing")}</span>
+                        </div>
+                    </div>
+                {/if}
             </div>
 
             <!-- Camera selector + error -->
@@ -289,6 +344,15 @@
         animation: pulse 1.5s ease-in-out infinite;
     }
 
+    .loader {
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(255, 255, 255, 0.35);
+        border-top-color: #ffffff;
+        border-radius: 9999px;
+        animation: spin 0.8s linear infinite;
+    }
+
     @keyframes pulse {
         0%,
         100% {
@@ -296,6 +360,12 @@
         }
         50% {
             opacity: 0.3;
+        }
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
         }
     }
 </style>

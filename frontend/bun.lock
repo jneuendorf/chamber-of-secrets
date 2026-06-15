@@ -5,6 +5,7 @@
     "": {
       "name": "frontend",
       "dependencies": {
+        "@undecaf/barcode-detector-polyfill": "^0.9.23",
         "chart.js": "^4.5.1",
         "fuse.js": "^7.1.0",
         "svelte-i18n": "^4.0.1",
@@ -216,6 +217,10 @@
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
+    "@undecaf/barcode-detector-polyfill": ["@undecaf/barcode-detector-polyfill@0.9.23", "", { "dependencies": { "@undecaf/zbar-wasm": "^0.9.16" } }, "sha512-qVr7jSUbE5a30X9dByDym2NzsqyH+MFwyFiu4QSHDQMLCImTJj/et7pEcOtGqlL4UB5J6J3d0hK4/5d4MMowYA=="],
+
+    "@undecaf/zbar-wasm": ["@undecaf/zbar-wasm@0.9.16", "", { "dependencies": { "jschardet": "^3.0.0" } }, "sha512-T5PcT6g+tLScGjR4WmnRErNvfKqEc3kRg2ux14wHmIDNbvNeXa0BkFK19PRK/jb6zGy5NyWtn4ko6KeNuZc/fQ=="],
+
     "acorn": ["acorn@8.16.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw=="],
 
     "aria-query": ["aria-query@5.3.1", "", {}, "sha512-Z/ZeOgVl7bcSYZ/u/rh0fOpvEpq//LZmdbkXyc7syVzjPAhfOa9ebsdTSjEBDU4vs5nC98Kfduj1uFo0qyET3g=="],
@@ -285,6 +290,8 @@
     "is-reference": ["is-reference@3.0.3", "", { "dependencies": { "@types/estree": "^1.0.6" } }, "sha512-ixkJoqQvAP88E6wLydLGGqCJsrFUnqoH6HnaczB8XmDH1oaWU+xxdptvikTgaEhtZ53Ky6YXiBuUI2WXLMCwjw=="],
 
     "jiti": ["jiti@2.6.1", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ=="],
+
+    "jschardet": ["jschardet@3.1.4", "", {}, "sha512-/kmVISmrwVwtyYU40iQUOp3SUPk2dhNCMsZBQX0R1/jZ8maaXJ/oZIzUOiyOqcgtLnETFKYChbJ5iDC/eWmFHg=="],
 
     "kleur": ["kleur@4.1.5", "", {}, "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="],
 

@@ -48,7 +48,8 @@
     "barcodePlaceholder": "EAN / Barcode eingeben",
     "lookUp": "Suchen",
     "cameraError": "Kamera-Zugriff verweigert: {error}",
-    "unsupported": "BarcodeDetector-API wird nicht unterstützt. Manuelle Eingabe oder Chrome/Edge verwenden."
+    "unsupported": "BarcodeDetector-API wird nicht unterstützt. Manuelle Eingabe oder Chrome/Edge verwenden.",
+    "preparing": "Barcode-Scanner wird vorbereitet…"
   },
   "scan": {
     "lookingUp": "Wird gesucht...",
@@ -67,7 +68,9 @@
     "removedSuccess": "Aus dem Inventar entfernt!",
     "scanNext": "Nächsten Artikel scannen",
     "dismissScanned": "Scan verwerfen",
-    "dismissCategory": "Kategorie verwerfen"
+    "dismissCategory": "Kategorie verwerfen",
+    "categoryLabel": "Kategorie",
+    "categoryNone": "Keine"
   },
   "category": {
     "none": "Keine",

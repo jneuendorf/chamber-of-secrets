@@ -39,6 +39,7 @@
   },
   "scanner": {
     "startCamera": "Start Camera Scan",
+    "preparing": "Preparing barcode scanner…",
     "scanBarcode": "Scan Barcode",
     "stop": "Stop",
     "camera": "Camera",
@@ -67,7 +68,9 @@
     "removedSuccess": "Removed from inventory!",
     "scanNext": "Scan next item",
     "dismissScanned": "Dismiss scanned item",
-    "dismissCategory": "Dismiss category suggestion"
+    "dismissCategory": "Dismiss category suggestion",
+    "categoryLabel": "Category",
+    "categoryNone": "None"
   },
   "category": {
     "none": "None",

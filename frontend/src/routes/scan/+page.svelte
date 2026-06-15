@@ -28,10 +28,13 @@
     // Manual barcode visibility: hidden by default, auto-shown on lookup failure
     let manualVisible = $state(false);
 
-    // Lightweight category auto-match from fetched lookup category text
+    // Category suggestion + user override
     let categorySuggestionName = $state<string | null>(null);
     let matchedCategory: Category | null = $state(null);
     let categoryDismissed = $state(false);
+    let categories = $state<Category[]>([]);
+    let selectedCategoryId = $state<number | "none">("none");
+    let scannerRestartSignal = $state(0);
 
     function clampQuantity(value: number): number {
         if (!Number.isFinite(value)) return 1;
@@ -72,28 +75,49 @@
         categorySuggestionName = parseLookupCategory(rawCategory);
         matchedCategory = null;
         categoryDismissed = false;
+        selectedCategoryId = "none";
+
+        categories = await api.categories.list();
 
         if (!categorySuggestionName) return;
 
-        const categories = await api.categories.list();
         matchedCategory =
             categories.find(
                 (c) => c.name.trim().toLowerCase() === categorySuggestionName!.trim().toLowerCase(),
             ) ?? null;
+
+        if (matchedCategory) {
+            selectedCategoryId = matchedCategory.id;
+        }
     }
 
     function dismissCategorySuggestion() {
         categoryDismissed = true;
         categorySuggestionName = null;
         matchedCategory = null;
+        selectedCategoryId = "none";
+    }
+
+    function updateSelectedCategory(value: string) {
+        if (value === "none") {
+            selectedCategoryId = "none";
+            return;
+        }
+        const parsed = Number(value);
+        selectedCategoryId = Number.isFinite(parsed) ? parsed : "none";
     }
 
     async function resolveCategoryForSave(): Promise<Category | null> {
+        if (selectedCategoryId !== "none") {
+            return categories.find((c) => c.id === selectedCategoryId) ?? null;
+        }
+
         if (categoryDismissed || !categorySuggestionName) return null;
         if (matchedCategory) return matchedCategory;
 
         const created = await api.categories.create({ name: categorySuggestionName });
         matchedCategory = created;
+        categories = [...categories, created];
         return created;
     }
 
@@ -120,10 +144,12 @@
         lookupError = "";
         lookupResult = null;
         added = false;
+        quantity = 1;
         unitPrice = undefined;
         categorySuggestionName = null;
         matchedCategory = null;
         categoryDismissed = false;
+        selectedCategoryId = "none";
 
         try {
             const result = await api.products.lookupEAN(code);
@@ -150,6 +176,8 @@
             const products = await api.products.list();
             const existing = products.find((p: Product) => p.ean === lookupResult!.ean);
 
+            const resolvedCategory = await resolveCategoryForSave();
+
             const product =
                 existing ??
                 (await api.products.create({
@@ -157,8 +185,16 @@
                     name: lookupResult.name ?? get(_)("scan.unknownProduct"),
                     brand: lookupResult.brand,
                     image_url: lookupResult.image_url,
-                    category_id: (await resolveCategoryForSave())?.id ?? null,
+                    category_id: resolvedCategory?.id ?? null,
                 }));
+
+            if (
+                existing &&
+                selectedCategoryId !== "none" &&
+                existing.category_id !== selectedCategoryId
+            ) {
+                await api.products.update(existing.id, { category_id: selectedCategoryId });
+            }
 
             await api.transactions.create({
                 product_id: product.id,
@@ -168,6 +204,8 @@
             });
 
             added = true;
+            scannerRestartSignal += 1;
+            scanNext();
         } catch (e) {
             lookupError = get(_)("scan.failedToAdd", { values: { error: String(e) } });
         } finally {
@@ -188,6 +226,7 @@
 
     function scanNext() {
         dismissScannedItem();
+        manualVisible = false;
     }
 </script>
 
@@ -223,7 +262,7 @@
             </button>
         </div>
     </div>
-    <BarcodeScanner onScan={handleScan} bind:manualVisible />
+    <BarcodeScanner onScan={handleScan} bind:manualVisible restartSignal={scannerRestartSignal} />
 
     {#if loading}
         <p class="text-center my-4">{$_("scan.lookingUp")}</p>
@@ -327,6 +366,24 @@
                                 +
                             </button>
                         </div>
+                    </label>
+
+                    <!-- Category override selector -->
+                    <label class="flex flex-col gap-1 text-sm text-gray-200">
+                        {$_("scan.categoryLabel")}
+                        <select
+                            value={selectedCategoryId === "none"
+                                ? "none"
+                                : String(selectedCategoryId)}
+                            onchange={(e) =>
+                                updateSelectedCategory((e.target as HTMLSelectElement).value)}
+                            class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
+                        >
+                            <option value="none">{$_("scan.categoryNone")}</option>
+                            {#each categories as c}
+                                <option value={c.id}>{c.name}</option>
+                            {/each}
+                        </select>
                     </label>
 
                     <!-- 4) Optional unit price, prefills from last txn -->
