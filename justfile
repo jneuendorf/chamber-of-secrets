@@ -76,7 +76,7 @@ test-backend:
 lint:
     cd backend && uv run ruff check app/
 
-# format backend (ruff) and frontend (prettier)
+# format backend (ruff) and frontend (biome)
 format:
     cd backend && uv run ruff format app/
     cd frontend && bun run format
@@ -85,3 +85,7 @@ format:
 format-check:
     cd backend && uv run ruff format --check app/
     cd frontend && bun run format:check
+
+# lint frontend (biome)
+lint-frontend:
+    cd frontend && bun run lint

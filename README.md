@@ -20,6 +20,7 @@ A personal grocery inventory tracker. Scan product barcodes, record stock moveme
 | Backend | FastAPI · SQLAlchemy 2 · Alembic · SQLite |
 | Frontend | SvelteKit 2 · Svelte 5 · TypeScript · Tailwind CSS 4 |
 | i18n | svelte-i18n (EN / DE) |
+| Lint & format | Biome 2 (frontend) · Ruff (backend) |
 | Build & package | Bun · uv |
 | Containers | Docker Compose / Podman Compose · nginx (TLS) |
 | TLS (local) | mkcert |
@@ -176,7 +177,8 @@ Expose the app over HTTPS from anywhere without port-forwarding. See the comment
 
 ```sh
 just lint           # ruff lint (backend)
-just format         # ruff format (backend) + prettier (frontend)
+just lint-frontend  # biome lint (frontend)
+just format         # ruff format (backend) + biome format (frontend)
 just format-check   # check formatting without writing
 just check-frontend # svelte-check + TypeScript
 ```
