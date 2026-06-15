@@ -109,3 +109,22 @@ def update_category(
     db.commit()
     db.refresh(category)
     return CategoryRead.model_validate(category, from_attributes=True)
+
+
+@router.delete("/{category_id}", status_code=204)
+def delete_category(category_id: int, db: Session = Depends(get_db)) -> None:
+    category = db.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    if category.products:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete category with assigned products. Reassign them first.",
+        )
+
+    for child in category.children:
+        child.parent_id = category.parent_id
+
+    db.delete(category)
+    db.commit()

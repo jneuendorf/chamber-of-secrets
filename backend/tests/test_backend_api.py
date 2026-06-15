@@ -1,3 +1,4 @@
+import contextlib
 import os
 import sys
 import tempfile
@@ -10,7 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 # Ensure app settings pick up a test DB before importing app modules.
-_TEMP_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+_TEMP_DB = tempfile.NamedTemporaryFile(suffix=".db", delete=False)  # noqa: SIM115
 _TEMP_DB.close()
 os.environ["APP_DATABASE_URL"] = f"sqlite:///{_TEMP_DB.name}"
 
@@ -51,10 +52,8 @@ class BackendAPITestCase(unittest.TestCase):
     def tearDownClass(cls) -> None:
         app.dependency_overrides.clear()
         cls._engine.dispose()
-        try:
+        with contextlib.suppress(OSError):
             Path(cls._db_path).unlink(missing_ok=True)
-        except OSError:
-            pass
 
     def setUp(self) -> None:
         # Keep tests isolated but fast by resetting tables each test.
@@ -274,6 +273,54 @@ class BackendAPITestCase(unittest.TestCase):
 
         self.assertEqual(payload["total_missing_quantity"], 7.0)
         self.assertEqual(payload["total_products_needing_restock"], 1)
+
+    # ---------- Category delete ----------
+
+    def test_delete_category_success(self) -> None:
+        cat = self._create_category("ToDelete")
+        res = self.client.delete(f"/api/categories/{cat['id']}")
+        self.assertEqual(res.status_code, 204)
+
+        listing = self.client.get("/api/categories/")
+        names = [c["name"] for c in listing.json()]
+        self.assertNotIn("ToDelete", names)
+
+    def test_delete_category_not_found(self) -> None:
+        res = self.client.delete("/api/categories/999999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_delete_category_with_products_rejected(self) -> None:
+        cat = self._create_category("HasProducts")
+        self._create_product("Bread", category_id=cat["id"])
+
+        res = self.client.delete(f"/api/categories/{cat['id']}")
+        self.assertEqual(res.status_code, 409)
+        self.assertIn("products", res.json()["detail"].lower())
+
+    def test_delete_category_reparents_children(self) -> None:
+        grandparent = self._create_category("Grandparent")
+        parent = self._create_category("Parent", parent_id=grandparent["id"])
+        child = self._create_category("Child", parent_id=parent["id"])
+
+        res = self.client.delete(f"/api/categories/{parent['id']}")
+        self.assertEqual(res.status_code, 204)
+
+        updated_child = next(
+            c for c in self.client.get("/api/categories/").json() if c["id"] == child["id"]
+        )
+        self.assertEqual(updated_child["parent_id"], grandparent["id"])
+
+    def test_delete_root_category_reparents_children_to_null(self) -> None:
+        root = self._create_category("Root")
+        child = self._create_category("Child", parent_id=root["id"])
+
+        res = self.client.delete(f"/api/categories/{root['id']}")
+        self.assertEqual(res.status_code, 204)
+
+        updated_child = next(
+            c for c in self.client.get("/api/categories/").json() if c["id"] == child["id"]
+        )
+        self.assertIsNone(updated_child["parent_id"])
 
 
 if __name__ == "__main__":
