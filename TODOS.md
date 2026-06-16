@@ -8,21 +8,15 @@ Delete entries once landed. Keep the file and this header even when empty.
 
 ---
 
-### ~~T1. Add category DELETE endpoint~~ ✅ landed
+### T1. Analytics page typecheck errors *(Chart.js `cutout` property)*
 
-`DELETE /api/categories/{id}` added. Rejects with 409 if products are
-assigned; reparents children to the deleted category's parent. Five
-tests added.
+`svelte-check` reports 3 errors in `analytics/+page.svelte`: the
+`cutout` property is not recognised in Chart.js type definitions.
+Likely a version mismatch or missing type assertion.
 
-### T2. Frontend test infrastructure *(zero coverage)*
+**Files**: `frontend/src/routes/analytics/+page.svelte`.
 
-No test runner, no test files, no `test` script in `package.json`, no
-justfile recipe. `AGENTS.md` mandates >90% coverage. Tracked as `WL-3.2`
-in `ROADMAP.md`.
-
-**Files**: `frontend/package.json`, `justfile`.
-
-### T3. API client error handling *(no 4xx/5xx differentiation)*
+### T2. API client error handling *(no 4xx/5xx differentiation)*
 
 `frontend/src/lib/api/client.ts` throws a generic `Error` on any
 non-OK response. The scan page can't distinguish "product not found"

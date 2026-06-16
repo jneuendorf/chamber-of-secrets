@@ -22,13 +22,18 @@ use this without being told to?*
   `FEATURES.md` must describe its actual state — not aspirational.
   If code and spec diverge, add an entry to `TODOS.md` and fix it
   before moving to new features. `TODOS.md` items take priority over
-  new roadmap work.
+  new roadmap work. Delete entries once landed — don't keep struck-through
+  items.
 - **Test-driven**: critical functionality MUST be tested. Target >90%
   coverage. Frontend tests use `bun test`. Write tests before or
   alongside implementation, not as an afterthought.
-- Run `just check-frontend` (typecheck) before declaring done.
-- Run `cd frontend && bun run format` if linting reports formatting
-  issues instead of reformatting yourself.
+- Run `just check-frontend` (lint + typecheck + test) or `just check-backend`, 
+  respectively, before declaring done.
+- Use `just lint-frontend` / `just format-frontend` for quick checks
+  on staged files. Pass `""` to check all files instead:
+  `just lint-frontend ""`.
+- Run `just format-frontend` if linting reports formatting issues
+  instead of reformatting yourself.
 
 ## Commits
 
@@ -73,12 +78,20 @@ Bullet list ok. No co-author trailer unless asked.
 
 ```bash
 just dev                      # backend + frontend in parallel
-just check-frontend           # svelte-check + TypeScript
-just lint                     # ruff lint (backend)
-just lint-frontend            # biome lint (frontend)
-just format                   # ruff + biome format
-just format-check             # check without writing
+just check                    # lint + typecheck + test (all layers)
+just check-frontend           # lint + typecheck + test (frontend)
+just check-backend            # lint + test (backend, needs uv)
+just test                     # all tests
+just test-frontend            # bun test
 just test-backend             # backend unit tests
+just lint                     # biome + ruff lint (staged by default)
+just lint-frontend            # biome lint (staged by default)
+just lint-backend             # ruff lint
+just format                   # biome + ruff format (staged by default)
+just format-frontend          # biome format (staged by default)
+just format-backend           # ruff format
+just format-check             # check without writing (staged by default)
+just typecheck-frontend       # svelte-check only
 just seed                     # seed DB with sample data
 just up                       # containerized prod stack
 ```

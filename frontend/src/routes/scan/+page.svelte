@@ -9,6 +9,7 @@ import {
     type Product,
     type Transaction,
 } from '$lib/api/client'
+import { clampQuantity, parseLookupCategory } from '$lib/utils/scan'
 
 // --- Scan / lookup state ---
 let lookupResult: EANLookupResult | null = $state(null)
@@ -36,11 +37,6 @@ let categories = $state<Category[]>([])
 let selectedCategoryId = $state<number | 'none'>('none')
 let scannerRestartSignal = $state(0)
 
-function clampQuantity(value: number): number {
-    if (!Number.isFinite(value)) return 1
-    return Math.max(1, Math.round(value))
-}
-
 function decrementQuantity() {
     quantity = clampQuantity(quantity - 1)
 }
@@ -52,23 +48,6 @@ function incrementQuantity() {
 function updateQuantityFromInput(raw: string) {
     const parsed = Number(raw)
     quantity = clampQuantity(parsed)
-}
-
-function parseLookupCategory(raw: string | null | undefined): string | null {
-    if (!raw) return null
-    const parts = raw
-        .split(',')
-        .map((p) => p.trim())
-        .filter(Boolean)
-        .map((p) => p.replace(/^[a-z]{2}:/i, ''))
-        .filter(Boolean)
-
-    if (parts.length === 0) return null
-
-    const candidate = parts[parts.length - 1].trim()
-    if (!candidate) return null
-
-    return candidate.charAt(0).toUpperCase() + candidate.slice(1)
 }
 
 async function resolveCategoryFromLookup(rawCategory: string | null | undefined) {

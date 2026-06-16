@@ -163,15 +163,16 @@ dev XS · user — · ⚪
   - [x] Update justfile recipes
   - [x] VS Code extension recommendation
 
-- [ ] **WL-3.2: Frontend Test Infrastructure** ⬜
+- [x] **WL-3.2: Frontend Test Infrastructure** ✅
 
 dev S · user — · ⚪
 
-  - [ ] Configure `bun test` for Svelte component and unit tests
-  - [ ] Add `test` script to `package.json`, `just test-frontend` and `just test` (all) recipes
-  - [ ] Add `just check` meta-recipe (lint + typecheck + test, both layers)
-  - [ ] Seed initial tests for API client and core utilities
-  - [ ] Wire coverage reporting (target >90%)
+  - [x] Configure `bun test` for unit tests (`@types/bun` for type-safe test authoring)
+  - [x] Add `test` / `test:coverage` scripts to `package.json`, `just test-frontend` and `just test` (all) recipes
+  - [x] Add `just check` meta-recipe (lint + typecheck + test, both layers)
+  - [x] Seed initial tests: API client (16 tests), scan utils (16 tests), i18n key sync (3 tests)
+  - [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
+  - [ ] Component-level tests (requires DOM testing library — future work)
 
 - [ ] **WL-3.3: Tailwind Theme Tokens** ⬜
 
