@@ -97,8 +97,12 @@ export interface RestockOverviewResponse {
 
 function dateRange(since?: string, until?: string): string {
     const params = new URLSearchParams()
-    if (since) params.set('since', since)
-    if (until) params.set('until', until)
+    if (since) {
+        params.set('since', since)
+    }
+    if (until) {
+        params.set('until', until)
+    }
     const qs = params.toString()
     return qs ? `?${qs}` : ''
 }

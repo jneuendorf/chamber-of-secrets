@@ -132,10 +132,10 @@ let categoryByName = $derived(new Map(categories.map((c) => [c.name, c])))
 let categoryById = $derived(new Map(categories.map((c) => [c.id, c])))
 
 function toParentLabel(childName: string): string {
-    if (childName === UNCATEGORIZED) return UNCATEGORIZED
+    if (childName === UNCATEGORIZED) { return UNCATEGORIZED }
     const child = categoryByName.get(childName)
-    if (!child) return childName
-    if (child.parent_id == null) return NO_PARENT
+    if (!child) { return childName }
+    if (child.parent_id == null) { return NO_PARENT }
     const parent = categoryById.get(child.parent_id)
     return parent?.name ?? NO_PARENT
 }
@@ -226,7 +226,7 @@ function buildLineDatasets(
             return pt ? getValue(pt) : 0
         }),
         borderColor: COLORS[i % COLORS.length],
-        backgroundColor: COLORS[i % COLORS.length] + '22',
+        backgroundColor: `${COLORS[i % COLORS.length]}22`,
         tension: 0.3,
         pointRadius: 3,
         fill: true,
@@ -241,8 +241,8 @@ let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state()
 let spendingLineCanvas: HTMLCanvasElement | undefined = $state()
 
 $effect(() => {
-    if (!childItemsDonutCanvas || !spending.length) return
-    const chart = new Chart(childItemsDonutCanvas, {
+    if (!childItemsDonutCanvas || !spending.length) { return }
+    const chart = new Chart<'doughnut'>(childItemsDonutCanvas, {
         type: 'doughnut',
         data: {
             labels: spending.map((s) => s.category),
@@ -278,9 +278,9 @@ $effect(() => {
 })
 
 $effect(() => {
-    if (!parentItemsDonutCanvas || !parentSpending.length) return
+    if (!parentItemsDonutCanvas || !parentSpending.length) { return }
     const parentTotalItems = parentSpending.reduce((sum, s) => sum + s.item_count, 0)
-    const chart = new Chart(parentItemsDonutCanvas, {
+    const chart = new Chart<'doughnut'>(parentItemsDonutCanvas, {
         type: 'doughnut',
         data: {
             labels: parentSpending.map((s) => s.category),
@@ -321,8 +321,8 @@ $effect(() => {
 })
 
 $effect(() => {
-    if (!spendingDonutCanvas || !childSpendingWithPrice.length) return
-    const chart = new Chart(spendingDonutCanvas, {
+    if (!spendingDonutCanvas || !childSpendingWithPrice.length) { return }
+    const chart = new Chart<'doughnut'>(spendingDonutCanvas, {
         type: 'doughnut',
         data: {
             labels: childSpendingWithPrice.map((s) => s.category),
@@ -363,7 +363,7 @@ $effect(() => {
 })
 
 $effect(() => {
-    if (!childItemsLineCanvas || !childTsDates.length) return
+    if (!childItemsLineCanvas || !childTsDates.length) { return }
     const chart = new Chart(childItemsLineCanvas, {
         type: 'line',
         data: {
@@ -401,7 +401,7 @@ $effect(() => {
 })
 
 $effect(() => {
-    if (!parentItemsLineCanvas || !parentTsDates.length) return
+    if (!parentItemsLineCanvas || !parentTsDates.length) { return }
     const chart = new Chart(parentItemsLineCanvas, {
         type: 'line',
         data: {
@@ -439,7 +439,7 @@ $effect(() => {
 })
 
 $effect(() => {
-    if (!spendingLineCanvas || !childTsDates.length) return
+    if (!spendingLineCanvas || !childTsDates.length) { return }
     const chart = new Chart(spendingLineCanvas, {
         type: 'line',
         data: {
@@ -495,7 +495,7 @@ $effect(() => {
         Total units to buy:
         <strong>{fmtQty(restockOverview?.total_missing_quantity ?? 0)}</strong>
     </div>
-    <button class="restock-btn" onclick={() => (restockOpen = true)}>Restock overview</button>
+    <button type="button" class="restock-btn" onclick={() => (restockOpen = true)}>Restock overview</button>
 </div>
 
 {#if loading}
@@ -588,12 +588,22 @@ $effect(() => {
 
 {#if restockOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div class="restock-backdrop" onclick={() => (restockOpen = false)}>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="restock-modal" onclick={(e) => e.stopPropagation()}>
+    <div
+        class="restock-backdrop"
+        role="button"
+        tabindex="0"
+        aria-label="Close"
+        onclick={(e) => {
+            if (e.target === e.currentTarget) { restockOpen = false }
+        }}
+        onkeydown={(e) => {
+            if (e.key === "Escape") { restockOpen = false }
+        }}
+    >
+        <div class="restock-modal">
             <div class="restock-head">
                 <h2>Restock overview</h2>
-                <button class="icon-btn" onclick={() => (restockOpen = false)}>✕</button>
+                <button type="button" class="icon-btn" onclick={() => (restockOpen = false)}>✕</button>
             </div>
 
             <div class="kpis">
@@ -916,7 +926,7 @@ $effect(() => {
     }
 
     .mt {
-        margin-top: 1rem !important;
+        margin-top: 1rem;
     }
 
     .table-wrap {

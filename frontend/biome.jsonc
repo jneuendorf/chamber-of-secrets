@@ -11,6 +11,9 @@
     "indentWidth": 4,
     "lineWidth": 88
   },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "html": { "experimentalFullSupportEnabled": true },
+  "json": { "formatter": { "trailingCommas": "none" } },
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
@@ -22,7 +25,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "useImportType": "error",
         "noNonNullAssertion": "off",
@@ -55,32 +58,44 @@
     }
   },
   "overrides": [
+    // Match .editorconfig: 2-space indent for data/config formats
     {
-      "includes": [
-        "**/*.json",
-        "**/*.jsonc",
-        "**/*.html",
-        "**/*.css",
-        "**/*.yaml",
-        "**/*.yml"
-      ],
+      "includes": ["**/*.json", "**/*.jsonc", "**/*.html", "**/*.yaml", "**/*.yml"],
       "formatter": { "indentWidth": 2 }
     },
     {
       "includes": ["**/*.md", "**/*.markdown"],
       "formatter": { "enabled": false }
     },
+    // Svelte: disable rules that produce false positives with
+    // html.experimentalFullSupportEnabled (biome ≤2.5)
     {
-      "includes": [
-        "biome.jsonc",
-        "package.json",
-        "tsconfig*.json",
-        "**/tsconfig*.json",
-        "**/package.json",
-        "**/*.config.ts",
-        "**/*.config.js",
-        "**/*.config.mjs"
-      ],
+      "includes": ["**/*.svelte"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            // Template expressions (e.g. aria-pressed={expr}) cannot
+            // be statically evaluated → flags valid dynamic values
+            "useValidAriaValues": "off",
+            // <svelte:window> is misidentified as a static element
+            "noStaticElementInteractions": "off",
+            // Modal backdrops use div[role="button"] because <button>
+            // cannot wrap other interactive content
+            "useSemanticElements": "off",
+            // Labels wrapping <input bind:value=...> are not
+            // recognized as having an associated control
+            "noLabelWithoutControl": "off"
+          },
+          "suspicious": {
+            // Intentional CSS fallback patterns (e.g. 100vh → 100dvh)
+            "noDuplicateProperties": "off"
+          }
+        }
+      }
+    },
+    // Config files: 2-space indent per project convention
+    {
+      "includes": ["**/*.config.ts", "**/*.config.js", "**/*.config.mjs"],
       "formatter": { "indentWidth": 2 }
     }
   ]

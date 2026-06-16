@@ -26,73 +26,73 @@ $effect(() => {
 // --- Emoji lookup ---
 function emojiFor(name: string, category: string | null): string {
     const t = [name, category ?? ''].join(' ').toLowerCase()
-    if (/milk|milch|lait|vollmilch|skimmed|dairy|molkerei/.test(t)) return '🥛'
-    if (/egg|ei\b|eier|oeuf/.test(t)) return '🥚'
-    if (/bread|brot|pain|toast|baguette|brötchen/.test(t)) return '🍞'
-    if (/cheese|käse|fromage/.test(t)) return '🧀'
-    if (/butter/.test(t)) return '🧈'
-    if (/yogu?rt|joghurt/.test(t)) return '🫙'
-    if (/cream|sahne|crème/.test(t)) return '🍦'
-    if (/apple|apfel|pomme/.test(t)) return '🍎'
-    if (/banana|banane/.test(t)) return '🍌'
-    if (/orange/.test(t)) return '🍊'
-    if (/lemon|zitrone|citron/.test(t)) return '🍋'
-    if (/strawberr|erdbeere/.test(t)) return '🍓'
-    if (/cherry|kirsche|cerise/.test(t)) return '🍒'
-    if (/grape|traube|weintraube|raisin/.test(t)) return '🍇'
-    if (/pineapple|ananas/.test(t)) return '🍍'
-    if (/mango/.test(t)) return '🥭'
-    if (/avocado/.test(t)) return '🥑'
-    if (/peach|pfirsich|pêche/.test(t)) return '🍑'
-    if (/pear|birne|poire/.test(t)) return '🍐'
-    if (/melon|melone/.test(t)) return '🍈'
-    if (/kiwi/.test(t)) return '🥝'
-    if (/tomato|tomate/.test(t)) return '🍅'
-    if (/carrot|karotte|möhre|rübe/.test(t)) return '🥕'
-    if (/potato|kartoffel|pommes/.test(t)) return '🥔'
-    if (/broccoli|brokkoli/.test(t)) return '🥦'
-    if (/corn|mais/.test(t)) return '🌽'
-    if (/cucumber|gurke|concombre/.test(t)) return '🥒'
-    if (/pepper|paprika/.test(t)) return '🫑'
-    if (/onion|zwiebel|oignon/.test(t)) return '🧅'
-    if (/garlic|knoblauch|ail/.test(t)) return '🧄'
-    if (/lettuce|kopfsalat|laitue/.test(t)) return '🥬'
-    if (/mushroom|pilz|champignon/.test(t)) return '🍄'
-    if (/eggplant|aubergine/.test(t)) return '🍆'
-    if (/chicken|hähnchen|poulet|hühn/.test(t)) return '🍗'
-    if (/ham|schinken|jambon/.test(t)) return '🍖'
-    if (/sausage|wurst|bratwurst|salami|würst/.test(t)) return '🌭'
-    if (/beef|steak|rind|fleisch|meat|viande/.test(t)) return '🥩'
-    if (/fish|fisch|lachs|salmon|thun|tuna|forelle|trout/.test(t)) return '🐟'
-    if (/shrimp|garnele|prawn|crevette/.test(t)) return '🦐'
-    if (/coffee|kaffee|espresso|cappuccino|latte/.test(t)) return '☕'
-    if (/tea|tee|thé/.test(t)) return '🍵'
-    if (/juice|saft|jus/.test(t)) return '🧃'
-    if (/water|wasser|eau/.test(t)) return '💧'
-    if (/beer|bier|bière/.test(t)) return '🍺'
-    if (/wine|wein|vin/.test(t)) return '🍷'
-    if (/cola|soda|limo|limonade|softdrink/.test(t)) return '🥤'
-    if (/chocolate|schokolade|kakao|chocolat/.test(t)) return '🍫'
-    if (/pasta|nudel|spaghetti|penne|fusilli|tagliatelle/.test(t)) return '🍝'
-    if (/rice|reis|riz/.test(t)) return '🍚'
-    if (/pizza/.test(t)) return '🍕'
-    if (/burger/.test(t)) return '🍔'
-    if (/cereal|müsli|muesli|granola|haferflocken|oat/.test(t)) return '🥣'
-    if (/oil|öl|olive|huile/.test(t)) return '🫒'
-    if (/salt|salz|sel/.test(t)) return '🧂'
-    if (/sugar|zucker|sucre/.test(t)) return '🍬'
-    if (/honey|honig|miel/.test(t)) return '🍯'
-    if (/jam|marmelade|confiture/.test(t)) return '🫙'
-    if (/sauce|ketchup|mustard|senf/.test(t)) return '🥫'
-    if (/soup|suppe|bouillon/.test(t)) return '🍲'
-    if (/nut|nuss|peanut|cashew|almond|mandel|haselnuss/.test(t)) return '🥜'
-    if (/cookie|keks|biscuit/.test(t)) return '🍪'
-    if (/cake|torte|kuchen/.test(t)) return '🎂'
-    if (/chip|crisp|snack|cracker/.test(t)) return '🥨'
-    if (/bean|bohne/.test(t)) return '🫘'
-    if (/pea|erbse/.test(t)) return '🫛'
-    if (/tofu/.test(t)) return '🧆'
-    if (/frozen|tiefkühl|surgelé/.test(t)) return '🧊'
+    if (/milk|milch|lait|vollmilch|skimmed|dairy|molkerei/.test(t)) { return '🥛' }
+    if (/egg|ei\b|eier|oeuf/.test(t)) { return '🥚' }
+    if (/bread|brot|pain|toast|baguette|brötchen/.test(t)) { return '🍞' }
+    if (/cheese|käse|fromage/.test(t)) { return '🧀' }
+    if (/butter/.test(t)) { return '🧈' }
+    if (/yogu?rt|joghurt/.test(t)) { return '🫙' }
+    if (/cream|sahne|crème/.test(t)) { return '🍦' }
+    if (/apple|apfel|pomme/.test(t)) { return '🍎' }
+    if (/banana|banane/.test(t)) { return '🍌' }
+    if (/orange/.test(t)) { return '🍊' }
+    if (/lemon|zitrone|citron/.test(t)) { return '🍋' }
+    if (/strawberr|erdbeere/.test(t)) { return '🍓' }
+    if (/cherry|kirsche|cerise/.test(t)) { return '🍒' }
+    if (/grape|traube|weintraube|raisin/.test(t)) { return '🍇' }
+    if (/pineapple|ananas/.test(t)) { return '🍍' }
+    if (/mango/.test(t)) { return '🥭' }
+    if (/avocado/.test(t)) { return '🥑' }
+    if (/peach|pfirsich|pêche/.test(t)) { return '🍑' }
+    if (/pear|birne|poire/.test(t)) { return '🍐' }
+    if (/melon|melone/.test(t)) { return '🍈' }
+    if (/kiwi/.test(t)) { return '🥝' }
+    if (/tomato|tomate/.test(t)) { return '🍅' }
+    if (/carrot|karotte|möhre|rübe/.test(t)) { return '🥕' }
+    if (/potato|kartoffel|pommes/.test(t)) { return '🥔' }
+    if (/broccoli|brokkoli/.test(t)) { return '🥦' }
+    if (/corn|mais/.test(t)) { return '🌽' }
+    if (/cucumber|gurke|concombre/.test(t)) { return '🥒' }
+    if (/pepper|paprika/.test(t)) { return '🫑' }
+    if (/onion|zwiebel|oignon/.test(t)) { return '🧅' }
+    if (/garlic|knoblauch|ail/.test(t)) { return '🧄' }
+    if (/lettuce|kopfsalat|laitue/.test(t)) { return '🥬' }
+    if (/mushroom|pilz|champignon/.test(t)) { return '🍄' }
+    if (/eggplant|aubergine/.test(t)) { return '🍆' }
+    if (/chicken|hähnchen|poulet|hühn/.test(t)) { return '🍗' }
+    if (/ham|schinken|jambon/.test(t)) { return '🍖' }
+    if (/sausage|wurst|bratwurst|salami|würst/.test(t)) { return '🌭' }
+    if (/beef|steak|rind|fleisch|meat|viande/.test(t)) { return '🥩' }
+    if (/fish|fisch|lachs|salmon|thun|tuna|forelle|trout/.test(t)) { return '🐟' }
+    if (/shrimp|garnele|prawn|crevette/.test(t)) { return '🦐' }
+    if (/coffee|kaffee|espresso|cappuccino|latte/.test(t)) { return '☕' }
+    if (/tea|tee|thé/.test(t)) { return '🍵' }
+    if (/juice|saft|jus/.test(t)) { return '🧃' }
+    if (/water|wasser|eau/.test(t)) { return '💧' }
+    if (/beer|bier|bière/.test(t)) { return '🍺' }
+    if (/wine|wein|vin/.test(t)) { return '🍷' }
+    if (/cola|soda|limo|limonade|softdrink/.test(t)) { return '🥤' }
+    if (/chocolate|schokolade|kakao|chocolat/.test(t)) { return '🍫' }
+    if (/pasta|nudel|spaghetti|penne|fusilli|tagliatelle/.test(t)) { return '🍝' }
+    if (/rice|reis|riz/.test(t)) { return '🍚' }
+    if (/pizza/.test(t)) { return '🍕' }
+    if (/burger/.test(t)) { return '🍔' }
+    if (/cereal|müsli|muesli|granola|haferflocken|oat/.test(t)) { return '🥣' }
+    if (/oil|öl|olive|huile/.test(t)) { return '🫒' }
+    if (/salt|salz|sel/.test(t)) { return '🧂' }
+    if (/sugar|zucker|sucre/.test(t)) { return '🍬' }
+    if (/honey|honig|miel/.test(t)) { return '🍯' }
+    if (/jam|marmelade|confiture/.test(t)) { return '🫙' }
+    if (/sauce|ketchup|mustard|senf/.test(t)) { return '🥫' }
+    if (/soup|suppe|bouillon/.test(t)) { return '🍲' }
+    if (/nut|nuss|peanut|cashew|almond|mandel|haselnuss/.test(t)) { return '🥜' }
+    if (/cookie|keks|biscuit/.test(t)) { return '🍪' }
+    if (/cake|torte|kuchen/.test(t)) { return '🎂' }
+    if (/chip|crisp|snack|cracker/.test(t)) { return '🥨' }
+    if (/bean|bohne/.test(t)) { return '🫘' }
+    if (/pea|erbse/.test(t)) { return '🫛' }
+    if (/tofu/.test(t)) { return '🧆' }
+    if (/frozen|tiefkühl|surgelé/.test(t)) { return '🧊' }
     return '📦'
 }
 
@@ -157,7 +157,7 @@ interface EmojiDot {
 let maxStock = $derived(Math.max(1, ...products.map((p) => p.stock)))
 
 function emojiCount(stock: number): number {
-    if (stock <= 0) return 0
+    if (stock <= 0) { return 0 }
     return Math.max(1, Math.round((stock / maxStock) * 10))
 }
 
@@ -166,7 +166,7 @@ let grouped = $derived(
         const map = new Map<string, Product[]>()
         for (const p of products) {
             const key = p.category?.name ?? '?'
-            if (!map.has(key)) map.set(key, [])
+            if (!map.has(key)) { map.set(key, []) }
             map.get(key)!.push(p)
         }
         return [...map.entries()].sort((a, b) => {
@@ -314,7 +314,7 @@ function isUrl(s: string) {
 
 <!-- Floating stats toggle -->
 {#if !loading && products.length > 0}
-    <button class="stats-btn" onclick={() => (statsOpen = true)} title={$_("chamber.statsTitle")}>
+    <button type="button" class="stats-btn" onclick={() => (statsOpen = true)} title={$_("chamber.statsTitle")}>
         📜
     </button>
 {/if}
@@ -322,9 +322,19 @@ function isUrl(s: string) {
 <!-- Stats modal -->
 {#if statsOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div class="modal-backdrop" onclick={() => (statsOpen = false)} role="dialog">
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="modal-card" onclick={(e) => e.stopPropagation()}>
+    <div
+        class="modal-backdrop"
+        role="button"
+        tabindex="0"
+        aria-label="Close"
+        onclick={(e) => {
+            if (e.target === e.currentTarget) { statsOpen = false }
+        }}
+        onkeydown={(e) => {
+            if (e.key === "Escape") { statsOpen = false }
+        }}
+    >
+        <div class="modal-card">
             <h2 class="modal-title">📜 {$_("chamber.statsTitle")}</h2>
             <table class="stats-table">
                 <tbody>
@@ -343,7 +353,7 @@ function isUrl(s: string) {
                 </tbody>
             </table>
 
-            <button class="close-btn" onclick={() => (statsOpen = false)}>
+            <button type="button" class="close-btn" onclick={() => (statsOpen = false)}>
                 {$_("chamber.close")}
             </button>
         </div>

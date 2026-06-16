@@ -141,6 +141,7 @@ async function handleUpdateIcon(cat: Category, icon: string | null) {
                             <p class="m-0 text-gray-300 text-[0.85rem]">{product.brand}</p>
                         {/if}
                         <button
+                            type="button"
                             onclick={() =>
                                 (editingId = editingId === product.id ? null : product.id)}
                             class="mt-1 flex items-center gap-1 text-left"

@@ -58,7 +58,7 @@ async function resolveCategoryFromLookup(rawCategory: string | null | undefined)
 
     categories = await api.categories.list()
 
-    if (!categorySuggestionName) return
+    if (!categorySuggestionName) { return }
 
     matchedCategory =
         categories.find(
@@ -93,8 +93,8 @@ async function resolveCategoryForSave(): Promise<Category | null> {
         return categories.find((c) => c.id === selectedCategoryId) ?? null
     }
 
-    if (categoryDismissed || !categorySuggestionName) return null
-    if (matchedCategory) return matchedCategory
+    if (categoryDismissed || !categorySuggestionName) { return null }
+    if (matchedCategory) { return matchedCategory }
 
     const created = await api.categories.create({ name: categorySuggestionName })
     matchedCategory = created
@@ -110,7 +110,7 @@ async function lookupLastUnitPriceByEAN(ean: string): Promise<number | undefined
     try {
         const products = await api.products.list()
         const existing = products.find((p: Product) => p.ean === ean)
-        if (!existing) return undefined
+        if (!existing) { return undefined }
 
         const txns = await api.transactions.list(existing.id)
         const priced = txns.find((t: Transaction) => typeof t.unit_price === 'number')
@@ -150,7 +150,7 @@ async function handleScan(code: string) {
 }
 
 async function saveInventoryTransaction() {
-    if (!lookupResult) return
+    if (!lookupResult) { return }
     loading = true
 
     try {
@@ -223,7 +223,7 @@ function scanNext() {
                         ? "bg-[#1f9d55] text-white"
                         : "bg-[#111827] text-[#86efac] border border-[#14532d]"
                 }`}
-                aria-pressed={transactionType === "in"}
+                aria-pressed={transactionType === "in" ? "true" : "false"}
             >
                 <span aria-hidden="true">+</span>
                 <span>{$_("scan.modeAdd")}</span>
@@ -236,7 +236,7 @@ function scanNext() {
                         ? "bg-[#e74c3c] text-white"
                         : "bg-[#111827] text-[#fca5a5] border border-[#7f1d1d]"
                 }`}
-                aria-pressed={transactionType === "out"}
+                aria-pressed={transactionType === "out" ? "true" : "false"}
             >
                 <span aria-hidden="true">−</span>
                 <span>{$_("scan.modeRemove")}</span>
@@ -382,6 +382,7 @@ function scanNext() {
                     </label>
 
                     <button
+                        type="button"
                         onclick={saveInventoryTransaction}
                         disabled={loading}
                         class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
@@ -397,6 +398,7 @@ function scanNext() {
                             : $_("scan.removedSuccess")}
                     </p>
                     <button
+                        type="button"
                         onclick={scanNext}
                         class="px-6 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm cursor-pointer"
                     >

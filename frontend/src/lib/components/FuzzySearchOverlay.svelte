@@ -62,8 +62,8 @@ $effect(() => {
         activeIndex = 0
         return
     }
-    if (activeIndex >= len) activeIndex = len - 1
-    if (activeIndex < 0) activeIndex = 0
+    if (activeIndex >= len) { activeIndex = len - 1 }
+    if (activeIndex < 0) { activeIndex = 0 }
 })
 
 function isHotkey(e: KeyboardEvent): boolean {
@@ -102,7 +102,7 @@ function onGlobalKeydown(e: KeyboardEvent) {
         return
     }
 
-    if (!open) return
+    if (!open) { return }
 
     if (e.key === 'Escape') {
         e.preventDefault()
@@ -112,21 +112,22 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
     if (e.key === 'ArrowDown') {
         e.preventDefault()
-        if (results.length > 0) activeIndex = (activeIndex + 1) % results.length
+        if (results.length > 0) { activeIndex = (activeIndex + 1) % results.length }
         return
     }
 
     if (e.key === 'ArrowUp') {
         e.preventDefault()
-        if (results.length > 0)
+        if (results.length > 0) {
             activeIndex = (activeIndex - 1 + results.length) % results.length
+        }
         return
     }
 
     if (e.key === 'Enter') {
         e.preventDefault()
         const item = results[activeIndex]
-        if (item) choose(item)
+        if (item) { choose(item) }
     }
 }
 
@@ -165,6 +166,7 @@ onMount(() => {
                 spellcheck="false"
             />
             <button
+                type="button"
                 class="fuzzy-overlay-close"
                 onclick={closeOverlay}
                 aria-label={$_("common.close")}>Esc</button
@@ -176,16 +178,17 @@ onMount(() => {
         {#if results.length === 0}
             <div class="fuzzy-overlay-empty">{noResultsText}</div>
         {:else}
-            <ul class="fuzzy-overlay-list" role="listbox" aria-label={$_("common.searchResults")}>
+            <ul class="fuzzy-overlay-list" aria-label={$_("common.searchResults")}>
                 {#each results as item, index (getId(item))}
                     <li>
                         <button
+                            type="button"
                             class="fuzzy-overlay-item"
                             class:active={index === activeIndex}
                             onclick={() => choose(item)}
                             onmousemove={() => (activeIndex = index)}
                             role="option"
-                            aria-selected={index === activeIndex}
+                            aria-selected={index === activeIndex ? "true" : "false"}
                         >
                             <span class="primary">{getLabel(item)}</span>
                             {#if getSecondaryLabel}

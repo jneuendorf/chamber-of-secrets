@@ -26,35 +26,35 @@ let { children } = $props()
                     <li>
                         <a
                             href="/chamber"
-                            aria-current={page.url.pathname === "/chamber" ? "page" : undefined}
+                            aria-current={page.url.pathname === "/chamber" ? "page" : false}
                             class="nav-link">{$_("nav.chamber")}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/scan"
-                            aria-current={page.url.pathname === "/scan" ? "page" : undefined}
+                            aria-current={page.url.pathname === "/scan" ? "page" : false}
                             class="nav-link">{$_("nav.scan")}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/inventory"
-                            aria-current={page.url.pathname === "/inventory" ? "page" : undefined}
+                            aria-current={page.url.pathname === "/inventory" ? "page" : false}
                             class="nav-link">{$_("nav.inventory")}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/categories"
-                            aria-current={page.url.pathname === "/categories" ? "page" : undefined}
+                            aria-current={page.url.pathname === "/categories" ? "page" : false}
                             class="nav-link">{$_("nav.categories")}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/analytics"
-                            aria-current={page.url.pathname === "/analytics" ? "page" : undefined}
+                            aria-current={page.url.pathname === "/analytics" ? "page" : false}
                             class="nav-link">{$_("nav.analytics")}</a
                         >
                     </li>
@@ -62,7 +62,7 @@ let { children } = $props()
                         <li>
                             <a
                                 href="/docs?api"
-                                aria-current={page.url.pathname === "/docs" ? "page" : undefined}
+                                aria-current={page.url.pathname === "/docs" ? "page" : false}
                                 class="nav-link">{$_("nav.docs")}</a
                             >
                         </li>

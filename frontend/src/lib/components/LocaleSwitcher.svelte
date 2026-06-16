@@ -7,6 +7,7 @@ const locales = ['de', 'en'] as const
 <div class="flex gap-1">
     {#each locales as lang}
         <button
+            type="button"
             class:active={$locale === lang}
             onclick={() => ($locale = lang)}
             aria-label="Switch to {lang.toUpperCase()}"

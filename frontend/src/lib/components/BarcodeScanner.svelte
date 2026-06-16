@@ -44,7 +44,7 @@ async function enumerateCameras() {
 }
 
 async function openStream() {
-    stream?.getTracks().forEach((t) => t.stop())
+    stream?.getTracks().forEach((t) => { t.stop() })
     stream = null
     scanning = false
 
@@ -70,7 +70,7 @@ async function startCamera() {
     try {
         // Initial getUserMedia call to get permission + labels
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
-        tempStream.getTracks().forEach((t) => t.stop())
+        tempStream.getTracks().forEach((t) => { t.stop() })
 
         await enumerateCameras()
         await openStream()
@@ -91,18 +91,17 @@ async function switchCamera(deviceId: string) {
 
 function stopCamera() {
     scanning = false
-    stream?.getTracks().forEach((t) => t.stop())
+    stream?.getTracks().forEach((t) => { t.stop() })
     stream = null
     modalOpen = false
 }
 
 async function resolveDetectorCtor(): Promise<DetectorCtor> {
-    if (detectorCtor) return detectorCtor
+    if (detectorCtor) { return detectorCtor }
 
     // Native support first
     if ('BarcodeDetector' in window) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        detectorCtor = (window as any).BarcodeDetector as DetectorCtor
+            detectorCtor = (window as unknown as { BarcodeDetector: DetectorCtor }).BarcodeDetector
         return detectorCtor
     }
 
@@ -117,18 +116,18 @@ async function resolveDetectorCtor(): Promise<DetectorCtor> {
 }
 
 async function detectBarcode() {
-    if (!scanning || !videoEl) return
+    if (!scanning || !videoEl) { return }
 
     try {
         const ctor = await resolveDetectorCtor()
-        if (!scanning || !videoEl) return
+        if (!scanning || !videoEl) { return }
 
         const detector = new ctor({
             formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
         })
 
         const detect = async () => {
-            if (!scanning || !videoEl) return
+            if (!scanning || !videoEl) { return }
             try {
                 const barcodes = await detector.detect(videoEl)
                 if (barcodes.length > 0) {
@@ -144,7 +143,7 @@ async function detectBarcode() {
 
         detect()
     } catch (e) {
-        error = get(_)('scanner.unsupported') + ` (${String(e)})`
+        error = `${get(_)('scanner.unsupported')} (${String(e)})`
         stopCamera()
     }
 }
@@ -158,7 +157,7 @@ function submitManual() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') stopCamera()
+    if (e.key === 'Escape') { stopCamera() }
 }
 
 function toggleManual() {
@@ -212,6 +211,7 @@ $effect(() => {
             </form>
         {:else}
             <button
+                type="button"
                 onclick={startCamera}
                 class="flex-1 h-12 px-4 text-base bg-[#3a3125] text-white border border-[#5b4f3a] rounded-lg cursor-pointer"
             >
@@ -223,7 +223,7 @@ $effect(() => {
             type="button"
             onclick={toggleManual}
             class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-[#2a251d] border border-[#5b4f3a] rounded-lg"
-            aria-expanded={manualVisible}
+            aria-expanded={manualVisible ? "true" : "false"}
             aria-label={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
             title={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
         >
@@ -249,7 +249,7 @@ $effect(() => {
         tabindex="0"
         aria-label={$_("common.close")}
         onclick={(e) => {
-            if (e.target === e.currentTarget) stopCamera();
+            if (e.target === e.currentTarget) { stopCamera() }
         }}
         onkeydown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -266,6 +266,7 @@ $effect(() => {
             <div class="flex items-center justify-between px-4 py-3 border-b border-[#5b4f3a]">
                 <span class="font-semibold text-gray-100">{$_("scanner.scanBarcode")}</span>
                 <button
+                    type="button"
                     onclick={stopCamera}
                     class="text-gray-300 hover:text-gray-100 text-2xl leading-none border-0 bg-transparent cursor-pointer"
                     aria-label={$_("scanner.stop")}
@@ -327,6 +328,7 @@ $effect(() => {
                 {/if}
 
                 <button
+                    type="button"
                     onclick={stopCamera}
                     class="w-full py-2 bg-[#26221b] hover:bg-[#211d17] text-gray-100 border border-[#5b4f3a] rounded-lg text-sm cursor-pointer"
                 >

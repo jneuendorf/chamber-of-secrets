@@ -9,10 +9,7 @@ indent_style = space
 indent_size = 4
 max_line_length = 88
 
-[*.json,*.yml,*.yaml]
-indent_size = 2
-
-[*.webmanifest]
+[*.json,*.jsonc,*.html,*.webmanifest,*.yml,*.yaml]
 indent_size = 2
 
 [*.md]

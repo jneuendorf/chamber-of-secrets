@@ -43,12 +43,12 @@ function selectCategoryFromSearch(item: unknown) {
     while (cur && !seen.has(cur.id)) {
         seen.add(cur.id)
         chain.push(cur.id)
-        if (cur.parent_id == null) break
+        if (cur.parent_id == null) { break }
         cur = byId.get(cur.parent_id)
     }
 
     const copy = new Set(expanded)
-    for (const id of chain) copy.add(id)
+    for (const id of chain) { copy.add(id) }
     expanded = copy
 
     document
@@ -98,7 +98,7 @@ function childrenByParentMap() {
     const m = new Map<number | null, Category[]>()
     for (const c of categories) {
         const key = c.parent_id ?? null
-        if (!m.has(key)) m.set(key, [])
+        if (!m.has(key)) { m.set(key, []) }
         m.get(key)!.push(c)
     }
     for (const arr of m.values()) {
@@ -112,9 +112,9 @@ function isDescendant(candidateChildId: number, ancestorId: number): boolean {
     let cur = byId.get(candidateChildId) ?? null
     const seen = new Set<number>()
     while (cur && cur.parent_id != null) {
-        if (seen.has(cur.id)) break
+        if (seen.has(cur.id)) { break }
         seen.add(cur.id)
-        if (cur.parent_id === ancestorId) return true
+        if (cur.parent_id === ancestorId) { return true }
         cur = byId.get(cur.parent_id) ?? null
     }
     return false
@@ -128,7 +128,7 @@ function parentOptionsFor(category: Category): Category[] {
 
 function parseNullableFloat(input: string): number | null {
     const trimmed = input.trim()
-    if (!trimmed) return null
+    if (!trimmed) { return null }
     const n = Number(trimmed)
     return Number.isFinite(n) ? n : NaN
 }
@@ -136,7 +136,7 @@ function parseNullableFloat(input: string): number | null {
 function computeEffectivePreview(categoryId: number): EffectivePreview {
     const byId = categoryByIdMap()
     const start = byId.get(categoryId)
-    if (!start) return { target: null, min: null, targetFrom: null, minFrom: null }
+    if (!start) { return { target: null, min: null, targetFrom: null, minFrom: null } }
 
     const resolveOne = (
         field: 'restock_target' | 'restock_min',
@@ -144,7 +144,7 @@ function computeEffectivePreview(categoryId: number): EffectivePreview {
         const visited = new Set<number>()
         let cur: Category | undefined = start
         while (cur) {
-            if (visited.has(cur.id)) return [null, null]
+            if (visited.has(cur.id)) { return [null, null] }
             visited.add(cur.id)
 
             const form = forms.get(cur.id)
@@ -153,7 +153,7 @@ function computeEffectivePreview(categoryId: number): EffectivePreview {
                     ? parseNullableFloat(form?.restock_target_input ?? '')
                     : parseNullableFloat(form?.restock_min_input ?? '')
 
-            if (value !== null && !Number.isNaN(value)) return [value, cur.id]
+            if (value !== null && !Number.isNaN(value)) { return [value, cur.id] }
             if (
                 !(form?.restock_inherit ?? cur.restock_inherit ?? true) ||
                 cur.parent_id == null
@@ -171,15 +171,15 @@ function computeEffectivePreview(categoryId: number): EffectivePreview {
 }
 
 function sourceLabel(sourceId: number | null): string {
-    if (sourceId == null) return get(_)('common.unknown')
+    if (sourceId == null) { return get(_)('common.unknown') }
     const cat = categories.find((c) => c.id === sourceId)
     return cat ? cat.name : `#${sourceId}`
 }
 
 function toggleExpand(id: number) {
     const copy = new Set(expanded)
-    if (copy.has(id)) copy.delete(id)
-    else copy.add(id)
+    if (copy.has(id)) { copy.delete(id) }
+    else { copy.add(id) }
     expanded = copy
 }
 
@@ -187,20 +187,23 @@ function validateForm(cat: Category, form: CategoryForm): string | null {
     const target = parseNullableFloat(form.restock_target_input)
     const min = parseNullableFloat(form.restock_min_input)
 
-    if (Number.isNaN(target) || Number.isNaN(min))
+    if (Number.isNaN(target) || Number.isNaN(min)) {
         return get(_)('category.validationInvalidNumbers')
-    if ((target ?? 0) < 0 || (min ?? 0) < 0)
+    }
+    if ((target ?? 0) < 0 || (min ?? 0) < 0) {
         return get(_)('category.validationNonNegative')
-    if (target !== null && min !== null && target < min)
+    }
+    if (target !== null && min !== null && target < min) {
         return get(_)('category.validationTargetGteMin')
-    if (!form.name.trim()) return get(_)('category.validationNameRequired')
-    if (form.parent_id === cat.id) return get(_)('category.validationSelfParent')
+    }
+    if (!form.name.trim()) { return get(_)('category.validationNameRequired') }
+    if (form.parent_id === cat.id) { return get(_)('category.validationSelfParent') }
     return null
 }
 
 async function saveCategory(cat: Category) {
     const form = forms.get(cat.id)
-    if (!form) return
+    if (!form) { return }
 
     const msg = validateForm(cat, form)
     if (msg) {
@@ -285,7 +288,7 @@ function hasChildren(id: number): boolean {
         getLabel={(item) => (item as Category).name}
         getSecondaryLabel={(item) => {
             const c = item as Category;
-            if (c.parent_id == null) return $_("category.noParent");
+            if (c.parent_id == null) { return $_("category.noParent") }
             const parent = categories.find((p) => p.id === c.parent_id);
             return parent ? parent.name : $_("common.unknown");
         }}
@@ -303,6 +306,7 @@ function hasChildren(id: number): boolean {
             <section class="node-card" data-category-id={root.id}>
                 <header class="node-head">
                     <button
+                        type="button"
                         class="collapse-btn"
                         onclick={() => toggleExpand(root.id)}
                         title={expanded.has(root.id)
@@ -388,6 +392,7 @@ function hasChildren(id: number): boolean {
 
                     <div class="actions">
                         <button
+                            type="button"
                             class="save"
                             disabled={savingId === root.id}
                             onclick={() => saveCategory(root)}
@@ -407,6 +412,7 @@ function hasChildren(id: number): boolean {
                             <article class="child-card" data-category-id={child.id}>
                                 <header class="child-head">
                                     <button
+                                        type="button"
                                         class="collapse-btn"
                                         onclick={() => toggleExpand(child.id)}
                                         title={expanded.has(child.id)
@@ -504,6 +510,7 @@ function hasChildren(id: number): boolean {
 
                                     <div class="actions">
                                         <button
+                                            type="button"
                                             class="save"
                                             disabled={savingId === child.id}
                                             onclick={() => saveCategory(child)}

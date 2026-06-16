@@ -24,7 +24,7 @@ let savingIcon = $state(false)
 
 async function create() {
     const name = newName.trim()
-    if (!name) return
+    if (!name) { return }
     creating = true
     try {
         await onCreateAndSelect(name)
@@ -41,9 +41,9 @@ function startEditIcon(cat: Category, e: Event) {
 }
 
 async function saveIcon() {
-    if (!onUpdateIcon) return
+    if (!onUpdateIcon) { return }
     const cat = categories.find((c) => c.id === editingIconId)
-    if (!cat) return
+    if (!cat) { return }
     savingIcon = true
     try {
         await onUpdateIcon(cat, editingIconValue.trim() || null)
@@ -60,6 +60,7 @@ function isUrl(icon: string): boolean {
 
 <div class="flex flex-wrap gap-2 mb-3">
     <button
+        type="button"
         onclick={() => onSelect(null)}
         class="px-4 py-2 rounded-full text-sm font-medium border transition-colors {!selected
             ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
@@ -69,6 +70,7 @@ function isUrl(icon: string): boolean {
     </button>
     {#each categories as cat (cat.id)}
         <button
+            type="button"
             onclick={() => onSelect(cat)}
             class="px-4 py-2 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5 {selected?.id ===
             cat.id
@@ -88,8 +90,10 @@ function isUrl(icon: string): boolean {
                     role="button"
                     tabindex="0"
                     onclick={(e) => startEditIcon(cat, e)}
-                    onkeydown={(e) => e.key === "Enter" && startEditIcon(cat, e)}
-                    class="ml-0.5 text-xs opacity-40 hover:opacity-100"
+                    onkeydown={(e) => {
+                        if (e.key === "Enter") { startEditIcon(cat, e) }
+                    }}
+                    class="ml-0.5 text-xs opacity-40 hover:opacity-100 cursor-pointer"
                     title={$_("category.editIcon")}>✎</span
                 >
             {/if}
@@ -112,13 +116,14 @@ function isUrl(icon: string): boolean {
                 class="flex-1 min-w-0 px-2 py-1 border border-[#5b4f3a] bg-[#2f2a22] text-gray-100 rounded-md text-sm"
             />
             <button
+                type="button"
                 onclick={saveIcon}
                 disabled={savingIcon}
                 class="px-3 py-1 bg-[#1a1a2e] text-white rounded-md text-sm font-medium disabled:opacity-40 shrink-0"
             >
                 {$_("category.save")}
             </button>
-            <button onclick={() => (editingIconId = null)} class="text-gray-300 text-sm px-1"
+            <button type="button" onclick={() => (editingIconId = null)} class="text-gray-300 text-sm px-1"
                 >✕</button
             >
         </div>
