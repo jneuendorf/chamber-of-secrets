@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
+import { _ } from 'svelte-i18n'
 
-    import LocaleSwitcher from "$lib/components/LocaleSwitcher.svelte";
-    import { page } from "$app/state";
-    import "../app.css";
+import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
+import { page } from '$app/state'
+import '../app.css'
 
-    let { children } = $props();
+let { children } = $props()
 </script>
 
 <svelte:head>

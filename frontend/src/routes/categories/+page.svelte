@@ -1,252 +1,256 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import { _ } from "svelte-i18n";
-    import FuzzySearchOverlay from "$lib/components/FuzzySearchOverlay.svelte";
-    import { api, type Category } from "$lib/api/client";
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+import { api, type Category } from '$lib/api/client'
 
-    type CategoryForm = {
-        name: string;
-        icon: string;
-        parent_id: number | null;
-        restock_target_input: string;
-        restock_min_input: string;
-        restock_inherit: boolean;
-    };
+type CategoryForm = {
+    name: string
+    icon: string
+    parent_id: number | null
+    restock_target_input: string
+    restock_min_input: string
+    restock_inherit: boolean
+}
 
-    type EffectivePreview = {
-        target: number | null;
-        min: number | null;
-        targetFrom: number | null;
-        minFrom: number | null;
-    };
+type EffectivePreview = {
+    target: number | null
+    min: number | null
+    targetFrom: number | null
+    minFrom: number | null
+}
 
-    const ROOT_PARENT = "__root__";
+const ROOT_PARENT = '__root__'
 
-    let categories: Category[] = $state([]);
-    let loading = $state(true);
-    let savingId: number | null = $state(null);
-    let error = $state("");
-    let searchOpen = $state(false);
+let categories: Category[] = $state([])
+let loading = $state(true)
+let savingId: number | null = $state(null)
+let error = $state('')
+let searchOpen = $state(false)
 
-    // individual collapse state for every card (root + child)
-    let expanded = $state<Set<number>>(new Set());
+// individual collapse state for every card (root + child)
+let expanded = $state<Set<number>>(new Set())
 
-    const forms = new Map<number, CategoryForm>();
+const forms = new Map<number, CategoryForm>()
 
-    function selectCategoryFromSearch(item: unknown) {
-        const category = item as Category;
-        const chain: number[] = [];
-        const byId = categoryByIdMap();
-        let cur: Category | undefined = category;
-        const seen = new Set<number>();
+function selectCategoryFromSearch(item: unknown) {
+    const category = item as Category
+    const chain: number[] = []
+    const byId = categoryByIdMap()
+    let cur: Category | undefined = category
+    const seen = new Set<number>()
 
-        while (cur && !seen.has(cur.id)) {
-            seen.add(cur.id);
-            chain.push(cur.id);
-            if (cur.parent_id == null) break;
-            cur = byId.get(cur.parent_id);
-        }
-
-        const copy = new Set(expanded);
-        for (const id of chain) copy.add(id);
-        expanded = copy;
-
-        document
-            .querySelector(`[data-category-id="${category.id}"]`)
-            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    while (cur && !seen.has(cur.id)) {
+        seen.add(cur.id)
+        chain.push(cur.id)
+        if (cur.parent_id == null) break
+        cur = byId.get(cur.parent_id)
     }
 
-    async function load() {
-        loading = true;
-        error = "";
-        try {
-            categories = await api.categories.list();
-            forms.clear();
-            for (const c of categories) {
-                forms.set(c.id, {
-                    name: c.name,
-                    icon: c.icon ?? "",
-                    parent_id: c.parent_id,
-                    restock_target_input:
-                        c.restock_target === null || c.restock_target === undefined
-                            ? ""
-                            : String(c.restock_target),
-                    restock_min_input:
-                        c.restock_min === null || c.restock_min === undefined
-                            ? ""
-                            : String(c.restock_min),
-                    restock_inherit: c.restock_inherit ?? true,
-                });
-            }
-            expanded = new Set(); // all collapsed by default
-        } catch (e) {
-            error = get(_)("inventory.failedToLoad", { values: { error: String(e) } });
-        } finally {
-            loading = false;
-        }
-    }
+    const copy = new Set(expanded)
+    for (const id of chain) copy.add(id)
+    expanded = copy
 
-    $effect(() => {
-        load();
-    });
+    document
+        .querySelector(`[data-category-id="${category.id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
 
-    function categoryByIdMap() {
-        return new Map(categories.map((c) => [c.id, c]));
-    }
-
-    function childrenByParentMap() {
-        const m = new Map<number | null, Category[]>();
+async function load() {
+    loading = true
+    error = ''
+    try {
+        categories = await api.categories.list()
+        forms.clear()
         for (const c of categories) {
-            const key = c.parent_id ?? null;
-            if (!m.has(key)) m.set(key, []);
-            m.get(key)!.push(c);
-        }
-        for (const arr of m.values()) {
-            arr.sort((a, b) => a.name.localeCompare(b.name));
-        }
-        return m;
-    }
-
-    function isDescendant(candidateChildId: number, ancestorId: number): boolean {
-        const byId = categoryByIdMap();
-        let cur = byId.get(candidateChildId) ?? null;
-        const seen = new Set<number>();
-        while (cur && cur.parent_id != null) {
-            if (seen.has(cur.id)) break;
-            seen.add(cur.id);
-            if (cur.parent_id === ancestorId) return true;
-            cur = byId.get(cur.parent_id) ?? null;
-        }
-        return false;
-    }
-
-    function parentOptionsFor(category: Category): Category[] {
-        return categories
-            .filter((c) => c.id !== category.id && !isDescendant(c.id, category.id))
-            .sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    function parseNullableFloat(input: string): number | null {
-        const trimmed = input.trim();
-        if (!trimmed) return null;
-        const n = Number(trimmed);
-        return Number.isFinite(n) ? n : NaN;
-    }
-
-    function computeEffectivePreview(categoryId: number): EffectivePreview {
-        const byId = categoryByIdMap();
-        const start = byId.get(categoryId);
-        if (!start) return { target: null, min: null, targetFrom: null, minFrom: null };
-
-        const resolveOne = (
-            field: "restock_target" | "restock_min",
-        ): [number | null, number | null] => {
-            const visited = new Set<number>();
-            let cur: Category | undefined = start;
-            while (cur) {
-                if (visited.has(cur.id)) return [null, null];
-                visited.add(cur.id);
-
-                const form = forms.get(cur.id);
-                const value =
-                    field === "restock_target"
-                        ? parseNullableFloat(form?.restock_target_input ?? "")
-                        : parseNullableFloat(form?.restock_min_input ?? "");
-
-                if (value !== null && !Number.isNaN(value)) return [value, cur.id];
-                if (
-                    !(form?.restock_inherit ?? cur.restock_inherit ?? true) ||
-                    cur.parent_id == null
-                ) {
-                    return [null, null];
-                }
-                cur = byId.get(cur.parent_id);
-            }
-            return [null, null];
-        };
-
-        const [target, targetFrom] = resolveOne("restock_target");
-        const [min, minFrom] = resolveOne("restock_min");
-        return { target, min, targetFrom, minFrom };
-    }
-
-    function sourceLabel(sourceId: number | null): string {
-        if (sourceId == null) return get(_)("common.unknown");
-        const cat = categories.find((c) => c.id === sourceId);
-        return cat ? cat.name : `#${sourceId}`;
-    }
-
-    function toggleExpand(id: number) {
-        const copy = new Set(expanded);
-        if (copy.has(id)) copy.delete(id);
-        else copy.add(id);
-        expanded = copy;
-    }
-
-    function validateForm(cat: Category, form: CategoryForm): string | null {
-        const target = parseNullableFloat(form.restock_target_input);
-        const min = parseNullableFloat(form.restock_min_input);
-
-        if (Number.isNaN(target) || Number.isNaN(min))
-            return get(_)("category.validationInvalidNumbers");
-        if ((target ?? 0) < 0 || (min ?? 0) < 0) return get(_)("category.validationNonNegative");
-        if (target !== null && min !== null && target < min)
-            return get(_)("category.validationTargetGteMin");
-        if (!form.name.trim()) return get(_)("category.validationNameRequired");
-        if (form.parent_id === cat.id) return get(_)("category.validationSelfParent");
-        return null;
-    }
-
-    async function saveCategory(cat: Category) {
-        const form = forms.get(cat.id);
-        if (!form) return;
-
-        const msg = validateForm(cat, form);
-        if (msg) {
-            error = msg;
-            return;
-        }
-
-        error = "";
-        savingId = cat.id;
-        try {
-            const payload = {
-                name: form.name.trim(),
-                icon: form.icon.trim() || null,
-                parent_id: form.parent_id,
-                restock_target: parseNullableFloat(form.restock_target_input),
-                restock_min: parseNullableFloat(form.restock_min_input),
-                restock_inherit: form.restock_inherit,
-            };
-            const updated = await api.categories.update(cat.id, payload);
-            categories = categories.map((c) => (c.id === updated.id ? updated : c));
-            forms.set(updated.id, {
-                name: updated.name,
-                icon: updated.icon ?? "",
-                parent_id: updated.parent_id,
+            forms.set(c.id, {
+                name: c.name,
+                icon: c.icon ?? '',
+                parent_id: c.parent_id,
                 restock_target_input:
-                    updated.restock_target === null ? "" : String(updated.restock_target),
-                restock_min_input: updated.restock_min === null ? "" : String(updated.restock_min),
-                restock_inherit: updated.restock_inherit,
-            });
-        } catch (e) {
-            error = get(_)("category.failedToSave", { values: { error: String(e) } });
-        } finally {
-            savingId = null;
+                    c.restock_target === null || c.restock_target === undefined
+                        ? ''
+                        : String(c.restock_target),
+                restock_min_input:
+                    c.restock_min === null || c.restock_min === undefined
+                        ? ''
+                        : String(c.restock_min),
+                restock_inherit: c.restock_inherit ?? true,
+            })
         }
+        expanded = new Set() // all collapsed by default
+    } catch (e) {
+        error = get(_)('inventory.failedToLoad', { values: { error: String(e) } })
+    } finally {
+        loading = false
+    }
+}
+
+$effect(() => {
+    load()
+})
+
+function categoryByIdMap() {
+    return new Map(categories.map((c) => [c.id, c]))
+}
+
+function childrenByParentMap() {
+    const m = new Map<number | null, Category[]>()
+    for (const c of categories) {
+        const key = c.parent_id ?? null
+        if (!m.has(key)) m.set(key, [])
+        m.get(key)!.push(c)
+    }
+    for (const arr of m.values()) {
+        arr.sort((a, b) => a.name.localeCompare(b.name))
+    }
+    return m
+}
+
+function isDescendant(candidateChildId: number, ancestorId: number): boolean {
+    const byId = categoryByIdMap()
+    let cur = byId.get(candidateChildId) ?? null
+    const seen = new Set<number>()
+    while (cur && cur.parent_id != null) {
+        if (seen.has(cur.id)) break
+        seen.add(cur.id)
+        if (cur.parent_id === ancestorId) return true
+        cur = byId.get(cur.parent_id) ?? null
+    }
+    return false
+}
+
+function parentOptionsFor(category: Category): Category[] {
+    return categories
+        .filter((c) => c.id !== category.id && !isDescendant(c.id, category.id))
+        .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function parseNullableFloat(input: string): number | null {
+    const trimmed = input.trim()
+    if (!trimmed) return null
+    const n = Number(trimmed)
+    return Number.isFinite(n) ? n : NaN
+}
+
+function computeEffectivePreview(categoryId: number): EffectivePreview {
+    const byId = categoryByIdMap()
+    const start = byId.get(categoryId)
+    if (!start) return { target: null, min: null, targetFrom: null, minFrom: null }
+
+    const resolveOne = (
+        field: 'restock_target' | 'restock_min',
+    ): [number | null, number | null] => {
+        const visited = new Set<number>()
+        let cur: Category | undefined = start
+        while (cur) {
+            if (visited.has(cur.id)) return [null, null]
+            visited.add(cur.id)
+
+            const form = forms.get(cur.id)
+            const value =
+                field === 'restock_target'
+                    ? parseNullableFloat(form?.restock_target_input ?? '')
+                    : parseNullableFloat(form?.restock_min_input ?? '')
+
+            if (value !== null && !Number.isNaN(value)) return [value, cur.id]
+            if (
+                !(form?.restock_inherit ?? cur.restock_inherit ?? true) ||
+                cur.parent_id == null
+            ) {
+                return [null, null]
+            }
+            cur = byId.get(cur.parent_id)
+        }
+        return [null, null]
     }
 
-    function roots() {
-        return (childrenByParentMap().get(null) ?? []).sort((a, b) => a.name.localeCompare(b.name));
+    const [target, targetFrom] = resolveOne('restock_target')
+    const [min, minFrom] = resolveOne('restock_min')
+    return { target, min, targetFrom, minFrom }
+}
+
+function sourceLabel(sourceId: number | null): string {
+    if (sourceId == null) return get(_)('common.unknown')
+    const cat = categories.find((c) => c.id === sourceId)
+    return cat ? cat.name : `#${sourceId}`
+}
+
+function toggleExpand(id: number) {
+    const copy = new Set(expanded)
+    if (copy.has(id)) copy.delete(id)
+    else copy.add(id)
+    expanded = copy
+}
+
+function validateForm(cat: Category, form: CategoryForm): string | null {
+    const target = parseNullableFloat(form.restock_target_input)
+    const min = parseNullableFloat(form.restock_min_input)
+
+    if (Number.isNaN(target) || Number.isNaN(min))
+        return get(_)('category.validationInvalidNumbers')
+    if ((target ?? 0) < 0 || (min ?? 0) < 0)
+        return get(_)('category.validationNonNegative')
+    if (target !== null && min !== null && target < min)
+        return get(_)('category.validationTargetGteMin')
+    if (!form.name.trim()) return get(_)('category.validationNameRequired')
+    if (form.parent_id === cat.id) return get(_)('category.validationSelfParent')
+    return null
+}
+
+async function saveCategory(cat: Category) {
+    const form = forms.get(cat.id)
+    if (!form) return
+
+    const msg = validateForm(cat, form)
+    if (msg) {
+        error = msg
+        return
     }
 
-    function childrenOf(parentId: number) {
-        return childrenByParentMap().get(parentId) ?? [];
+    error = ''
+    savingId = cat.id
+    try {
+        const payload = {
+            name: form.name.trim(),
+            icon: form.icon.trim() || null,
+            parent_id: form.parent_id,
+            restock_target: parseNullableFloat(form.restock_target_input),
+            restock_min: parseNullableFloat(form.restock_min_input),
+            restock_inherit: form.restock_inherit,
+        }
+        const updated = await api.categories.update(cat.id, payload)
+        categories = categories.map((c) => (c.id === updated.id ? updated : c))
+        forms.set(updated.id, {
+            name: updated.name,
+            icon: updated.icon ?? '',
+            parent_id: updated.parent_id,
+            restock_target_input:
+                updated.restock_target === null ? '' : String(updated.restock_target),
+            restock_min_input:
+                updated.restock_min === null ? '' : String(updated.restock_min),
+            restock_inherit: updated.restock_inherit,
+        })
+    } catch (e) {
+        error = get(_)('category.failedToSave', { values: { error: String(e) } })
+    } finally {
+        savingId = null
     }
+}
 
-    function hasChildren(id: number): boolean {
-        return childrenOf(id).length > 0;
-    }
+function roots() {
+    return (childrenByParentMap().get(null) ?? []).sort((a, b) =>
+        a.name.localeCompare(b.name),
+    )
+}
+
+function childrenOf(parentId: number) {
+    return childrenByParentMap().get(parentId) ?? []
+}
+
+function hasChildren(id: number): boolean {
+    return childrenOf(id).length > 0
+}
 </script>
 
 <div class="flex items-center justify-between gap-3 mt-0 mb-1">

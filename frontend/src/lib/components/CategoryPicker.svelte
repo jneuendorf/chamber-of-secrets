@@ -1,61 +1,61 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
-    import type { Category } from "$lib/api/client";
+import { _ } from 'svelte-i18n'
+import type { Category } from '$lib/api/client'
 
-    let {
-        categories,
-        selected,
-        onSelect,
-        onCreateAndSelect,
-        onUpdateIcon,
-    }: {
-        categories: Category[];
-        selected: Category | null;
-        onSelect: (cat: Category | null) => void;
-        onCreateAndSelect: (name: string) => Promise<void>;
-        onUpdateIcon?: (cat: Category, icon: string | null) => Promise<void>;
-    } = $props();
+let {
+    categories,
+    selected,
+    onSelect,
+    onCreateAndSelect,
+    onUpdateIcon,
+}: {
+    categories: Category[]
+    selected: Category | null
+    onSelect: (cat: Category | null) => void
+    onCreateAndSelect: (name: string) => Promise<void>
+    onUpdateIcon?: (cat: Category, icon: string | null) => Promise<void>
+} = $props()
 
-    let newName = $state("");
-    let creating = $state(false);
-    let editingIconId: number | null = $state(null);
-    let editingIconValue = $state("");
-    let savingIcon = $state(false);
+let newName = $state('')
+let creating = $state(false)
+let editingIconId: number | null = $state(null)
+let editingIconValue = $state('')
+let savingIcon = $state(false)
 
-    async function create() {
-        const name = newName.trim();
-        if (!name) return;
-        creating = true;
-        try {
-            await onCreateAndSelect(name);
-            newName = "";
-        } finally {
-            creating = false;
-        }
+async function create() {
+    const name = newName.trim()
+    if (!name) return
+    creating = true
+    try {
+        await onCreateAndSelect(name)
+        newName = ''
+    } finally {
+        creating = false
     }
+}
 
-    function startEditIcon(cat: Category, e: Event) {
-        e.stopPropagation();
-        editingIconId = cat.id;
-        editingIconValue = cat.icon ?? "";
-    }
+function startEditIcon(cat: Category, e: Event) {
+    e.stopPropagation()
+    editingIconId = cat.id
+    editingIconValue = cat.icon ?? ''
+}
 
-    async function saveIcon() {
-        if (!onUpdateIcon) return;
-        const cat = categories.find((c) => c.id === editingIconId);
-        if (!cat) return;
-        savingIcon = true;
-        try {
-            await onUpdateIcon(cat, editingIconValue.trim() || null);
-            editingIconId = null;
-        } finally {
-            savingIcon = false;
-        }
+async function saveIcon() {
+    if (!onUpdateIcon) return
+    const cat = categories.find((c) => c.id === editingIconId)
+    if (!cat) return
+    savingIcon = true
+    try {
+        await onUpdateIcon(cat, editingIconValue.trim() || null)
+        editingIconId = null
+    } finally {
+        savingIcon = false
     }
+}
 
-    function isUrl(icon: string): boolean {
-        return icon.startsWith("http") || icon.startsWith("data:");
-    }
+function isUrl(icon: string): boolean {
+    return icon.startsWith('http') || icon.startsWith('data:')
+}
 </script>
 
 <div class="flex flex-wrap gap-2 mb-3">

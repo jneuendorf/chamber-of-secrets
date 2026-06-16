@@ -1,73 +1,77 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import { _ } from "svelte-i18n";
-    import CategoryPicker from "$lib/components/CategoryPicker.svelte";
-    import FuzzySearchOverlay from "$lib/components/FuzzySearchOverlay.svelte";
-    import { api, type Category, type Product } from "$lib/api/client";
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+import CategoryPicker from '$lib/components/CategoryPicker.svelte'
+import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+import { api, type Category, type Product } from '$lib/api/client'
 
-    let products: Product[] = $state([]);
-    let categories: Category[] = $state([]);
-    let loading = $state(true);
-    let error = $state("");
-    let editingId: number | null = $state(null);
-    let searchOpen = $state(false);
-    let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0));
+let products: Product[] = $state([])
+let categories: Category[] = $state([])
+let loading = $state(true)
+let error = $state('')
+let editingId: number | null = $state(null)
+let searchOpen = $state(false)
+let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0))
 
-    function selectProductFromSearch(item: unknown) {
-        const product = item as Product;
-        editingId = product.id;
-        document
-            .querySelector(`[data-product-id="${product.id}"]`)
-            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+function selectProductFromSearch(item: unknown) {
+    const product = item as Product
+    editingId = product.id
+    document
+        .querySelector(`[data-product-id="${product.id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+async function load() {
+    try {
+        ;[products, categories] = await Promise.all([
+            api.products.list(),
+            api.categories.list(),
+        ])
+    } catch (e) {
+        error = get(_)('inventory.failedToLoad', { values: { error: String(e) } })
+    } finally {
+        loading = false
     }
+}
 
-    async function load() {
-        try {
-            [products, categories] = await Promise.all([
-                api.products.list(),
-                api.categories.list(),
-            ]);
-        } catch (e) {
-            error = get(_)("inventory.failedToLoad", { values: { error: String(e) } });
-        } finally {
-            loading = false;
-        }
-    }
+$effect(() => {
+    load()
+})
 
-    $effect(() => {
-        load();
-    });
-
-    async function assignCategory(product: Product, cat: Category | null) {
-        editingId = null;
-        try {
-            const updated = await api.products.update(product.id, { category_id: cat?.id ?? null });
-            products = products.map((p) =>
-                p.id === product.id ? { ...p, ...updated, category: cat, stock: p.stock } : p,
-            );
-        } catch (e) {
-            error = get(_)("category.failedToSave", { values: { error: String(e) } });
-        }
-    }
-
-    async function createAndAssign(product: Product, name: string) {
-        try {
-            const cat = await api.categories.create({ name });
-            categories = [...categories, cat];
-            await assignCategory(product, cat);
-        } catch (e) {
-            error = get(_)("category.failedToSave", { values: { error: String(e) } });
-        }
-    }
-
-    async function handleUpdateIcon(cat: Category, icon: string | null) {
-        const updated = await api.categories.update(cat.id, { icon });
-        categories = categories.map((c) => (c.id === updated.id ? updated : c));
-        // Refresh icon on any product that has this category
+async function assignCategory(product: Product, cat: Category | null) {
+    editingId = null
+    try {
+        const updated = await api.products.update(product.id, {
+            category_id: cat?.id ?? null,
+        })
         products = products.map((p) =>
-            p.category?.id === updated.id ? { ...p, category: updated } : p,
-        );
+            p.id === product.id
+                ? { ...p, ...updated, category: cat, stock: p.stock }
+                : p,
+        )
+    } catch (e) {
+        error = get(_)('category.failedToSave', { values: { error: String(e) } })
     }
+}
+
+async function createAndAssign(product: Product, name: string) {
+    try {
+        const cat = await api.categories.create({ name })
+        categories = [...categories, cat]
+        await assignCategory(product, cat)
+    } catch (e) {
+        error = get(_)('category.failedToSave', { values: { error: String(e) } })
+    }
+}
+
+async function handleUpdateIcon(cat: Category, icon: string | null) {
+    const updated = await api.categories.update(cat.id, { icon })
+    categories = categories.map((c) => (c.id === updated.id ? updated : c))
+    // Refresh icon on any product that has this category
+    products = products.map((p) =>
+        p.category?.id === updated.id ? { ...p, category: updated } : p,
+    )
+}
 </script>
 
 <div class="heading-row">

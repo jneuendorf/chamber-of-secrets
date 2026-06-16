@@ -1,468 +1,480 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import { _ } from "svelte-i18n";
-    import {
-        Chart,
-        DoughnutController,
-        ArcElement,
-        LineController,
-        LineElement,
-        PointElement,
-        LinearScale,
-        CategoryScale,
-        Filler,
-        Legend,
-        Tooltip,
-    } from "chart.js";
-    import {
-        api,
-        type Category,
-        type RestockOverviewResponse,
-        type SpendingByCategory,
-        type TimeseriesPoint,
-    } from "$lib/api/client";
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+import {
+    Chart,
+    DoughnutController,
+    ArcElement,
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    Filler,
+    Legend,
+    Tooltip,
+} from 'chart.js'
+import {
+    api,
+    type Category,
+    type RestockOverviewResponse,
+    type SpendingByCategory,
+    type TimeseriesPoint,
+} from '$lib/api/client'
 
-    Chart.register(
-        DoughnutController,
-        ArcElement,
-        LineController,
-        LineElement,
-        PointElement,
-        LinearScale,
-        CategoryScale,
-        Filler,
-        Legend,
-        Tooltip,
-    );
+Chart.register(
+    DoughnutController,
+    ArcElement,
+    LineController,
+    LineElement,
+    PointElement,
+    LinearScale,
+    CategoryScale,
+    Filler,
+    Legend,
+    Tooltip,
+)
 
-    const COLORS = [
-        "#1a1a2e",
-        "#e74c3c",
-        "#3498db",
-        "#2ecc71",
-        "#f39c12",
-        "#9b59b6",
-        "#1abc9c",
-        "#e67e22",
-        "#34495e",
-        "#e91e63",
-    ];
+const COLORS = [
+    '#1a1a2e',
+    '#e74c3c',
+    '#3498db',
+    '#2ecc71',
+    '#f39c12',
+    '#9b59b6',
+    '#1abc9c',
+    '#e67e22',
+    '#34495e',
+    '#e91e63',
+]
 
-    const UNCATEGORIZED = "Uncategorized";
-    const NO_PARENT = "No parent";
+const UNCATEGORIZED = 'Uncategorized'
+const NO_PARENT = 'No parent'
 
-    function toISODate(d: Date): string {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function toISODate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+const now = new Date()
+const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+let spending: SpendingByCategory[] = $state([])
+let timeseries: TimeseriesPoint[] = $state([])
+let categories: Category[] = $state([])
+let restockOverview: RestockOverviewResponse | null = $state(null)
+
+let restockOpen = $state(false)
+let restockSort: 'urgency' | 'missing' | 'name' = $state('urgency')
+
+let loading = $state(true)
+let error = $state('')
+let since = $state(toISODate(monthStart))
+let until = $state(toISODate(now))
+
+async function load() {
+    loading = true
+    error = ''
+    try {
+        ;[spending, timeseries, categories, restockOverview] = await Promise.all([
+            api.analytics.spending(since || undefined, until || undefined),
+            api.analytics.timeseries(since || undefined, until || undefined),
+            api.categories.list(),
+            api.analytics.restockOverview(),
+        ])
+    } catch (e) {
+        error = get(_)('analytics.failedToLoad', { values: { error: String(e) } })
+    } finally {
+        loading = false
     }
+}
 
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+$effect(() => {
+    load()
+})
 
-    let spending: SpendingByCategory[] = $state([]);
-    let timeseries: TimeseriesPoint[] = $state([]);
-    let categories: Category[] = $state([]);
-    let restockOverview: RestockOverviewResponse | null = $state(null);
+type Agg = { category: string; total_spent: number; item_count: number }
 
-    let restockOpen = $state(false);
-    let restockSort: "urgency" | "missing" | "name" = $state("urgency");
+function fmtQty(value: number): string {
+    return Number.isInteger(value) ? String(value) : value.toFixed(2)
+}
 
-    let loading = $state(true);
-    let error = $state("");
-    let since = $state(toISODate(monthStart));
-    let until = $state(toISODate(now));
+function fmtMaybe(value: number | null): string {
+    return value == null ? '—' : fmtQty(value)
+}
 
-    async function load() {
-        loading = true;
-        error = "";
-        try {
-            [spending, timeseries, categories, restockOverview] = await Promise.all([
-                api.analytics.spending(since || undefined, until || undefined),
-                api.analytics.timeseries(since || undefined, until || undefined),
-                api.categories.list(),
-                api.analytics.restockOverview(),
-            ]);
-        } catch (e) {
-            error = get(_)("analytics.failedToLoad", { values: { error: String(e) } });
-        } finally {
-            loading = false;
-        }
-    }
+let sortedRestockRows = $derived.by(() => {
+    const rows = restockOverview?.rows ?? []
+    const copy = [...rows]
 
-    $effect(() => {
-        load();
-    });
-
-    type Agg = { category: string; total_spent: number; item_count: number };
-
-    function fmtQty(value: number): string {
-        return Number.isInteger(value) ? String(value) : value.toFixed(2);
-    }
-
-    function fmtMaybe(value: number | null): string {
-        return value == null ? "—" : fmtQty(value);
-    }
-
-    let sortedRestockRows = $derived.by(() => {
-        const rows = restockOverview?.rows ?? [];
-        const copy = [...rows];
-
-        if (restockSort === "missing") {
-            copy.sort((a, b) =>
-                b.missing_to_target === a.missing_to_target
-                    ? Number(b.below_min) - Number(a.below_min)
-                    : b.missing_to_target - a.missing_to_target,
-            );
-            return copy;
-        }
-
-        if (restockSort === "name") {
-            copy.sort((a, b) => a.name.localeCompare(b.name));
-            return copy;
-        }
-
+    if (restockSort === 'missing') {
         copy.sort((a, b) =>
-            Number(b.below_min) === Number(a.below_min)
-                ? b.missing_to_target - a.missing_to_target
-                : Number(b.below_min) - Number(a.below_min),
-        );
-        return copy;
-    });
-
-    let categoryByName = $derived(new Map(categories.map((c) => [c.name, c])));
-    let categoryById = $derived(new Map(categories.map((c) => [c.id, c])));
-
-    function toParentLabel(childName: string): string {
-        if (childName === UNCATEGORIZED) return UNCATEGORIZED;
-        const child = categoryByName.get(childName);
-        if (!child) return childName;
-        if (child.parent_id == null) return NO_PARENT;
-        const parent = categoryById.get(child.parent_id);
-        return parent?.name ?? NO_PARENT;
+            b.missing_to_target === a.missing_to_target
+                ? Number(b.below_min) - Number(a.below_min)
+                : b.missing_to_target - a.missing_to_target,
+        )
+        return copy
     }
 
-    function aggregateToParents(rows: SpendingByCategory[]): Agg[] {
-        const m = new Map<string, Agg>();
-        for (const row of rows) {
-            const label = toParentLabel(row.category);
-            const prev = m.get(label) ?? { category: label, total_spent: 0, item_count: 0 };
-            prev.total_spent += row.total_spent;
-            prev.item_count += row.item_count;
-            m.set(label, prev);
+    if (restockSort === 'name') {
+        copy.sort((a, b) => a.name.localeCompare(b.name))
+        return copy
+    }
+
+    copy.sort((a, b) =>
+        Number(b.below_min) === Number(a.below_min)
+            ? b.missing_to_target - a.missing_to_target
+            : Number(b.below_min) - Number(a.below_min),
+    )
+    return copy
+})
+
+let categoryByName = $derived(new Map(categories.map((c) => [c.name, c])))
+let categoryById = $derived(new Map(categories.map((c) => [c.id, c])))
+
+function toParentLabel(childName: string): string {
+    if (childName === UNCATEGORIZED) return UNCATEGORIZED
+    const child = categoryByName.get(childName)
+    if (!child) return childName
+    if (child.parent_id == null) return NO_PARENT
+    const parent = categoryById.get(child.parent_id)
+    return parent?.name ?? NO_PARENT
+}
+
+function aggregateToParents(rows: SpendingByCategory[]): Agg[] {
+    const m = new Map<string, Agg>()
+    for (const row of rows) {
+        const label = toParentLabel(row.category)
+        const prev = m.get(label) ?? { category: label, total_spent: 0, item_count: 0 }
+        prev.total_spent += row.total_spent
+        prev.item_count += row.item_count
+        m.set(label, prev)
+    }
+    return [...m.values()].sort((a, b) => b.total_spent - a.total_spent)
+}
+
+function aggregateTimeseriesToParents(rows: TimeseriesPoint[]): TimeseriesPoint[] {
+    const m = new Map<string, TimeseriesPoint>()
+    for (const row of rows) {
+        const parentCategory = toParentLabel(row.category)
+        const key = `${row.date}__${parentCategory}`
+        const prev = m.get(key) ?? {
+            date: row.date,
+            category: parentCategory,
+            item_count: 0,
+            total_spent: 0,
         }
-        return [...m.values()].sort((a, b) => b.total_spent - a.total_spent);
+        prev.item_count += row.item_count
+        prev.total_spent += row.total_spent
+        m.set(key, prev)
     }
+    return [...m.values()].sort((a, b) =>
+        a.date === b.date
+            ? a.category.localeCompare(b.category)
+            : a.date.localeCompare(b.date),
+    )
+}
 
-    function aggregateTimeseriesToParents(rows: TimeseriesPoint[]): TimeseriesPoint[] {
-        const m = new Map<string, TimeseriesPoint>();
-        for (const row of rows) {
-            const parentCategory = toParentLabel(row.category);
-            const key = `${row.date}__${parentCategory}`;
-            const prev = m.get(key) ?? {
-                date: row.date,
-                category: parentCategory,
-                item_count: 0,
-                total_spent: 0,
-            };
-            prev.item_count += row.item_count;
-            prev.total_spent += row.total_spent;
-            m.set(key, prev);
-        }
-        return [...m.values()].sort((a, b) =>
-            a.date === b.date ? a.category.localeCompare(b.category) : a.date.localeCompare(b.date),
-        );
+let parentSpending = $derived(aggregateToParents(spending))
+let parentTimeseries = $derived(aggregateTimeseriesToParents(timeseries))
+
+let totalSpent = $derived(spending.reduce((sum, s) => sum + s.total_spent, 0))
+let totalItems = $derived(spending.reduce((sum, s) => sum + s.item_count, 0))
+
+let childSpendingWithPrice = $derived(spending.filter((s) => s.total_spent > 0))
+let parentSpendingWithPrice = $derived(parentSpending.filter((s) => s.total_spent > 0))
+
+let childTsCategories = $derived([...new Set(timeseries.map((d) => d.category))])
+let childTsDates = $derived([...new Set(timeseries.map((d) => d.date))].sort())
+
+let parentTsCategories = $derived([...new Set(parentTimeseries.map((d) => d.category))])
+let parentTsDates = $derived([...new Set(parentTimeseries.map((d) => d.date))].sort())
+
+function makeCenterTextPlugin(line1: string, line2: string) {
+    return {
+        id: 'centerText',
+        afterDraw(chart: Chart) {
+            const {
+                ctx,
+                chartArea: { top, bottom, left, right },
+            } = chart
+            const cx = (left + right) / 2
+            const cy = (top + bottom) / 2
+            ctx.save()
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = '#f3f4f6'
+            ctx.font = 'bold 20px sans-serif'
+            ctx.fillText(line1, cx, cy - 8)
+            ctx.fillStyle = '#d1d5db'
+            ctx.font = '11px sans-serif'
+            ctx.fillText(line2, cx, cy + 10)
+            ctx.restore()
+        },
     }
+}
 
-    let parentSpending = $derived(aggregateToParents(spending));
-    let parentTimeseries = $derived(aggregateTimeseriesToParents(timeseries));
+function buildLineDatasets(
+    data: TimeseriesPoint[],
+    dates: string[],
+    categoriesForLines: string[],
+    getValue: (p: TimeseriesPoint) => number,
+) {
+    return categoriesForLines.map((cat, i) => ({
+        label: cat,
+        data: dates.map((date) => {
+            const pt = data.find((d) => d.date === date && d.category === cat)
+            return pt ? getValue(pt) : 0
+        }),
+        borderColor: COLORS[i % COLORS.length],
+        backgroundColor: COLORS[i % COLORS.length] + '22',
+        tension: 0.3,
+        pointRadius: 3,
+        fill: true,
+    }))
+}
 
-    let totalSpent = $derived(spending.reduce((sum, s) => sum + s.total_spent, 0));
-    let totalItems = $derived(spending.reduce((sum, s) => sum + s.item_count, 0));
+let childItemsDonutCanvas: HTMLCanvasElement | undefined = $state()
+let parentItemsDonutCanvas: HTMLCanvasElement | undefined = $state()
+let spendingDonutCanvas: HTMLCanvasElement | undefined = $state()
+let childItemsLineCanvas: HTMLCanvasElement | undefined = $state()
+let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state()
+let spendingLineCanvas: HTMLCanvasElement | undefined = $state()
 
-    let childSpendingWithPrice = $derived(spending.filter((s) => s.total_spent > 0));
-    let parentSpendingWithPrice = $derived(parentSpending.filter((s) => s.total_spent > 0));
-
-    let childTsCategories = $derived([...new Set(timeseries.map((d) => d.category))]);
-    let childTsDates = $derived([...new Set(timeseries.map((d) => d.date))].sort());
-
-    let parentTsCategories = $derived([...new Set(parentTimeseries.map((d) => d.category))]);
-    let parentTsDates = $derived([...new Set(parentTimeseries.map((d) => d.date))].sort());
-
-    function makeCenterTextPlugin(line1: string, line2: string) {
-        return {
-            id: "centerText",
-            afterDraw(chart: Chart) {
-                const {
-                    ctx,
-                    chartArea: { top, bottom, left, right },
-                } = chart;
-                const cx = (left + right) / 2;
-                const cy = (top + bottom) / 2;
-                ctx.save();
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillStyle = "#f3f4f6";
-                ctx.font = "bold 20px sans-serif";
-                ctx.fillText(line1, cx, cy - 8);
-                ctx.fillStyle = "#d1d5db";
-                ctx.font = "11px sans-serif";
-                ctx.fillText(line2, cx, cy + 10);
-                ctx.restore();
-            },
-        };
-    }
-
-    function buildLineDatasets(
-        data: TimeseriesPoint[],
-        dates: string[],
-        categoriesForLines: string[],
-        getValue: (p: TimeseriesPoint) => number,
-    ) {
-        return categoriesForLines.map((cat, i) => ({
-            label: cat,
-            data: dates.map((date) => {
-                const pt = data.find((d) => d.date === date && d.category === cat);
-                return pt ? getValue(pt) : 0;
-            }),
-            borderColor: COLORS[i % COLORS.length],
-            backgroundColor: COLORS[i % COLORS.length] + "22",
-            tension: 0.3,
-            pointRadius: 3,
-            fill: true,
-        }));
-    }
-
-    let childItemsDonutCanvas: HTMLCanvasElement | undefined = $state();
-    let parentItemsDonutCanvas: HTMLCanvasElement | undefined = $state();
-    let spendingDonutCanvas: HTMLCanvasElement | undefined = $state();
-    let childItemsLineCanvas: HTMLCanvasElement | undefined = $state();
-    let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state();
-    let spendingLineCanvas: HTMLCanvasElement | undefined = $state();
-
-    $effect(() => {
-        if (!childItemsDonutCanvas || !spending.length) return;
-        const chart = new Chart(childItemsDonutCanvas, {
-            type: "doughnut",
-            data: {
-                labels: spending.map((s) => s.category),
-                datasets: [
-                    {
-                        data: spending.map((s) => s.item_count),
-                        backgroundColor: spending.map((_, i) => COLORS[i % COLORS.length]),
-                        borderWidth: 2,
-                    },
-                ],
-            },
-            options: {
-                cutout: "60%",
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) =>
-                                ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / totalItems) * 100).toFixed(0)}%)`,
-                        },
-                    },
+$effect(() => {
+    if (!childItemsDonutCanvas || !spending.length) return
+    const chart = new Chart(childItemsDonutCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: spending.map((s) => s.category),
+            datasets: [
+                {
+                    data: spending.map((s) => s.item_count),
+                    backgroundColor: spending.map((_, i) => COLORS[i % COLORS.length]),
+                    borderWidth: 2,
                 },
-            },
-            plugins: [makeCenterTextPlugin(String(totalItems), get(_)("analytics.itemsLabel"))],
-        });
-        return () => chart.destroy();
-    });
-
-    $effect(() => {
-        if (!parentItemsDonutCanvas || !parentSpending.length) return;
-        const parentTotalItems = parentSpending.reduce((sum, s) => sum + s.item_count, 0);
-        const chart = new Chart(parentItemsDonutCanvas, {
-            type: "doughnut",
-            data: {
-                labels: parentSpending.map((s) => s.category),
-                datasets: [
-                    {
-                        data: parentSpending.map((s) => s.item_count),
-                        backgroundColor: parentSpending.map((_, i) => COLORS[i % COLORS.length]),
-                        borderWidth: 2,
-                    },
-                ],
-            },
-            options: {
-                cutout: "60%",
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) =>
-                                ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / parentTotalItems) * 100).toFixed(0)}%)`,
-                        },
-                    },
-                },
-            },
-            plugins: [
-                makeCenterTextPlugin(String(parentTotalItems), get(_)("analytics.itemsLabel")),
             ],
-        });
-        return () => chart.destroy();
-    });
-
-    $effect(() => {
-        if (!spendingDonutCanvas || !childSpendingWithPrice.length) return;
-        const chart = new Chart(spendingDonutCanvas, {
-            type: "doughnut",
-            data: {
-                labels: childSpendingWithPrice.map((s) => s.category),
-                datasets: [
-                    {
-                        data: childSpendingWithPrice.map((s) => s.total_spent),
-                        backgroundColor: childSpendingWithPrice.map(
-                            (_, i) => COLORS[i % COLORS.length],
-                        ),
-                        borderWidth: 2,
-                    },
-                ],
-            },
-            options: {
-                cutout: "60%",
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) =>
-                                ` ${ctx.label}: €${(ctx.raw as number).toFixed(2)} (${(((ctx.raw as number) / totalSpent) * 100).toFixed(0)}%)`,
-                        },
+        },
+        options: {
+            cutout: '60%',
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) =>
+                            ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / totalItems) * 100).toFixed(0)}%)`,
                     },
                 },
             },
-            plugins: [
-                makeCenterTextPlugin(`€${totalSpent.toFixed(0)}`, get(_)("analytics.totalSpent")),
+        },
+        plugins: [
+            makeCenterTextPlugin(String(totalItems), get(_)('analytics.itemsLabel')),
+        ],
+    })
+    return () => chart.destroy()
+})
+
+$effect(() => {
+    if (!parentItemsDonutCanvas || !parentSpending.length) return
+    const parentTotalItems = parentSpending.reduce((sum, s) => sum + s.item_count, 0)
+    const chart = new Chart(parentItemsDonutCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: parentSpending.map((s) => s.category),
+            datasets: [
+                {
+                    data: parentSpending.map((s) => s.item_count),
+                    backgroundColor: parentSpending.map(
+                        (_, i) => COLORS[i % COLORS.length],
+                    ),
+                    borderWidth: 2,
+                },
             ],
-        });
-        return () => chart.destroy();
-    });
+        },
+        options: {
+            cutout: '60%',
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) =>
+                            ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / parentTotalItems) * 100).toFixed(0)}%)`,
+                    },
+                },
+            },
+        },
+        plugins: [
+            makeCenterTextPlugin(
+                String(parentTotalItems),
+                get(_)('analytics.itemsLabel'),
+            ),
+        ],
+    })
+    return () => chart.destroy()
+})
 
-    $effect(() => {
-        if (!childItemsLineCanvas || !childTsDates.length) return;
-        const chart = new Chart(childItemsLineCanvas, {
-            type: "line",
-            data: {
-                labels: childTsDates,
-                datasets: buildLineDatasets(
-                    timeseries,
-                    childTsDates,
-                    childTsCategories,
-                    (p) => p.item_count,
-                ),
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
+$effect(() => {
+    if (!spendingDonutCanvas || !childSpendingWithPrice.length) return
+    const chart = new Chart(spendingDonutCanvas, {
+        type: 'doughnut',
+        data: {
+            labels: childSpendingWithPrice.map((s) => s.category),
+            datasets: [
+                {
+                    data: childSpendingWithPrice.map((s) => s.total_spent),
+                    backgroundColor: childSpendingWithPrice.map(
+                        (_, i) => COLORS[i % COLORS.length],
+                    ),
+                    borderWidth: 2,
                 },
-                scales: {
-                    x: {
-                        ticks: { color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
+            ],
+        },
+        options: {
+            cutout: '60%',
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) =>
+                            ` ${ctx.label}: €${(ctx.raw as number).toFixed(2)} (${(((ctx.raw as number) / totalSpent) * 100).toFixed(0)}%)`,
                     },
                 },
             },
-        });
-        return () => chart.destroy();
-    });
+        },
+        plugins: [
+            makeCenterTextPlugin(
+                `€${totalSpent.toFixed(0)}`,
+                get(_)('analytics.totalSpent'),
+            ),
+        ],
+    })
+    return () => chart.destroy()
+})
 
-    $effect(() => {
-        if (!parentItemsLineCanvas || !parentTsDates.length) return;
-        const chart = new Chart(parentItemsLineCanvas, {
-            type: "line",
-            data: {
-                labels: parentTsDates,
-                datasets: buildLineDatasets(
-                    parentTimeseries,
-                    parentTsDates,
-                    parentTsCategories,
-                    (p) => p.item_count,
-                ),
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
-                },
-                scales: {
-                    x: {
-                        ticks: { color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1, color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
-                    },
+$effect(() => {
+    if (!childItemsLineCanvas || !childTsDates.length) return
+    const chart = new Chart(childItemsLineCanvas, {
+        type: 'line',
+        data: {
+            labels: childTsDates,
+            datasets: buildLineDatasets(
+                timeseries,
+                childTsDates,
+                childTsCategories,
+                (p) => p.item_count,
+            ),
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
                 },
             },
-        });
-        return () => chart.destroy();
-    });
+            scales: {
+                x: {
+                    ticks: { color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+            },
+        },
+    })
+    return () => chart.destroy()
+})
 
-    $effect(() => {
-        if (!spendingLineCanvas || !childTsDates.length) return;
-        const chart = new Chart(spendingLineCanvas, {
-            type: "line",
-            data: {
-                labels: childTsDates,
-                datasets: buildLineDatasets(
-                    timeseries,
-                    childTsDates,
-                    childTsCategories,
-                    (p) => p.total_spent,
-                ),
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 }, color: "#e5e7eb" },
-                    },
-                },
-                scales: {
-                    x: {
-                        ticks: { color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: (v) => `€${v}`, color: "#d1d5db" },
-                        grid: { color: "rgba(209, 213, 219, 0.15)" },
-                    },
+$effect(() => {
+    if (!parentItemsLineCanvas || !parentTsDates.length) return
+    const chart = new Chart(parentItemsLineCanvas, {
+        type: 'line',
+        data: {
+            labels: parentTsDates,
+            datasets: buildLineDatasets(
+                parentTimeseries,
+                parentTsDates,
+                parentTsCategories,
+                (p) => p.item_count,
+            ),
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
                 },
             },
-        });
-        return () => chart.destroy();
-    });
+            scales: {
+                x: {
+                    ticks: { color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+            },
+        },
+    })
+    return () => chart.destroy()
+})
+
+$effect(() => {
+    if (!spendingLineCanvas || !childTsDates.length) return
+    const chart = new Chart(spendingLineCanvas, {
+        type: 'line',
+        data: {
+            labels: childTsDates,
+            datasets: buildLineDatasets(
+                timeseries,
+                childTsDates,
+                childTsCategories,
+                (p) => p.total_spent,
+            ),
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                },
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: (v) => `€${v}`, color: '#d1d5db' },
+                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                },
+            },
+        },
+    })
+    return () => chart.destroy()
+})
 </script>
 
 <h1 class="mt-0">{$_("nav.analytics")}</h1>

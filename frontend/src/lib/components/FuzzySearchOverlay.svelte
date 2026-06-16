@@ -1,139 +1,139 @@
 <script lang="ts">
-    import { _ } from "svelte-i18n";
-    import Fuse from "fuse.js";
-    import type { FuseOptionKey } from "fuse.js";
-    import { onMount } from "svelte";
+import { _ } from 'svelte-i18n'
+import Fuse from 'fuse.js'
+import type { FuseOptionKey } from 'fuse.js'
+import { onMount } from 'svelte'
 
-    type Fuseable = unknown;
+type Fuseable = unknown
 
-    let {
-        items,
+let {
+    items,
+    keys,
+    getId,
+    getLabel,
+    getSecondaryLabel,
+    onSelect,
+    placeholder = $_('common.searchPlaceholder'),
+    noResultsText = $_('common.noResults'),
+    hintText = $_('common.searchHint'),
+    maxResults = 12,
+    open = $bindable(false),
+}: {
+    items: Fuseable[]
+    keys: FuseOptionKey<Fuseable>[]
+    getId: (item: Fuseable) => string | number
+    getLabel: (item: Fuseable) => string
+    getSecondaryLabel?: (item: Fuseable) => string | null | undefined
+    onSelect: (item: Fuseable) => void
+    placeholder?: string
+    noResultsText?: string
+    hintText?: string
+    maxResults?: number
+    open?: boolean
+} = $props()
+
+let query = $state('')
+let activeIndex = $state(0)
+
+let inputEl: HTMLInputElement | null = $state(null)
+let wasOpen = $state(false)
+
+const fuse = $derived(
+    new Fuse(items, {
         keys,
-        getId,
-        getLabel,
-        getSecondaryLabel,
-        onSelect,
-        placeholder = $_("common.searchPlaceholder"),
-        noResultsText = $_("common.noResults"),
-        hintText = $_("common.searchHint"),
-        maxResults = 12,
-        open = $bindable(false),
-    }: {
-        items: Fuseable[];
-        keys: FuseOptionKey<Fuseable>[];
-        getId: (item: Fuseable) => string | number;
-        getLabel: (item: Fuseable) => string;
-        getSecondaryLabel?: (item: Fuseable) => string | null | undefined;
-        onSelect: (item: Fuseable) => void;
-        placeholder?: string;
-        noResultsText?: string;
-        hintText?: string;
-        maxResults?: number;
-        open?: boolean;
-    } = $props();
+        includeScore: true,
+        threshold: 0.35,
+        ignoreLocation: true,
+        minMatchCharLength: 1,
+    }),
+)
 
-    let query = $state("");
-    let activeIndex = $state(0);
+const results = $derived.by(() => {
+    const q = query.trim()
+    if (!q) {
+        return items.slice(0, maxResults)
+    }
+    return fuse.search(q, { limit: maxResults }).map((r) => r.item)
+})
 
-    let inputEl: HTMLInputElement | null = $state(null);
-    let wasOpen = $state(false);
+$effect(() => {
+    const len = results.length
+    if (len === 0) {
+        activeIndex = 0
+        return
+    }
+    if (activeIndex >= len) activeIndex = len - 1
+    if (activeIndex < 0) activeIndex = 0
+})
 
-    const fuse = $derived(
-        new Fuse(items, {
-            keys,
-            includeScore: true,
-            threshold: 0.35,
-            ignoreLocation: true,
-            minMatchCharLength: 1,
-        }),
-    );
+function isHotkey(e: KeyboardEvent): boolean {
+    const isK = e.key.toLowerCase() === 'k'
+    return isK && (e.ctrlKey || e.metaKey)
+}
 
-    const results = $derived.by(() => {
-        const q = query.trim();
-        if (!q) {
-            return items.slice(0, maxResults);
-        }
-        return fuse.search(q, { limit: maxResults }).map((r) => r.item);
-    });
+function closeOverlay() {
+    open = false
+    query = ''
+    activeIndex = 0
+}
 
-    $effect(() => {
-        const len = results.length;
-        if (len === 0) {
-            activeIndex = 0;
-            return;
-        }
-        if (activeIndex >= len) activeIndex = len - 1;
-        if (activeIndex < 0) activeIndex = 0;
-    });
+$effect(() => {
+    const currentlyOpen = open
+    if (currentlyOpen && !wasOpen) {
+        query = ''
+        activeIndex = 0
+        queueMicrotask(() => inputEl?.focus())
+    } else if (!currentlyOpen && wasOpen) {
+        query = ''
+        activeIndex = 0
+    }
+    wasOpen = currentlyOpen
+})
 
-    function isHotkey(e: KeyboardEvent): boolean {
-        const isK = e.key.toLowerCase() === "k";
-        return isK && (e.ctrlKey || e.metaKey);
+function choose(item: Fuseable) {
+    onSelect(item)
+    closeOverlay()
+}
+
+function onGlobalKeydown(e: KeyboardEvent) {
+    if (isHotkey(e)) {
+        e.preventDefault()
+        open = !open
+        return
     }
 
-    function closeOverlay() {
-        open = false;
-        query = "";
-        activeIndex = 0;
+    if (!open) return
+
+    if (e.key === 'Escape') {
+        e.preventDefault()
+        closeOverlay()
+        return
     }
 
-    $effect(() => {
-        const currentlyOpen = open;
-        if (currentlyOpen && !wasOpen) {
-            query = "";
-            activeIndex = 0;
-            queueMicrotask(() => inputEl?.focus());
-        } else if (!currentlyOpen && wasOpen) {
-            query = "";
-            activeIndex = 0;
-        }
-        wasOpen = currentlyOpen;
-    });
-
-    function choose(item: Fuseable) {
-        onSelect(item);
-        closeOverlay();
+    if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        if (results.length > 0) activeIndex = (activeIndex + 1) % results.length
+        return
     }
 
-    function onGlobalKeydown(e: KeyboardEvent) {
-        if (isHotkey(e)) {
-            e.preventDefault();
-            open = !open;
-            return;
-        }
-
-        if (!open) return;
-
-        if (e.key === "Escape") {
-            e.preventDefault();
-            closeOverlay();
-            return;
-        }
-
-        if (e.key === "ArrowDown") {
-            e.preventDefault();
-            if (results.length > 0) activeIndex = (activeIndex + 1) % results.length;
-            return;
-        }
-
-        if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (results.length > 0)
-                activeIndex = (activeIndex - 1 + results.length) % results.length;
-            return;
-        }
-
-        if (e.key === "Enter") {
-            e.preventDefault();
-            const item = results[activeIndex];
-            if (item) choose(item);
-        }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        if (results.length > 0)
+            activeIndex = (activeIndex - 1 + results.length) % results.length
+        return
     }
 
-    onMount(() => {
-        window.addEventListener("keydown", onGlobalKeydown);
-        return () => window.removeEventListener("keydown", onGlobalKeydown);
-    });
+    if (e.key === 'Enter') {
+        e.preventDefault()
+        const item = results[activeIndex]
+        if (item) choose(item)
+    }
+}
+
+onMount(() => {
+    window.addEventListener('keydown', onGlobalKeydown)
+    return () => window.removeEventListener('keydown', onGlobalKeydown)
+})
 </script>
 
 {#if open}

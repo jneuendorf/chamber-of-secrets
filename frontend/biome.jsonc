@@ -3,12 +3,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!**/dist",
-      "!**/node_modules",
-      "!**/.svelte-kit"
-    ]
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/.svelte-kit"]
   },
   "formatter": {
     "enabled": true,

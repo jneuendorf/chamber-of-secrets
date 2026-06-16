@@ -11,9 +11,11 @@ declare global {
 
     // BarcodeDetector API (Chrome/Edge)
     class BarcodeDetector {
-        constructor(options?: { formats: string[] });
-        detect(image: ImageBitmapSource): Promise<{ rawValue: string; format: string }[]>;
+        constructor(options?: { formats: string[] })
+        detect(
+            image: ImageBitmapSource,
+        ): Promise<{ rawValue: string; format: string }[]>
     }
 }
 
-export {};
+export {}
