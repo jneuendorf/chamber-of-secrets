@@ -1,233 +1,235 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import { _ } from "svelte-i18n";
-    import BarcodeScanner from "$lib/components/BarcodeScanner.svelte";
-    import {
-        api,
-        type Category,
-        type EANLookupResult,
-        type Product,
-        type Transaction,
-    } from "$lib/api/client";
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
+import {
+    api,
+    type Category,
+    type EANLookupResult,
+    type Product,
+    type Transaction,
+} from '$lib/api/client'
 
-    // --- Scan / lookup state ---
-    let lookupResult: EANLookupResult | null = $state(null);
-    let lookupError = $state("");
-    let loading = $state(false);
-    let added = $state(false);
+// --- Scan / lookup state ---
+let lookupResult: EANLookupResult | null = $state(null)
+let lookupError = $state('')
+let loading = $state(false)
+let added = $state(false)
 
-    // First interactive element: add/remove mode toggle
-    let transactionType = $state<"in" | "out">("in");
+// First interactive element: add/remove mode toggle
+let transactionType = $state<'in' | 'out'>('in')
 
-    // Mobile-friendly quantity controls
-    let quantity = $state(1);
+// Mobile-friendly quantity controls
+let quantity = $state(1)
 
-    // Optional price, prefilled from last transaction if available
-    let unitPrice = $state<number | undefined>(undefined);
+// Optional price, prefilled from last transaction if available
+let unitPrice = $state<number | undefined>(undefined)
 
-    // Manual barcode visibility: hidden by default, auto-shown on lookup failure
-    let manualVisible = $state(false);
+// Manual barcode visibility: hidden by default, auto-shown on lookup failure
+let manualVisible = $state(false)
 
-    // Category suggestion + user override
-    let categorySuggestionName = $state<string | null>(null);
-    let matchedCategory: Category | null = $state(null);
-    let categoryDismissed = $state(false);
-    let categories = $state<Category[]>([]);
-    let selectedCategoryId = $state<number | "none">("none");
-    let scannerRestartSignal = $state(0);
+// Category suggestion + user override
+let categorySuggestionName = $state<string | null>(null)
+let matchedCategory: Category | null = $state(null)
+let categoryDismissed = $state(false)
+let categories = $state<Category[]>([])
+let selectedCategoryId = $state<number | 'none'>('none')
+let scannerRestartSignal = $state(0)
 
-    function clampQuantity(value: number): number {
-        if (!Number.isFinite(value)) return 1;
-        return Math.max(1, Math.round(value));
+function clampQuantity(value: number): number {
+    if (!Number.isFinite(value)) return 1
+    return Math.max(1, Math.round(value))
+}
+
+function decrementQuantity() {
+    quantity = clampQuantity(quantity - 1)
+}
+
+function incrementQuantity() {
+    quantity = clampQuantity(quantity + 1)
+}
+
+function updateQuantityFromInput(raw: string) {
+    const parsed = Number(raw)
+    quantity = clampQuantity(parsed)
+}
+
+function parseLookupCategory(raw: string | null | undefined): string | null {
+    if (!raw) return null
+    const parts = raw
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => p.replace(/^[a-z]{2}:/i, ''))
+        .filter(Boolean)
+
+    if (parts.length === 0) return null
+
+    const candidate = parts[parts.length - 1].trim()
+    if (!candidate) return null
+
+    return candidate.charAt(0).toUpperCase() + candidate.slice(1)
+}
+
+async function resolveCategoryFromLookup(rawCategory: string | null | undefined) {
+    categorySuggestionName = parseLookupCategory(rawCategory)
+    matchedCategory = null
+    categoryDismissed = false
+    selectedCategoryId = 'none'
+
+    categories = await api.categories.list()
+
+    if (!categorySuggestionName) return
+
+    matchedCategory =
+        categories.find(
+            (c) =>
+                c.name.trim().toLowerCase() ===
+                categorySuggestionName!.trim().toLowerCase(),
+        ) ?? null
+
+    if (matchedCategory) {
+        selectedCategoryId = matchedCategory.id
+    }
+}
+
+function dismissCategorySuggestion() {
+    categoryDismissed = true
+    categorySuggestionName = null
+    matchedCategory = null
+    selectedCategoryId = 'none'
+}
+
+function updateSelectedCategory(value: string) {
+    if (value === 'none') {
+        selectedCategoryId = 'none'
+        return
+    }
+    const parsed = Number(value)
+    selectedCategoryId = Number.isFinite(parsed) ? parsed : 'none'
+}
+
+async function resolveCategoryForSave(): Promise<Category | null> {
+    if (selectedCategoryId !== 'none') {
+        return categories.find((c) => c.id === selectedCategoryId) ?? null
     }
 
-    function decrementQuantity() {
-        quantity = clampQuantity(quantity - 1);
+    if (categoryDismissed || !categorySuggestionName) return null
+    if (matchedCategory) return matchedCategory
+
+    const created = await api.categories.create({ name: categorySuggestionName })
+    matchedCategory = created
+    categories = [...categories, created]
+    return created
+}
+
+async function lookupLastUnitPriceByEAN(ean: string): Promise<number | undefined> {
+    // Best effort:
+    // 1) find existing product by EAN from product list
+    // 2) fetch latest transactions for that product
+    // 3) use first transaction with non-null unit_price (transactions are returned newest first)
+    try {
+        const products = await api.products.list()
+        const existing = products.find((p: Product) => p.ean === ean)
+        if (!existing) return undefined
+
+        const txns = await api.transactions.list(existing.id)
+        const priced = txns.find((t: Transaction) => typeof t.unit_price === 'number')
+        return priced?.unit_price ?? undefined
+    } catch {
+        return undefined
     }
+}
 
-    function incrementQuantity() {
-        quantity = clampQuantity(quantity + 1);
+async function handleScan(code: string) {
+    loading = true
+    lookupError = ''
+    lookupResult = null
+    added = false
+    quantity = 1
+    unitPrice = undefined
+    categorySuggestionName = null
+    matchedCategory = null
+    categoryDismissed = false
+    selectedCategoryId = 'none'
+
+    try {
+        const result = await api.products.lookupEAN(code)
+        lookupResult = result
+
+        // Prefill unit price from last scan/transaction of same product (if any)
+        unitPrice = await lookupLastUnitPriceByEAN(result.ean)
+
+        // Lightweight category extraction + local exact-name match
+        await resolveCategoryFromLookup(result.category)
+    } catch {
+        lookupError = get(_)('scan.notFound', { values: { code } })
+        manualVisible = true // show manual input when fetch fails
+    } finally {
+        loading = false
     }
+}
 
-    function updateQuantityFromInput(raw: string) {
-        const parsed = Number(raw);
-        quantity = clampQuantity(parsed);
-    }
+async function saveInventoryTransaction() {
+    if (!lookupResult) return
+    loading = true
 
-    function parseLookupCategory(raw: string | null | undefined): string | null {
-        if (!raw) return null;
-        const parts = raw
-            .split(",")
-            .map((p) => p.trim())
-            .filter(Boolean)
-            .map((p) => p.replace(/^[a-z]{2}:/i, ""))
-            .filter(Boolean);
+    try {
+        const products = await api.products.list()
+        const existing = products.find((p: Product) => p.ean === lookupResult!.ean)
 
-        if (parts.length === 0) return null;
+        const resolvedCategory = await resolveCategoryForSave()
 
-        const candidate = parts[parts.length - 1].trim();
-        if (!candidate) return null;
+        const product =
+            existing ??
+            (await api.products.create({
+                ean: lookupResult.ean,
+                name: lookupResult.name ?? get(_)('scan.unknownProduct'),
+                brand: lookupResult.brand,
+                image_url: lookupResult.image_url,
+                category_id: resolvedCategory?.id ?? null,
+            }))
 
-        return candidate.charAt(0).toUpperCase() + candidate.slice(1);
-    }
-
-    async function resolveCategoryFromLookup(rawCategory: string | null | undefined) {
-        categorySuggestionName = parseLookupCategory(rawCategory);
-        matchedCategory = null;
-        categoryDismissed = false;
-        selectedCategoryId = "none";
-
-        categories = await api.categories.list();
-
-        if (!categorySuggestionName) return;
-
-        matchedCategory =
-            categories.find(
-                (c) => c.name.trim().toLowerCase() === categorySuggestionName!.trim().toLowerCase(),
-            ) ?? null;
-
-        if (matchedCategory) {
-            selectedCategoryId = matchedCategory.id;
+        if (
+            existing &&
+            selectedCategoryId !== 'none' &&
+            existing.category_id !== selectedCategoryId
+        ) {
+            await api.products.update(existing.id, { category_id: selectedCategoryId })
         }
+
+        await api.transactions.create({
+            product_id: product.id,
+            type: transactionType,
+            quantity,
+            unit_price: unitPrice,
+        })
+
+        added = true
+        scannerRestartSignal += 1
+        scanNext()
+    } catch (e) {
+        lookupError = get(_)('scan.failedToAdd', { values: { error: String(e) } })
+    } finally {
+        loading = false
     }
+}
 
-    function dismissCategorySuggestion() {
-        categoryDismissed = true;
-        categorySuggestionName = null;
-        matchedCategory = null;
-        selectedCategoryId = "none";
-    }
+function dismissScannedItem() {
+    lookupResult = null
+    lookupError = ''
+    added = false
+    quantity = 1
+    unitPrice = undefined
+    categorySuggestionName = null
+    matchedCategory = null
+    categoryDismissed = false
+}
 
-    function updateSelectedCategory(value: string) {
-        if (value === "none") {
-            selectedCategoryId = "none";
-            return;
-        }
-        const parsed = Number(value);
-        selectedCategoryId = Number.isFinite(parsed) ? parsed : "none";
-    }
-
-    async function resolveCategoryForSave(): Promise<Category | null> {
-        if (selectedCategoryId !== "none") {
-            return categories.find((c) => c.id === selectedCategoryId) ?? null;
-        }
-
-        if (categoryDismissed || !categorySuggestionName) return null;
-        if (matchedCategory) return matchedCategory;
-
-        const created = await api.categories.create({ name: categorySuggestionName });
-        matchedCategory = created;
-        categories = [...categories, created];
-        return created;
-    }
-
-    async function lookupLastUnitPriceByEAN(ean: string): Promise<number | undefined> {
-        // Best effort:
-        // 1) find existing product by EAN from product list
-        // 2) fetch latest transactions for that product
-        // 3) use first transaction with non-null unit_price (transactions are returned newest first)
-        try {
-            const products = await api.products.list();
-            const existing = products.find((p: Product) => p.ean === ean);
-            if (!existing) return undefined;
-
-            const txns = await api.transactions.list(existing.id);
-            const priced = txns.find((t: Transaction) => typeof t.unit_price === "number");
-            return priced?.unit_price ?? undefined;
-        } catch {
-            return undefined;
-        }
-    }
-
-    async function handleScan(code: string) {
-        loading = true;
-        lookupError = "";
-        lookupResult = null;
-        added = false;
-        quantity = 1;
-        unitPrice = undefined;
-        categorySuggestionName = null;
-        matchedCategory = null;
-        categoryDismissed = false;
-        selectedCategoryId = "none";
-
-        try {
-            const result = await api.products.lookupEAN(code);
-            lookupResult = result;
-
-            // Prefill unit price from last scan/transaction of same product (if any)
-            unitPrice = await lookupLastUnitPriceByEAN(result.ean);
-
-            // Lightweight category extraction + local exact-name match
-            await resolveCategoryFromLookup(result.category);
-        } catch {
-            lookupError = get(_)("scan.notFound", { values: { code } });
-            manualVisible = true; // show manual input when fetch fails
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function saveInventoryTransaction() {
-        if (!lookupResult) return;
-        loading = true;
-
-        try {
-            const products = await api.products.list();
-            const existing = products.find((p: Product) => p.ean === lookupResult!.ean);
-
-            const resolvedCategory = await resolveCategoryForSave();
-
-            const product =
-                existing ??
-                (await api.products.create({
-                    ean: lookupResult.ean,
-                    name: lookupResult.name ?? get(_)("scan.unknownProduct"),
-                    brand: lookupResult.brand,
-                    image_url: lookupResult.image_url,
-                    category_id: resolvedCategory?.id ?? null,
-                }));
-
-            if (
-                existing &&
-                selectedCategoryId !== "none" &&
-                existing.category_id !== selectedCategoryId
-            ) {
-                await api.products.update(existing.id, { category_id: selectedCategoryId });
-            }
-
-            await api.transactions.create({
-                product_id: product.id,
-                type: transactionType,
-                quantity,
-                unit_price: unitPrice,
-            });
-
-            added = true;
-            scannerRestartSignal += 1;
-            scanNext();
-        } catch (e) {
-            lookupError = get(_)("scan.failedToAdd", { values: { error: String(e) } });
-        } finally {
-            loading = false;
-        }
-    }
-
-    function dismissScannedItem() {
-        lookupResult = null;
-        lookupError = "";
-        added = false;
-        quantity = 1;
-        unitPrice = undefined;
-        categorySuggestionName = null;
-        matchedCategory = null;
-        categoryDismissed = false;
-    }
-
-    function scanNext() {
-        dismissScannedItem();
-        manualVisible = false;
-    }
+function scanNext() {
+    dismissScannedItem()
+    manualVisible = false
+}
 </script>
 
 <div class="scan-root">

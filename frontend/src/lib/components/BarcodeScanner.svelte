@@ -1,181 +1,183 @@
 <script lang="ts">
-    import { get } from "svelte/store";
-    import { _ } from "svelte-i18n";
-    import { tick } from "svelte";
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+import { tick } from 'svelte'
 
-    let {
-        onScan,
-        manualVisible = $bindable(false),
-        restartSignal = 0,
-    }: {
-        onScan: (code: string) => void;
-        manualVisible?: boolean;
-        restartSignal?: number;
-    } = $props();
+let {
+    onScan,
+    manualVisible = $bindable(false),
+    restartSignal = 0,
+}: {
+    onScan: (code: string) => void
+    manualVisible?: boolean
+    restartSignal?: number
+} = $props()
 
-    let videoEl: HTMLVideoElement | undefined = $state();
-    let stream: MediaStream | null = null;
-    let scanning = $state(false);
-    let modalOpen = $state(false);
-    let error = $state("");
-    let manualCode = $state("");
+let videoEl: HTMLVideoElement | undefined = $state()
+let stream: MediaStream | null = null
+let scanning = $state(false)
+let modalOpen = $state(false)
+let error = $state('')
+let manualCode = $state('')
 
-    let cameras: MediaDeviceInfo[] = $state([]);
-    let selectedDeviceId = $state("");
-    let detectorLoading = $state(false);
+let cameras: MediaDeviceInfo[] = $state([])
+let selectedDeviceId = $state('')
+let detectorLoading = $state(false)
 
-    type DetectorCtor = new (options?: { formats: string[] }) => {
-        detect(image: ImageBitmapSource): Promise<{ rawValue: string; format: string }[]>;
-    };
+type DetectorCtor = new (options?: {
+    formats: string[]
+}) => {
+    detect(image: ImageBitmapSource): Promise<{ rawValue: string; format: string }[]>
+}
 
-    let detectorCtor: DetectorCtor | null = null;
+let detectorCtor: DetectorCtor | null = null
 
-    async function enumerateCameras() {
-        // getUserMedia must have been called first to get device labels
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        cameras = devices.filter((d) => d.kind === "videoinput");
-        if (cameras.length > 0 && !selectedDeviceId) {
-            // Prefer rear/environment camera on mobile
-            const rear = cameras.find((c) => /back|rear|environment/i.test(c.label));
-            selectedDeviceId = rear?.deviceId ?? cameras[cameras.length - 1].deviceId;
-        }
+async function enumerateCameras() {
+    // getUserMedia must have been called first to get device labels
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    cameras = devices.filter((d) => d.kind === 'videoinput')
+    if (cameras.length > 0 && !selectedDeviceId) {
+        // Prefer rear/environment camera on mobile
+        const rear = cameras.find((c) => /back|rear|environment/i.test(c.label))
+        selectedDeviceId = rear?.deviceId ?? cameras[cameras.length - 1].deviceId
+    }
+}
+
+async function openStream() {
+    stream?.getTracks().forEach((t) => t.stop())
+    stream = null
+    scanning = false
+
+    const videoConstraints: MediaTrackConstraints = selectedDeviceId
+        ? { deviceId: { exact: selectedDeviceId } }
+        : { facingMode: 'environment' }
+
+    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints })
+
+    if (videoEl) {
+        videoEl.srcObject = stream
+        await videoEl.play()
+        scanning = true
+        detectBarcode()
+    }
+}
+
+async function startCamera() {
+    error = ''
+    modalOpen = true
+    await tick()
+
+    try {
+        // Initial getUserMedia call to get permission + labels
+        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
+        tempStream.getTracks().forEach((t) => t.stop())
+
+        await enumerateCameras()
+        await openStream()
+    } catch (e) {
+        error = get(_)('scanner.cameraError', { values: { error: String(e) } })
+    }
+}
+
+async function switchCamera(deviceId: string) {
+    selectedDeviceId = deviceId
+    scanning = false
+    try {
+        await openStream()
+    } catch (e) {
+        error = get(_)('scanner.cameraError', { values: { error: String(e) } })
+    }
+}
+
+function stopCamera() {
+    scanning = false
+    stream?.getTracks().forEach((t) => t.stop())
+    stream = null
+    modalOpen = false
+}
+
+async function resolveDetectorCtor(): Promise<DetectorCtor> {
+    if (detectorCtor) return detectorCtor
+
+    // Native support first
+    if ('BarcodeDetector' in window) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        detectorCtor = (window as any).BarcodeDetector as DetectorCtor
+        return detectorCtor
     }
 
-    async function openStream() {
-        stream?.getTracks().forEach((t) => t.stop());
-        stream = null;
-        scanning = false;
-
-        const videoConstraints: MediaTrackConstraints = selectedDeviceId
-            ? { deviceId: { exact: selectedDeviceId } }
-            : { facingMode: "environment" };
-
-        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
-
-        if (videoEl) {
-            videoEl.srcObject = stream;
-            await videoEl.play();
-            scanning = true;
-            detectBarcode();
-        }
+    detectorLoading = true
+    try {
+        const mod = await import('@undecaf/barcode-detector-polyfill')
+        detectorCtor = mod.BarcodeDetectorPolyfill as DetectorCtor
+        return detectorCtor
+    } finally {
+        detectorLoading = false
     }
+}
 
-    async function startCamera() {
-        error = "";
-        modalOpen = true;
-        await tick();
+async function detectBarcode() {
+    if (!scanning || !videoEl) return
 
-        try {
-            // Initial getUserMedia call to get permission + labels
-            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            tempStream.getTracks().forEach((t) => t.stop());
+    try {
+        const ctor = await resolveDetectorCtor()
+        if (!scanning || !videoEl) return
 
-            await enumerateCameras();
-            await openStream();
-        } catch (e) {
-            error = get(_)("scanner.cameraError", { values: { error: String(e) } });
-        }
-    }
+        const detector = new ctor({
+            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+        })
 
-    async function switchCamera(deviceId: string) {
-        selectedDeviceId = deviceId;
-        scanning = false;
-        try {
-            await openStream();
-        } catch (e) {
-            error = get(_)("scanner.cameraError", { values: { error: String(e) } });
-        }
-    }
-
-    function stopCamera() {
-        scanning = false;
-        stream?.getTracks().forEach((t) => t.stop());
-        stream = null;
-        modalOpen = false;
-    }
-
-    async function resolveDetectorCtor(): Promise<DetectorCtor> {
-        if (detectorCtor) return detectorCtor;
-
-        // Native support first
-        if ("BarcodeDetector" in window) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            detectorCtor = (window as any).BarcodeDetector as DetectorCtor;
-            return detectorCtor;
-        }
-
-        detectorLoading = true;
-        try {
-            const mod = await import("@undecaf/barcode-detector-polyfill");
-            detectorCtor = mod.BarcodeDetectorPolyfill as DetectorCtor;
-            return detectorCtor;
-        } finally {
-            detectorLoading = false;
-        }
-    }
-
-    async function detectBarcode() {
-        if (!scanning || !videoEl) return;
-
-        try {
-            const ctor = await resolveDetectorCtor();
-            if (!scanning || !videoEl) return;
-
-            const detector = new ctor({
-                formats: ["ean_13", "ean_8", "upc_a", "upc_e"],
-            });
-
-            const detect = async () => {
-                if (!scanning || !videoEl) return;
-                try {
-                    const barcodes = await detector.detect(videoEl);
-                    if (barcodes.length > 0) {
-                        stopCamera();
-                        onScan(barcodes[0].rawValue);
-                        return;
-                    }
-                } catch {
-                    // Detection failed, retry
+        const detect = async () => {
+            if (!scanning || !videoEl) return
+            try {
+                const barcodes = await detector.detect(videoEl)
+                if (barcodes.length > 0) {
+                    stopCamera()
+                    onScan(barcodes[0].rawValue)
+                    return
                 }
-                requestAnimationFrame(detect);
-            };
-
-            detect();
-        } catch (e) {
-            error = get(_)("scanner.unsupported") + ` (${String(e)})`;
-            stopCamera();
-        }
-    }
-
-    function submitManual() {
-        const code = manualCode.trim();
-        if (code) {
-            onScan(code);
-            manualCode = "";
-        }
-    }
-
-    function handleKeydown(e: KeyboardEvent) {
-        if (e.key === "Escape") stopCamera();
-    }
-
-    function toggleManual() {
-        manualVisible = !manualVisible;
-    }
-
-    let lastRestartSignal = $state(0);
-
-    $effect(() => {
-        const signal = restartSignal;
-
-        if (signal !== lastRestartSignal) {
-            lastRestartSignal = signal;
-
-            if (modalOpen) {
-                startCamera();
+            } catch {
+                // Detection failed, retry
             }
+            requestAnimationFrame(detect)
         }
-    });
+
+        detect()
+    } catch (e) {
+        error = get(_)('scanner.unsupported') + ` (${String(e)})`
+        stopCamera()
+    }
+}
+
+function submitManual() {
+    const code = manualCode.trim()
+    if (code) {
+        onScan(code)
+        manualCode = ''
+    }
+}
+
+function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') stopCamera()
+}
+
+function toggleManual() {
+    manualVisible = !manualVisible
+}
+
+let lastRestartSignal = $state(0)
+
+$effect(() => {
+    const signal = restartSignal
+
+    if (signal !== lastRestartSignal) {
+        lastRestartSignal = signal
+
+        if (modalOpen) {
+            startCamera()
+        }
+    }
+})
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
