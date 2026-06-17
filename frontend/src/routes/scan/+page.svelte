@@ -18,7 +18,18 @@ import { clampQuantity, parseLookupCategory } from '$lib/utils/scan'
 let lookupResult: EANLookupResult | null = $state(null)
 let lookupError = $state('')
 let loading = $state(false)
-let added = $state(false)
+
+// Brief success toast after saving (auto-clears)
+let successToast = $state('')
+let toastTimer: ReturnType<typeof setTimeout> | undefined
+
+function showSuccessToast(message: string) {
+    successToast = message
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => {
+        successToast = ''
+    }, 2500)
+}
 
 // First interactive element: add/remove mode toggle
 let transactionType = $state<'in' | 'out'>('in')
@@ -139,7 +150,6 @@ async function handleScan(code: string) {
     loading = true
     lookupError = ''
     lookupResult = null
-    added = false
     quantity = 1
     unitPrice = undefined
     categorySuggestionName = null
@@ -204,7 +214,13 @@ async function saveInventoryTransaction() {
             unit_price: unitPrice,
         })
 
-        added = true
+        showSuccessToast(
+            get(_)(
+                transactionType === 'in'
+                    ? 'scan.addedSuccess'
+                    : 'scan.removedSuccess',
+            ),
+        )
         scannerRestartSignal += 1
         scanNext()
     } catch (e) {
@@ -218,7 +234,6 @@ async function saveInventoryTransaction() {
 function dismissScannedItem() {
     lookupResult = null
     lookupError = ''
-    added = false
     quantity = 1
     unitPrice = undefined
     categorySuggestionName = null
@@ -233,6 +248,10 @@ function scanNext() {
 </script>
 
 <div class="scan-root">
+    {#if successToast}
+        <div class="success-toast">{successToast}</div>
+    {/if}
+
     <!-- 1) First interactive element: mode toggle -->
     <div class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-2 shadow-sm mb-4">
         <div class="grid grid-cols-2 gap-2">
@@ -278,17 +297,15 @@ function scanNext() {
         <div
             class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-gray-100"
         >
-            {#if !added}
-                <button
-                    type="button"
-                    onclick={dismissScannedItem}
-                    class="absolute top-2 right-2 h-6 w-6 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
-                    aria-label={$_("scan.dismissScanned")}
-                    title={$_("scan.dismissScanned")}
-                >
-                    ✕
-                </button>
-            {/if}
+            <button
+                type="button"
+                onclick={dismissScannedItem}
+                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
+                aria-label={$_("scan.dismissScanned")}
+                title={$_("scan.dismissScanned")}
+            >
+                ✕
+            </button>
             {#if lookupResult.image_url}
                 <img
                     src={lookupResult.image_url}
@@ -315,118 +332,99 @@ function scanNext() {
                                 <span>(new)</span>
                             {/if}
                         </span>
-                        {#if !added}
-                            <button
-                                type="button"
-                                onclick={dismissCategorySuggestion}
-                                class="h-5 w-5 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
-                                aria-label={$_("scan.dismissCategory")}
-                                title={$_("scan.dismissCategory")}
-                            >
-                                ✕
-                            </button>
-                        {/if}
+                        <button
+                            type="button"
+                            onclick={dismissCategorySuggestion}
+                            class="h-5 w-5 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
+                            aria-label={$_("scan.dismissCategory")}
+                            title={$_("scan.dismissCategory")}
+                        >
+                            ✕
+                        </button>
                     </div>
                 {/if}
             </div>
 
-            {#if !added}
-                <div class="flex flex-col gap-4 mt-4 clear-both">
-                    <!-- Category picker (prominent, first action after scan) -->
-                    <div class="flex flex-col gap-1.5">
-                        <span class="text-sm text-gray-200">
-                            {$_("scan.categoryLabel")}
-                            {#if !selectedCategory && !categorySuggestionName}
-                                <span class="category-prompt">
-                                    — {$_("scan.categoryPrompt")}
-                                </span>
-                            {/if}
-                        </span>
-                        <CategoryPicker
-                            {categories}
-                            selected={selectedCategory}
-                            onSelect={handleCategorySelect}
-                            onCreateAndSelect={handleCategoryCreateAndSelect}
-                        />
-                    </div>
+            <div class="flex flex-col gap-4 mt-4 clear-both">
+                <!-- Category picker (prominent, first action after scan) -->
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-sm text-gray-200">
+                        {$_("scan.categoryLabel")}
+                        {#if !selectedCategory && !categorySuggestionName}
+                            <span class="category-prompt">
+                                — {$_("scan.categoryPrompt")}
+                            </span>
+                        {/if}
+                    </span>
+                    <CategoryPicker
+                        {categories}
+                        selected={selectedCategory}
+                        onSelect={handleCategorySelect}
+                        onCreateAndSelect={handleCategoryCreateAndSelect}
+                    />
+                </div>
 
-                    <!-- Mobile-friendly quantity stepper -->
-                    <label class="flex flex-col gap-2 text-sm text-gray-200">
-                        <span>{$_("scan.quantity")}</span>
+                <!-- Mobile-friendly quantity stepper -->
+                <label class="flex flex-col gap-2 text-sm text-gray-200">
+                    <span>{$_("scan.quantity")}</span>
 
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onclick={decrementQuantity}
-                                class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
-                                aria-label="Decrease quantity"
-                            >
-                                −
-                            </button>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onclick={decrementQuantity}
+                            class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
+                            aria-label="Decrease quantity"
+                        >
+                            −
+                        </button>
 
-                            <input
-                                type="number"
-                                min="1"
-                                step="1"
-                                inputmode="numeric"
-                                value={quantity}
-                                oninput={(e) =>
-                                    updateQuantityFromInput(
-                                        (e.currentTarget as HTMLInputElement).value,
-                                    )}
-                                class="h-11 flex-1 text-center px-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
-                            />
-
-                            <button
-                                type="button"
-                                onclick={incrementQuantity}
-                                class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
-                                aria-label="Increase quantity"
-                            >
-                                +
-                            </button>
-                        </div>
-                    </label>
-
-                    <!-- Optional unit price, prefills from last txn -->
-                    <label class="flex flex-col gap-1 text-sm text-gray-200">
-                        {$_("scan.unitPrice")}
                         <input
                             type="number"
-                            bind:value={unitPrice}
-                            min="0"
-                            step="0.01"
-                            inputmode="decimal"
-                            placeholder={$_("scan.pricePlaceholder")}
-                            class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
+                            min="1"
+                            step="1"
+                            inputmode="numeric"
+                            value={quantity}
+                            oninput={(e) =>
+                                updateQuantityFromInput(
+                                    (e.currentTarget as HTMLInputElement).value,
+                                )}
+                            class="h-11 flex-1 text-center px-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
                         />
-                    </label>
 
-                    <button
-                        type="button"
-                        onclick={saveInventoryTransaction}
-                        disabled={loading}
-                        class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
-                    >
-                        {transactionType === "in" ? $_("scan.addBtn") : $_("scan.removeBtn")}
-                    </button>
-                </div>
-            {:else}
-                <div class="text-center my-4">
-                    <p class="text-[#27ae60] font-semibold mb-3">
-                        {transactionType === "in"
-                            ? $_("scan.addedSuccess")
-                            : $_("scan.removedSuccess")}
-                    </p>
-                    <button
-                        type="button"
-                        onclick={scanNext}
-                        class="px-6 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm cursor-pointer"
-                    >
-                        {$_("scan.scanNext")}
-                    </button>
-                </div>
-            {/if}
+                        <button
+                            type="button"
+                            onclick={incrementQuantity}
+                            class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
+                            aria-label="Increase quantity"
+                        >
+                            +
+                        </button>
+                    </div>
+                </label>
+
+                <!-- Optional unit price, prefills from last txn -->
+                <label class="flex flex-col gap-1 text-sm text-gray-200">
+                    {$_("scan.unitPrice")}
+                    <input
+                        type="number"
+                        bind:value={unitPrice}
+                        min="0"
+                        step="0.01"
+                        inputmode="decimal"
+                        placeholder={$_("scan.pricePlaceholder")}
+                        class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
+                    />
+                </label>
+
+                <button
+                    type="button"
+                    onclick={saveInventoryTransaction}
+                    disabled={loading}
+                    class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
+                >
+                    {transactionType === "in" ? $_("scan.addBtn") : $_("scan.removeBtn")}
+                </button>
+            </div>
         </div>
     {/if}
 </div>
@@ -442,5 +440,28 @@ function scanNext() {
     .category-prompt {
         color: #f59e0b;
         font-style: italic;
+    }
+
+    .success-toast {
+        background: #166534;
+        color: #bbf7d0;
+        text-align: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        animation: toast-in 0.3s ease-out;
+    }
+
+    @keyframes toast-in {
+        from {
+            opacity: 0;
+            transform: translateY(-0.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
