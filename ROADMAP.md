@@ -118,11 +118,11 @@ dev S · user low · 🔴
 
 Goal: fix rough edges, improve scanning flow, categories UX.
 
-- [ ] **WL-2.1: Scan Flow Improvements** ⬜
+- [ ] **WL-2.1: Scan Flow Improvements** 🚧
 
 dev S · user high · 🟢
 
-  - [ ] Re-activate barcode scanner immediately after recording a transaction
+  - [x] Re-activate barcode scanner immediately after recording a transaction
   - [ ] Prompt category selection directly after scanning
   - [ ] Reset quantity field to 1 after each scan
 

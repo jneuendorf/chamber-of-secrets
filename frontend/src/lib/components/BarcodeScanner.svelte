@@ -23,6 +23,7 @@ let manualCode = $state('')
 let cameras: MediaDeviceInfo[] = $state([])
 let selectedDeviceId = $state('')
 let detectorLoading = $state(false)
+let lastScanWasCamera = $state(false)
 
 type DetectorCtor = new (options?: {
     formats: string[]
@@ -131,6 +132,7 @@ async function detectBarcode() {
             try {
                 const barcodes = await detector.detect(videoEl)
                 if (barcodes.length > 0) {
+                    lastScanWasCamera = true
                     stopCamera()
                     onScan(barcodes[0].rawValue)
                     return
@@ -151,6 +153,7 @@ async function detectBarcode() {
 function submitManual() {
     const code = manualCode.trim()
     if (code) {
+        lastScanWasCamera = false
         onScan(code)
         manualCode = ''
     }
@@ -172,7 +175,7 @@ $effect(() => {
     if (signal !== lastRestartSignal) {
         lastRestartSignal = signal
 
-        if (modalOpen) {
+        if (lastScanWasCamera) {
             startCamera()
         }
     }
