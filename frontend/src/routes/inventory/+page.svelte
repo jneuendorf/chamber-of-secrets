@@ -1,9 +1,10 @@
 <script lang="ts">
 import { get } from 'svelte/store'
 import { _ } from 'svelte-i18n'
+
+import { ApiError, api, type Category, type Product } from '$lib/api/client'
 import CategoryPicker from '$lib/components/CategoryPicker.svelte'
 import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
-import { api, type Category, type Product } from '$lib/api/client'
 
 let products: Product[] = $state([])
 let categories: Category[] = $state([])
@@ -28,7 +29,7 @@ async function load() {
             api.categories.list(),
         ])
     } catch (e) {
-        error = get(_)('inventory.failedToLoad', { values: { error: String(e) } })
+        error = get(_)('inventory.failedToLoad', { values: { error: e instanceof ApiError ? e.detail : String(e) } })
     } finally {
         loading = false
     }
@@ -50,7 +51,7 @@ async function assignCategory(product: Product, cat: Category | null) {
                 : p,
         )
     } catch (e) {
-        error = get(_)('category.failedToSave', { values: { error: String(e) } })
+        error = get(_)('category.failedToSave', { values: { error: e instanceof ApiError ? e.detail : String(e) } })
     }
 }
 
@@ -60,7 +61,7 @@ async function createAndAssign(product: Product, name: string) {
         categories = [...categories, cat]
         await assignCategory(product, cat)
     } catch (e) {
-        error = get(_)('category.failedToSave', { values: { error: String(e) } })
+        error = get(_)('category.failedToSave', { values: { error: e instanceof ApiError ? e.detail : String(e) } })
     }
 }
 

@@ -1,12 +1,45 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
+export class ApiError extends Error {
+    readonly status: number
+    readonly detail: string
+
+    constructor(status: number, statusText: string, detail?: string) {
+        const msg = detail ?? `${status} ${statusText}`
+        super(msg)
+        this.name = 'ApiError'
+        this.status = status
+        this.detail = msg
+    }
+
+    get isNotFound() {
+        return this.status === 404
+    }
+    get isConflict() {
+        return this.status === 409
+    }
+    get isValidation() {
+        return this.status === 422
+    }
+    get isServerError() {
+        return this.status >= 500
+    }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${API_BASE}${path}`, {
         headers: { 'Content-Type': 'application/json' },
         ...options,
     })
     if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`)
+        let detail: string | undefined
+        try {
+            const body = await response.json()
+            detail = body.detail
+        } catch {
+            // response body isn't JSON — fall through to statusText
+        }
+        throw new ApiError(response.status, response.statusText, detail)
     }
     return response.json()
 }

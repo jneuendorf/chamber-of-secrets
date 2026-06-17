@@ -54,6 +54,7 @@
   "scan": {
     "lookingUp": "Wird gesucht...",
     "notFound": "Kein Produkt für Barcode gefunden: {code}",
+    "lookupError": "Barcode konnte nicht nachgeschlagen werden: {error}",
     "failedToAdd": "Hinzufügen fehlgeschlagen: {error}",
     "unknownProduct": "Unbekanntes Produkt",
     "product": "Produkt",

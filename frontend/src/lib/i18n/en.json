@@ -54,6 +54,7 @@
   "scan": {
     "lookingUp": "Looking up...",
     "notFound": "No product found for barcode: {code}",
+    "lookupError": "Could not look up barcode: {error}",
     "failedToAdd": "Failed to add: {error}",
     "unknownProduct": "Unknown Product",
     "product": "Product",

@@ -1,20 +1,22 @@
 <script lang="ts">
-import { get } from 'svelte/store'
-import { _ } from 'svelte-i18n'
 import {
+    ArcElement,
+    CategoryScale,
     Chart,
     DoughnutController,
-    ArcElement,
+    Filler,
+    Legend,
+    LinearScale,
     LineController,
     LineElement,
     PointElement,
-    LinearScale,
-    CategoryScale,
-    Filler,
-    Legend,
     Tooltip,
 } from 'chart.js'
+import { get } from 'svelte/store'
+import { _ } from 'svelte-i18n'
+
 import {
+    ApiError,
     api,
     type Category,
     type RestockOverviewResponse,
@@ -82,7 +84,8 @@ async function load() {
             api.analytics.restockOverview(),
         ])
     } catch (e) {
-        error = get(_)('analytics.failedToLoad', { values: { error: String(e) } })
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        error = get(_)('analytics.failedToLoad', { values: { error: detail } })
     } finally {
         loading = false
     }

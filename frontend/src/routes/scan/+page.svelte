@@ -1,14 +1,16 @@
 <script lang="ts">
 import { get } from 'svelte/store'
 import { _ } from 'svelte-i18n'
-import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
+
 import {
+    ApiError,
     api,
     type Category,
     type EANLookupResult,
     type Product,
     type Transaction,
 } from '$lib/api/client'
+import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
 import { clampQuantity, parseLookupCategory } from '$lib/utils/scan'
 
 // --- Scan / lookup state ---
@@ -141,9 +143,14 @@ async function handleScan(code: string) {
 
         // Lightweight category extraction + local exact-name match
         await resolveCategoryFromLookup(result.category)
-    } catch {
-        lookupError = get(_)('scan.notFound', { values: { code } })
-        manualVisible = true // show manual input when fetch fails
+    } catch (e) {
+        if (e instanceof ApiError && e.isNotFound) {
+            lookupError = get(_)('scan.notFound', { values: { code } })
+        } else {
+            const detail = e instanceof ApiError ? e.detail : String(e)
+            lookupError = get(_)('scan.lookupError', { values: { error: detail } })
+        }
+        manualVisible = true
     } finally {
         loading = false
     }
@@ -188,7 +195,8 @@ async function saveInventoryTransaction() {
         scannerRestartSignal += 1
         scanNext()
     } catch (e) {
-        lookupError = get(_)('scan.failedToAdd', { values: { error: String(e) } })
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        lookupError = get(_)('scan.failedToAdd', { values: { error: detail } })
     } finally {
         loading = false
     }

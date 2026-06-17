@@ -1,6 +1,7 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n'
-import { api, type Product } from '$lib/api/client'
+
+import { ApiError, api, type Product } from '$lib/api/client'
 
 // const BG_ASPECT_RATIO = 1536 / 1024;
 
@@ -15,8 +16,8 @@ $effect(() => {
         .then((p) => {
             products = p
         })
-        .catch((e) => {
-            error = String(e)
+        .catch((e: unknown) => {
+            error = e instanceof ApiError ? e.detail : String(e)
         })
         .finally(() => {
             loading = false

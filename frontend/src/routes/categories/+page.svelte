@@ -1,8 +1,9 @@
 <script lang="ts">
 import { get } from 'svelte/store'
 import { _ } from 'svelte-i18n'
+
+import { ApiError, api, type Category } from '$lib/api/client'
 import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
-import { api, type Category } from '$lib/api/client'
 
 type CategoryForm = {
     name: string
@@ -80,7 +81,8 @@ async function load() {
         }
         expanded = new Set() // all collapsed by default
     } catch (e) {
-        error = get(_)('inventory.failedToLoad', { values: { error: String(e) } })
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        error = get(_)('inventory.failedToLoad', { values: { error: detail } })
     } finally {
         loading = false
     }
@@ -235,7 +237,8 @@ async function saveCategory(cat: Category) {
             restock_inherit: updated.restock_inherit,
         })
     } catch (e) {
-        error = get(_)('category.failedToSave', { values: { error: String(e) } })
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        error = get(_)('category.failedToSave', { values: { error: detail } })
     } finally {
         savingId = null
     }

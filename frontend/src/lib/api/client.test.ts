@@ -1,9 +1,10 @@
-import { type Mock, describe, expect, spyOn, test } from 'bun:test'
+import { describe, expect, type Mock, spyOn, test } from 'bun:test'
 
-import type { api as Api } from './client.ts'
+import type { api as Api, ApiError as ApiErrorType } from './client.ts'
 
 type ApiContext = {
     api: typeof Api
+    ApiError: typeof ApiErrorType
     fetch: Mock<typeof globalThis.fetch>
 }
 
@@ -13,8 +14,8 @@ async function withMockedApi(
 ) {
     const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(response)
     try {
-        const { api } = await import('./client.ts')
-        await body({ api, fetch: fetchSpy })
+        const { api, ApiError } = await import('./client.ts')
+        await body({ api, ApiError, fetch: fetchSpy })
     } finally {
         fetchSpy.mockRestore()
     }
@@ -152,13 +153,92 @@ describe('api.analytics', () => {
 })
 
 describe('request error handling', () => {
-    test('throws on non-ok response', () => {
-        const errorResponse = new Response('Not Found', {
-            status: 404,
-            statusText: 'Not Found',
+    test('throws ApiError on non-ok response', () => {
+        const errorResponse = new Response(
+            JSON.stringify({ detail: 'Product not found' }),
+            {
+                status: 404,
+                statusText: 'Not Found',
+                headers: { 'Content-Type': 'application/json' },
+            },
+        )
+        return withMockedApi(async ({ api, ApiError }) => {
+            try {
+                await api.products.list()
+                expect(true).toBe(false)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ApiError)
+                const err = e as InstanceType<typeof ApiError>
+                expect(err.status).toBe(404)
+                expect(err.detail).toBe('Product not found')
+                expect(err.isNotFound).toBe(true)
+                expect(err.isServerError).toBe(false)
+            }
+        }, errorResponse)
+    })
+
+    test('falls back to statusText when body is not JSON', () => {
+        const errorResponse = new Response('Internal Server Error', {
+            status: 500,
+            statusText: 'Internal Server Error',
         })
-        return withMockedApi(async ({ api }) => {
-            expect(api.products.list()).rejects.toThrow('API error: 404 Not Found')
+        return withMockedApi(async ({ api, ApiError }) => {
+            try {
+                await api.products.list()
+                expect(true).toBe(false)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ApiError)
+                const err = e as InstanceType<typeof ApiError>
+                expect(err.status).toBe(500)
+                expect(err.detail).toBe('500 Internal Server Error')
+                expect(err.isServerError).toBe(true)
+                expect(err.isNotFound).toBe(false)
+            }
+        }, errorResponse)
+    })
+
+    test('isConflict returns true for 409', () => {
+        const errorResponse = new Response(
+            JSON.stringify({
+                detail: 'Cannot delete category with assigned products.',
+            }),
+            {
+                status: 409,
+                statusText: 'Conflict',
+                headers: { 'Content-Type': 'application/json' },
+            },
+        )
+        return withMockedApi(async ({ api, ApiError }) => {
+            try {
+                await api.products.list()
+                expect(true).toBe(false)
+            } catch (e) {
+                const err = e as InstanceType<typeof ApiError>
+                expect(err.isConflict).toBe(true)
+                expect(err.detail).toBe(
+                    'Cannot delete category with assigned products.',
+                )
+            }
+        }, errorResponse)
+    })
+
+    test('isValidation returns true for 422', () => {
+        const errorResponse = new Response(
+            JSON.stringify({ detail: 'restock_target must be >= restock_min' }),
+            {
+                status: 422,
+                statusText: 'Unprocessable Entity',
+                headers: { 'Content-Type': 'application/json' },
+            },
+        )
+        return withMockedApi(async ({ api, ApiError }) => {
+            try {
+                await api.products.list()
+                expect(true).toBe(false)
+            } catch (e) {
+                const err = e as InstanceType<typeof ApiError>
+                expect(err.isValidation).toBe(true)
+            }
         }, errorResponse)
     })
 
