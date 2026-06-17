@@ -11,6 +11,7 @@ import {
     type Transaction,
 } from '$lib/api/client'
 import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
+import CategoryPicker from '$lib/components/CategoryPicker.svelte'
 import { clampQuantity, parseLookupCategory } from '$lib/utils/scan'
 
 // --- Scan / lookup state ---
@@ -37,6 +38,11 @@ let matchedCategory: Category | null = $state(null)
 let categoryDismissed = $state(false)
 let categories = $state<Category[]>([])
 let selectedCategoryId = $state<number | 'none'>('none')
+let selectedCategory = $derived(
+    selectedCategoryId !== 'none'
+        ? (categories.find((c) => c.id === selectedCategoryId) ?? null)
+        : null,
+)
 let scannerRestartSignal = $state(0)
 
 function decrementQuantity() {
@@ -81,13 +87,20 @@ function dismissCategorySuggestion() {
     selectedCategoryId = 'none'
 }
 
-function updateSelectedCategory(value: string) {
-    if (value === 'none') {
+function handleCategorySelect(cat: Category | null) {
+    if (cat) {
+        selectedCategoryId = cat.id
+        categoryDismissed = false
+    } else {
         selectedCategoryId = 'none'
-        return
     }
-    const parsed = Number(value)
-    selectedCategoryId = Number.isFinite(parsed) ? parsed : 'none'
+}
+
+async function handleCategoryCreateAndSelect(name: string) {
+    const created = await api.categories.create({ name })
+    categories = [...categories, created]
+    selectedCategoryId = created.id
+    categoryDismissed = false
 }
 
 async function resolveCategoryForSave(): Promise<Category | null> {
@@ -319,7 +332,25 @@ function scanNext() {
 
             {#if !added}
                 <div class="flex flex-col gap-4 mt-4 clear-both">
-                    <!-- 3) Mobile-friendly quantity stepper -->
+                    <!-- Category picker (prominent, first action after scan) -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-sm text-gray-200">
+                            {$_("scan.categoryLabel")}
+                            {#if !selectedCategory && !categorySuggestionName}
+                                <span class="category-prompt">
+                                    — {$_("scan.categoryPrompt")}
+                                </span>
+                            {/if}
+                        </span>
+                        <CategoryPicker
+                            {categories}
+                            selected={selectedCategory}
+                            onSelect={handleCategorySelect}
+                            onCreateAndSelect={handleCategoryCreateAndSelect}
+                        />
+                    </div>
+
+                    <!-- Mobile-friendly quantity stepper -->
                     <label class="flex flex-col gap-2 text-sm text-gray-200">
                         <span>{$_("scan.quantity")}</span>
 
@@ -357,25 +388,7 @@ function scanNext() {
                         </div>
                     </label>
 
-                    <!-- Category override selector -->
-                    <label class="flex flex-col gap-1 text-sm text-gray-200">
-                        {$_("scan.categoryLabel")}
-                        <select
-                            value={selectedCategoryId === "none"
-                                ? "none"
-                                : String(selectedCategoryId)}
-                            onchange={(e) =>
-                                updateSelectedCategory((e.target as HTMLSelectElement).value)}
-                            class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
-                        >
-                            <option value="none">{$_("scan.categoryNone")}</option>
-                            {#each categories as c}
-                                <option value={c.id}>{c.name}</option>
-                            {/each}
-                        </select>
-                    </label>
-
-                    <!-- 4) Optional unit price, prefills from last txn -->
+                    <!-- Optional unit price, prefills from last txn -->
                     <label class="flex flex-col gap-1 text-sm text-gray-200">
                         {$_("scan.unitPrice")}
                         <input
@@ -424,5 +437,10 @@ function scanNext() {
         max-width: 640px;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    .category-prompt {
+        color: #f59e0b;
+        font-style: italic;
     }
 </style>

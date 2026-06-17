@@ -123,7 +123,7 @@ Goal: fix rough edges, improve scanning flow, categories UX.
 dev S · user high · 🟢
 
   - [x] Re-activate barcode scanner immediately after recording a transaction
-  - [ ] Prompt category selection directly after scanning
+  - [x] Prompt category selection directly after scanning
   - [ ] Reset quantity field to 1 after each scan
 
 - [ ] **WL-2.2: Category Management** ⬜

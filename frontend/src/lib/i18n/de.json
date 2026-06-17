@@ -71,6 +71,7 @@
     "dismissScanned": "Scan verwerfen",
     "dismissCategory": "Kategorie verwerfen",
     "categoryLabel": "Kategorie",
+    "categoryPrompt": "wähle eine!",
     "categoryNone": "Keine"
   },
   "category": {
