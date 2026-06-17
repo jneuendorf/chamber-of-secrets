@@ -1,8 +1,8 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n'
 
-import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
 import { page } from '$app/state'
+import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
 import '../app.css'
 
 let { children } = $props()

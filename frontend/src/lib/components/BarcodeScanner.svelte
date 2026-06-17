@@ -1,7 +1,7 @@
 <script lang="ts">
+import { tick } from 'svelte'
 import { get } from 'svelte/store'
 import { _ } from 'svelte-i18n'
-import { tick } from 'svelte'
 
 let {
     onScan,

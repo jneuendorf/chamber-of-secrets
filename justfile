@@ -32,7 +32,7 @@ lint *SCOPE="--staged": (lint-frontend SCOPE) lint-backend
 
 # lint frontend with biome (--staged by default; pass "" for all files)
 lint-frontend *SCOPE="--staged":
-    cd frontend && bun run lint -- {{SCOPE}}
+    cd frontend && bun run lint -- {{ SCOPE }}
 
 # lint backend with ruff
 lint-backend:
@@ -45,7 +45,7 @@ format *SCOPE="--staged": (format-frontend SCOPE) format-backend
 
 # format frontend with biome (--staged by default; pass "" for all files)
 format-frontend *SCOPE="--staged":
-    cd frontend && bun run format -- {{SCOPE}}
+    cd frontend && bun run format -- {{ SCOPE }}
 
 # format backend with ruff
 format-backend:
@@ -56,7 +56,7 @@ format-check *SCOPE="--staged": (format-check-frontend SCOPE) format-check-backe
 
 # check frontend formatting (--staged by default; pass "" for all files)
 format-check-frontend *SCOPE="--staged":
-    cd frontend && bun run format:check -- {{SCOPE}}
+    cd frontend && bun run format:check -- {{ SCOPE }}
 
 # check backend formatting
 format-check-backend:
@@ -86,8 +86,14 @@ test-backend:
 # check all. Biome defaults to --staged; pass "" for all files
 check *SCOPE="--staged": (check-frontend SCOPE) check-backend
 
-# check frontend: lint + typecheck + test (--staged applies to lint only)
-check-frontend *SCOPE="--staged": (lint-frontend SCOPE) typecheck-frontend test-frontend
+check-all: (check "")
+
+# full biome check: lint + format + assist (--staged by default; pass "" for all files)
+biome-check-frontend *SCOPE="--staged":
+    cd frontend && bun run biome:check -- {{ SCOPE }}
+
+# check frontend: biome check + typecheck + test (--staged applies to biome only)
+check-frontend *SCOPE="--staged": (biome-check-frontend SCOPE) typecheck-frontend test-frontend
 
 # check backend: lint + test
 check-backend: lint-backend test-backend

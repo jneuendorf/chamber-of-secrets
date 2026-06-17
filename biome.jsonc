@@ -1,0 +1,4 @@
+{
+    // Enable editors to find the frontend config
+    "extends": ["./frontend/biome.jsonc"],
+}

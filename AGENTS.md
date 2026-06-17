@@ -78,8 +78,9 @@ Bullet list ok. No co-author trailer unless asked.
 
 ```bash
 just dev                      # backend + frontend in parallel
-just check                    # lint + typecheck + test (all layers)
-just check-frontend           # lint + typecheck + test (frontend)
+just check                    # biome check + typecheck + test (all layers)
+just check-all                # same as check, but all files (not staged)
+just check-frontend           # biome check + typecheck + test (frontend)
 just check-backend            # lint + test (backend, needs uv)
 just test                     # all tests
 just test-frontend            # bun test

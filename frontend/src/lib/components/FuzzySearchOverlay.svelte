@@ -1,8 +1,8 @@
 <script lang="ts">
-import { _ } from 'svelte-i18n'
-import Fuse from 'fuse.js'
 import type { FuseOptionKey } from 'fuse.js'
+import Fuse from 'fuse.js'
 import { onMount } from 'svelte'
+import { _ } from 'svelte-i18n'
 
 type Fuseable = unknown
 
