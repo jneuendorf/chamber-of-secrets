@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -125,6 +126,10 @@ def delete_category(category_id: int, db: Session = Depends(get_db)) -> None:
 
     for child in category.children:
         child.parent_id = category.parent_id
+    db.flush()
 
-    db.delete(category)
+    # When deleting a middle category, children should inherit the grandparent's
+    # parent_id. Raw SQL delete avoids SQLAlchemy's ORM-level relationship
+    # handling which would nullify children's parent_id.
+    db.execute(delete(Category).where(Category.id == category_id))
     db.commit()

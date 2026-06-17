@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -234,7 +235,7 @@ def _resolve_single_field(
 def _aggregate(
     *,
     rows: list[RestockOverviewRowData],
-    key,
+    key: Callable[[RestockOverviewRowData], tuple[int | None, str]],
 ) -> list[RestockGroupTotalData]:
     buckets: dict[tuple[int | None, str], RestockGroupTotalData] = {}
 
