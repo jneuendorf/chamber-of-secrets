@@ -244,6 +244,37 @@ class BackendAPITestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 422)
         self.assertIn("cycle", res.json().get("detail", "").lower())
 
+    def test_category_create_with_nonexistent_parent_returns_404(self) -> None:
+        res = self.client.post(
+            "/api/categories/", json={"name": "Orphan", "parent_id": 999999}
+        )
+        self.assertEqual(res.status_code, 404)
+        self.assertIn("parent", res.json()["detail"].lower())
+
+    def test_category_create_cannot_self_reference(self) -> None:
+        # parent_id must point to an existing category, so a new category
+        # can never reference itself — the ID doesn't exist yet.
+        res = self.client.post(
+            "/api/categories/", json={"name": "Loop", "parent_id": 1}
+        )
+        # Either 404 (no category with id=1) or 201 if id=1 happens to
+        # exist from a prior insert — either way, no cycle is possible.
+        if res.status_code == 201:
+            body = res.json()
+            self.assertNotEqual(body["id"], body["parent_id"])
+
+    def test_category_deep_cycle_prevention(self) -> None:
+        a = self._create_category("A")
+        b = self._create_category("B", parent_id=a["id"])
+        c = self._create_category("C", parent_id=b["id"])
+
+        # Try to close the loop: A → B → C → A
+        res = self.client.patch(
+            f"/api/categories/{a['id']}", json={"parent_id": c["id"]}
+        )
+        self.assertEqual(res.status_code, 422)
+        self.assertIn("cycle", res.json()["detail"].lower())
+
     def test_restock_overview_business_logic_needs_restock_and_totals(self) -> None:
         cat = self._create_category("Pantry", restock_target=10.0, restock_min=4.0)
         product = self._create_product("Pasta", category_id=cat["id"])

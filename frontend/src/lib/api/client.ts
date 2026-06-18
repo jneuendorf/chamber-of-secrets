@@ -41,6 +41,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         }
         throw new ApiError(response.status, response.statusText, detail)
     }
+    // Cast needed: T is generic so TS can't prove undefined satisfies it,
+    // but the only caller hitting 204 binds T = void.
+    if (response.status === 204) {
+        return undefined as T
+    }
     return response.json()
 }
 
@@ -202,6 +207,8 @@ export const api = {
                 method: 'PATCH',
                 body: JSON.stringify(data),
             }),
+        delete: (id: number) =>
+            request<void>(`/categories/${id}`, { method: 'DELETE' }),
     },
     analytics: {
         spending: (since?: string, until?: string) =>

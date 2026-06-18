@@ -4,6 +4,7 @@ import { _ } from 'svelte-i18n'
 
 import { ApiError, api, type Category } from '$lib/api/client'
 import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+import { resolveIcon } from '$lib/utils/category'
 
 type CategoryForm = {
     name: string
@@ -26,8 +27,14 @@ const ROOT_PARENT = '__root__'
 let categories: Category[] = $state([])
 let loading = $state(true)
 let savingId: number | null = $state(null)
+let deletingId: number | null = $state(null)
 let error = $state('')
 let searchOpen = $state(false)
+
+// Inline creation form
+let newCategoryName = $state('')
+let newCategoryParentId = $state<number | null>(null)
+let creatingCategory = $state(false)
 
 // individual collapse state for every card (root + child)
 let expanded = $state<Set<number>>(new Set())
@@ -128,9 +135,14 @@ function parentOptionsFor(category: Category): Category[] {
         .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function parseNullableFloat(input: string): number | null {
+function parseNullableFloat(input: string | number): number | null {
+    if (typeof input === 'number') {
+        return Number.isFinite(input) ? input : NaN
+    }
     const trimmed = input.trim()
-    if (!trimmed) { return null }
+    if (!trimmed) {
+        return null
+    }
     const n = Number(trimmed)
     return Number.isFinite(n) ? n : NaN
 }
@@ -244,6 +256,59 @@ async function saveCategory(cat: Category) {
     }
 }
 
+async function createCategory() {
+    const name = newCategoryName.trim()
+    if (!name) { return }
+    creatingCategory = true
+    error = ''
+    try {
+        const created = await api.categories.create({
+            name,
+            parent_id: newCategoryParentId,
+        })
+        categories = [...categories, created]
+        forms.set(created.id, {
+            name: created.name,
+            icon: created.icon ?? '',
+            parent_id: created.parent_id,
+            restock_target_input: '',
+            restock_min_input: '',
+            restock_inherit: created.restock_inherit ?? true,
+        })
+        newCategoryName = ''
+        newCategoryParentId = null
+        const copy = new Set(expanded)
+        copy.add(created.id)
+        expanded = copy
+    } catch (e) {
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        error = get(_)('category.failedToSave', { values: { error: detail } })
+    } finally {
+        creatingCategory = false
+    }
+}
+
+async function deleteCategory(cat: Category) {
+    if (!confirm(get(_)('category.deleteConfirm', { values: { name: cat.name } }))) {
+        return
+    }
+    deletingId = cat.id
+    error = ''
+    try {
+        await api.categories.delete(cat.id)
+        categories = categories.filter((c) => c.id !== cat.id)
+        forms.delete(cat.id)
+        const copy = new Set(expanded)
+        copy.delete(cat.id)
+        expanded = copy
+    } catch (e) {
+        const detail = e instanceof ApiError ? e.detail : String(e)
+        error = get(_)('category.failedToDelete', { values: { error: detail } })
+    } finally {
+        deletingId = null
+    }
+}
+
 function roots() {
     return (childrenByParentMap().get(null) ?? []).sort((a, b) =>
         a.name.localeCompare(b.name),
@@ -275,15 +340,57 @@ function hasChildren(id: number): boolean {
     {$_("category.managementSubtitle")}
 </p>
 
+{#if !loading}
+    <form
+        class="create-form"
+        onsubmit={(e) => {
+            e.preventDefault();
+            createCategory();
+        }}
+    >
+        <input
+            type="text"
+            bind:value={newCategoryName}
+            placeholder={$_("category.newPlaceholder")}
+            disabled={creatingCategory}
+            class="flex-1 px-3 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-lg text-sm"
+        />
+        <select
+            class="px-3 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-lg text-sm"
+            disabled={creatingCategory}
+            onchange={(e) => {
+                const val = (e.currentTarget as HTMLSelectElement).value;
+                newCategoryParentId = val === ROOT_PARENT ? null : Number(val);
+            }}
+        >
+            <option value={ROOT_PARENT}>{$_("category.noParent")}</option>
+            {#each categories.toSorted((a, b) => a.name.localeCompare(b.name)) as cat (cat.id)}
+                <option value={cat.id}>{cat.name}</option>
+            {/each}
+        </select>
+        <button
+            type="submit"
+            disabled={!newCategoryName.trim() || creatingCategory}
+            class="px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium disabled:opacity-40 shrink-0"
+        >
+            {$_("category.add")}
+        </button>
+    </form>
+{/if}
+
 {#if loading}
     <p>{$_("common.loading")}</p>
-{:else if error}
+{/if}
+
+{#if error}
     <p class="text-[#e74c3c]">{error}</p>
-{:else if categories.length === 0}
+{/if}
+
+{#if !loading && categories.length === 0}
     <p class="text-center text-gray-500 my-10">
         {$_("category.emptyManagement")}
     </p>
-{:else}
+{:else if !loading}
     <FuzzySearchOverlay
         items={categories}
         keys={["name", "icon"]}
@@ -306,6 +413,7 @@ function hasChildren(id: number): boolean {
         {#each roots() as root (root.id)}
             {@const rootForm = forms.get(root.id)!}
             {@const rootEff = computeEffectivePreview(root.id)}
+            {@const rootIcon = resolveIcon(root, categories)}
             <section class="node-card" data-category-id={root.id}>
                 <header class="node-head">
                     <button
@@ -318,6 +426,7 @@ function hasChildren(id: number): boolean {
                     >
                         {expanded.has(root.id) ? "▾" : "▸"}
                     </button>
+                    {#if rootIcon}<span class="node-icon">{rootIcon}</span>{/if}
                     <strong>{root.name}</strong>
                     <span class="pill">{$_("category.idLabel", { values: { id: root.id } })}</span>
                 </header>
@@ -396,6 +505,14 @@ function hasChildren(id: number): boolean {
                     <div class="actions">
                         <button
                             type="button"
+                            class="delete"
+                            disabled={deletingId === root.id}
+                            onclick={() => deleteCategory(root)}
+                        >
+                            {$_("category.deleteButton")}
+                        </button>
+                        <button
+                            type="button"
                             class="save"
                             disabled={savingId === root.id}
                             onclick={() => saveCategory(root)}
@@ -412,6 +529,7 @@ function hasChildren(id: number): boolean {
                         {#each childrenOf(root.id) as child (child.id)}
                             {@const childForm = forms.get(child.id)!}
                             {@const childEff = computeEffectivePreview(child.id)}
+                            {@const childIcon = resolveIcon(child, categories)}
                             <article class="child-card" data-category-id={child.id}>
                                 <header class="child-head">
                                     <button
@@ -424,6 +542,7 @@ function hasChildren(id: number): boolean {
                                     >
                                         {expanded.has(child.id) ? "▾" : "▸"}
                                     </button>
+                                    {#if childIcon}<span class="node-icon">{childIcon}</span>{/if}
                                     <strong>{child.name}</strong>
                                     <span class="pill"
                                         >{$_("category.idLabel", {
@@ -512,6 +631,14 @@ function hasChildren(id: number): boolean {
                                     </div>
 
                                     <div class="actions">
+                                        <button
+                                            type="button"
+                                            class="delete"
+                                            disabled={deletingId === child.id}
+                                            onclick={() => deleteCategory(child)}
+                                        >
+                                            {$_("category.deleteButton")}
+                                        </button>
                                         <button
                                             type="button"
                                             class="save"
@@ -636,6 +763,7 @@ function hasChildren(id: number): boolean {
         margin-top: 0.7rem;
         display: flex;
         justify-content: flex-end;
+        gap: 0.5rem;
     }
 
     .save {
@@ -648,9 +776,37 @@ function hasChildren(id: number): boolean {
         cursor: pointer;
     }
 
-    .save:disabled {
+    .save:disabled,
+    .delete:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .delete {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        padding: 0.45rem 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .delete:hover:not(:disabled) {
+        background: #7f1d1d;
+        color: #fca5a5;
+    }
+
+    .create-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .node-icon {
+        font-size: 1.1rem;
+        line-height: 1;
     }
 
     .search-indicator {

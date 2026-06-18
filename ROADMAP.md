@@ -126,13 +126,13 @@ dev S · user high · 🟢
   - [x] Prompt category selection directly after scanning
   - [x] Reset quantity field to 1 after each scan
 
-- [ ] **WL-2.2: Category Management** ⬜
+- [x] **WL-2.2: Category Management** ✅
 
 dev S · user med · 🟡
 
-  - [ ] Manual category creation from the management page
-  - [ ] Category deletion
-  - [ ] Emoji fallback: child inherits from parent if not set
+  - [x] Manual category creation from the management page
+  - [x] Category deletion (with `confirm()` prompt)
+  - [x] Emoji fallback: child inherits from parent if not set
 
 - [ ] **WL-2.3: Inventory Enhancements** ⬜
 
@@ -147,6 +147,21 @@ dev S · user med · 🟡
 
   - [ ] Fix translation bug: English strings shown despite German selected
   - [ ] Improve parent/child aggregation in pie chart (avoid double-counting)
+
+- [ ] **WL-2.5: Confirmation Dialogs** ⬜
+
+dev XS · user med · 🟡
+
+  - [ ] Replace browser `confirm()` with styled modal dialog component
+  - [ ] Use for category deletion and other destructive actions
+
+- [ ] **WL-2.6: Category Drill-Down Navigation** ⬜
+
+dev S · user med · 🟡
+
+  - [ ] Replace flat two-level tree with folder-style drill-down (tap to enter subcategory, breadcrumb to go back)
+  - [ ] Support arbitrary nesting depth
+  - [ ] Mobile-friendly: one level visible at a time, full-width cards
 
 ---
 

@@ -110,6 +110,16 @@ describe('api.categories', () => {
             expect(lastCall(fetch).url).toEndWith('/categories/2')
             expect(lastCall(fetch).options?.method).toBe('PATCH')
         }))
+
+    test('delete(id) calls DELETE /categories/:id', () =>
+        withMockedApi(
+            async ({ api, fetch }) => {
+                await api.categories.delete(5)
+                expect(lastCall(fetch).url).toEndWith('/categories/5')
+                expect(lastCall(fetch).options?.method).toBe('DELETE')
+            },
+            new Response(null, { status: 204 }),
+        ))
 })
 
 describe('api.analytics', () => {

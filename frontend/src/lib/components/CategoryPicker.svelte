@@ -2,6 +2,7 @@
 import { _ } from 'svelte-i18n'
 
 import type { Category } from '$lib/api/client'
+import { resolveIcon } from '$lib/utils/category'
 
 let {
     categories,
@@ -70,6 +71,7 @@ function isUrl(icon: string): boolean {
         {$_("category.none")}
     </button>
     {#each categories as cat (cat.id)}
+        {@const icon = resolveIcon(cat, categories)}
         <button
             type="button"
             onclick={() => onSelect(cat)}
@@ -78,11 +80,11 @@ function isUrl(icon: string): boolean {
                 ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
                 : 'bg-[#2f2a22] text-gray-200 border-[#5b4f3a] active:bg-[#26221b]'}"
         >
-            {#if cat.icon}
-                {#if isUrl(cat.icon)}
-                    <img src={cat.icon} alt="" class="w-4 h-4 rounded object-cover" />
+            {#if icon}
+                {#if isUrl(icon)}
+                    <img src={icon} alt="" class="w-4 h-4 rounded object-cover" />
                 {:else}
-                    <span class="leading-none">{cat.icon}</span>
+                    <span class="leading-none">{icon}</span>
                 {/if}
             {/if}
             {cat.name}

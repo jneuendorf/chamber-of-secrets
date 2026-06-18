@@ -63,11 +63,13 @@ emerges from knowing what's in stock:
 ### 2.3 Categories
 
 - Hierarchical categories (parent / child).
-- Each category has a name and an optional icon.
+- Each category has a name and an optional icon. Children without an icon
+  inherit their parent's icon automatically.
 - Restock thresholds per category (`restock_target`, `restock_min`) with
   inheritance from parent — children inherit thresholds unless overridden.
 - Assign a product to a category on scan or from the inventory view.
-- Category management page for editing and reordering.
+- Category management page: create, edit, and delete categories. Deletion
+  is blocked if products are still assigned to the category.
 
 ### 2.4 Analytics
 

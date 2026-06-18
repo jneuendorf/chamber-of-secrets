@@ -1,20 +1,22 @@
 <script lang="ts">
 import { _ } from 'svelte-i18n'
 
-import { ApiError, api, type Product } from '$lib/api/client'
+import { ApiError, api, type Category, type Product } from '$lib/api/client'
+import { resolveIcon } from '$lib/utils/category'
 
 // const BG_ASPECT_RATIO = 1536 / 1024;
 
 let products: Product[] = $state([])
+let allCategories: Category[] = $state([])
 let loading = $state(true)
 let error = $state('')
 let statsOpen = $state(false)
 
 $effect(() => {
-    api.products
-        .list()
-        .then((p) => {
+    Promise.all([api.products.list(), api.categories.list()])
+        .then(([p, c]) => {
             products = p
+            allCategories = c
         })
         .catch((e: unknown) => {
             error = e instanceof ApiError ? e.detail : String(e)
@@ -212,7 +214,7 @@ function buildPile(
     const floorY = 85
 
     for (const product of items) {
-        const catIcon = product.category?.icon ?? null
+        const catIcon = resolveIcon(product.category, allCategories)
         const emoji =
             catIcon && !isUrl(catIcon)
                 ? catIcon
