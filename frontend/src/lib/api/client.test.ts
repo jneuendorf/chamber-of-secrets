@@ -65,6 +65,47 @@ describe('api.products', () => {
             await api.products.lookupEAN('4006381333931')
             expect(lastCall(fetch).url).toEndWith('/products/lookup/4006381333931')
         }))
+
+    test('uploadImage(id, file) posts FormData to /products/:id/image', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            const file = new File(['fake-image'], 'photo.jpg', {
+                type: 'image/jpeg',
+            })
+            await api.products.uploadImage(3, file)
+            const { url, options } = lastCall(fetch)
+            expect(url).toEndWith('/products/3/image')
+            expect(options?.method).toBe('POST')
+            expect(options?.body).toBeInstanceOf(FormData)
+        }))
+
+    test('uploadImage throws ApiError on failure', () => {
+        const errorResponse = new Response(
+            JSON.stringify({ detail: 'File must be JPEG, PNG, WebP, or GIF' }),
+            { status: 422, statusText: 'Unprocessable Entity' },
+        )
+        return withMockedApi(async ({ api, ApiError }) => {
+            const file = new File(['not-image'], 'data.txt', {
+                type: 'text/plain',
+            })
+            try {
+                await api.products.uploadImage(1, file)
+                expect(true).toBe(false)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ApiError)
+                expect((e as InstanceType<typeof ApiError>).status).toBe(422)
+            }
+        }, errorResponse)
+    })
+
+    test('deleteImage(id) calls DELETE /products/:id/image', () =>
+        withMockedApi(
+            async ({ api, fetch }) => {
+                await api.products.deleteImage(9)
+                expect(lastCall(fetch).url).toEndWith('/products/9/image')
+                expect(lastCall(fetch).options?.method).toBe('DELETE')
+            },
+            new Response(null, { status: 204 }),
+        ))
 })
 
 describe('api.transactions', () => {

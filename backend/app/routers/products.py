@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import PRODUCT_IMAGE_DIR
 from app.database import get_db
 from app.models import Product, ProductRevision
 from app.schemas import (
@@ -13,6 +16,30 @@ from app.schemas import (
     ProductWithStock,
 )
 from app.services.ean_lookup import lookup_ean
+
+ALLOWED_IMAGE_TYPES: dict[str, str] = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+}
+MAGIC_BYTES: dict[str, list[bytes]] = {
+    "jpg": [b"\xff\xd8\xff"],
+    "png": [b"\x89PNG\r\n\x1a\n"],
+    "webp": [b"RIFF"],  # full signature is RIFF....WEBP, checked below
+    "gif": [b"GIF87a", b"GIF89a"],
+}
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+
+def _detect_ext(data: bytes) -> str | None:
+    for ext, signatures in MAGIC_BYTES.items():
+        for sig in signatures:
+            if data[: len(sig)] == sig:
+                if ext == "webp" and data[8:12] != b"WEBP":
+                    continue
+                return ext
+    return None
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -75,10 +102,59 @@ def update_product(
     product = db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    product.category_id = data.category_id
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(product, key, value)
     db.commit()
     db.refresh(product)
     return ProductRead.model_validate(product, from_attributes=True)
+
+
+def _remove_old_upload(image_url: str | None) -> None:
+    # Only delete local uploads; external URLs (e.g. Open Food Facts) have no local file.
+    if image_url and image_url.startswith("/api/uploads/products/"):
+        old = PRODUCT_IMAGE_DIR / image_url.split("/")[-1]
+        old.unlink(missing_ok=True)
+
+
+@router.post("/{product_id}/image", response_model=ProductRead)
+async def upload_product_image(
+    product_id: int,
+    file: UploadFile,
+    db: Session = Depends(get_db),
+) -> ProductRead:
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    contents = await file.read()
+    if len(contents) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image must be smaller than 5 MB")
+
+    ext = _detect_ext(contents)
+    if not ext:
+        allowed = ", ".join(v.upper() for v in ALLOWED_IMAGE_TYPES.values())
+        raise HTTPException(status_code=422, detail=f"File must be {allowed}")
+
+    filename = f"{product_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    (PRODUCT_IMAGE_DIR / filename).write_bytes(contents)
+
+    _remove_old_upload(product.image_url)
+    product.image_url = f"/api/uploads/products/{filename}"
+    db.commit()
+    db.refresh(product)
+    return ProductRead.model_validate(product, from_attributes=True)
+
+
+@router.delete("/{product_id}/image", status_code=204)
+def delete_product_image(
+    product_id: int, db: Session = Depends(get_db)
+) -> None:
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    _remove_old_upload(product.image_url)
+    product.image_url = None
+    db.commit()
 
 
 @router.get("/lookup/{ean}")

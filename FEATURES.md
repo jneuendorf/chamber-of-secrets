@@ -58,6 +58,8 @@ emerges from knowing what's in stock:
 - View current stock levels derived from all recorded transactions
   (`sum(in) - sum(out)`).
 - Each product shows name, image, brand, current quantity, and category.
+- Tap the product image (or placeholder) to capture a photo with the
+  device camera and upload it. Replaces any previous image.
 - Fuzzy search across all products.
 
 ### 2.3 Categories
@@ -127,6 +129,8 @@ current stock is computed at query time.
 | GET | `/api/products/` | List products with computed stock |
 | GET | `/api/products/lookup/{ean}` | EAN lookup (cache → Open Food Facts) |
 | POST | `/api/products/{id}/refresh` | Re-fetch from API, snapshot old data |
+| POST | `/api/products/{id}/image` | Upload product image (multipart) |
+| DELETE | `/api/products/{id}/image` | Remove product image |
 | GET | `/api/transactions/` | List transactions |
 | POST | `/api/transactions/` | Record a stock movement |
 | GET | `/api/categories/` | List categories |

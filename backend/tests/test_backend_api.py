@@ -305,6 +305,102 @@ class BackendAPITestCase(unittest.TestCase):
         self.assertEqual(payload["total_missing_quantity"], 7.0)
         self.assertEqual(payload["total_products_needing_restock"], 1)
 
+    # ---------- Product image upload ----------
+
+    def test_upload_product_image_success(self) -> None:
+        product = self._create_product("Milk")
+        res = self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("milk.jpg", b"\xff\xd8\xff\xe0" + b"\x00" * 100, "image/jpeg")},
+        )
+        self.assertEqual(res.status_code, 200, res.text)
+        body = res.json()
+        self.assertTrue(body["image_url"].startswith("/api/uploads/products/"))
+        self.assertTrue(body["image_url"].endswith(".jpg"))
+
+    def test_upload_product_image_replaces_old(self) -> None:
+        product = self._create_product("Butter")
+        content_a = b"\x89PNG\r\n\x1a\n" + b"\xaa" * 100
+        content_b = b"\x89PNG\r\n\x1a\n" + b"\xbb" * 100
+
+        first = self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("a.png", content_a, "image/png")},
+        )
+        self.assertEqual(first.status_code, 200)
+        first_url = first.json()["image_url"]
+
+        second = self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("b.png", content_b, "image/png")},
+        )
+        self.assertEqual(second.status_code, 200)
+        second_url = second.json()["image_url"]
+        self.assertNotEqual(second_url, first_url)
+
+        served = self.client.get(second_url)
+        self.assertEqual(served.status_code, 200)
+        self.assertEqual(served.content, content_b)
+
+    def test_upload_product_image_rejects_non_image(self) -> None:
+        product = self._create_product("Cheese")
+        res = self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("data.txt", b"hello", "text/plain")},
+        )
+        self.assertEqual(res.status_code, 422)
+
+    def test_upload_product_image_rejects_spoofed_content_type(self) -> None:
+        product = self._create_product("Ham")
+        res = self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("evil.jpg", b"<html>not an image</html>", "image/jpeg")},
+        )
+        self.assertEqual(res.status_code, 422)
+
+    def test_upload_product_image_not_found(self) -> None:
+        res = self.client.post(
+            "/api/products/999999/image",
+            files={"file": ("img.jpg", b"\xff\xd8\xff\xe0", "image/jpeg")},
+        )
+        self.assertEqual(res.status_code, 404)
+
+    def test_delete_product_image(self) -> None:
+        product = self._create_product("Eggs")
+        self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("egg.jpg", b"\xff\xd8\xff\xe0" + b"\x00" * 100, "image/jpeg")},
+        )
+        res = self.client.delete(f"/api/products/{product['id']}/image")
+        self.assertEqual(res.status_code, 204)
+
+        fetched = self.client.get(f"/api/products/{product['id']}")
+        self.assertIsNone(fetched.json()["image_url"])
+
+    # ---------- Product update with image_url ----------
+
+    def test_update_product_image_url_via_patch(self) -> None:
+        product = self._create_product("Rice")
+        res = self.client.patch(
+            f"/api/products/{product['id']}",
+            json={"image_url": "https://example.com/rice.jpg"},
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["image_url"], "https://example.com/rice.jpg")
+
+    def test_update_product_partial_does_not_clear_other_fields(self) -> None:
+        product = self._create_product("Pasta")
+        self.client.patch(
+            f"/api/products/{product['id']}",
+            json={"image_url": "https://example.com/pasta.jpg"},
+        )
+        res = self.client.patch(
+            f"/api/products/{product['id']}",
+            json={"category_id": None},
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["image_url"], "https://example.com/pasta.jpg")
+
     # ---------- Category delete ----------
 
     def test_delete_category_success(self) -> None:

@@ -134,12 +134,12 @@ dev S · user med · 🟡
   - [x] Category deletion (with `confirm()` prompt)
   - [x] Emoji fallback: child inherits from parent if not set
 
-- [ ] **WL-2.3: Inventory Enhancements** ⬜
+- [x] **WL-2.3: Inventory Enhancements** ✅
 
 dev M · user med · 🟡
 
-  - [ ] Manually add an image to an inventory item (camera capture)
-  - [ ] Fix chamber selection behaviour (disable marking)
+  - [x] Manually add an image to an inventory item (camera capture)
+  - [x] Fix chamber selection behaviour (disable marking)
 
 - [ ] **WL-2.4: Analytics Fixes** ⬜
 
@@ -148,12 +148,13 @@ dev S · user med · 🟡
   - [ ] Fix translation bug: English strings shown despite German selected
   - [ ] Improve parent/child aggregation in pie chart (avoid double-counting)
 
-- [ ] **WL-2.5: Confirmation Dialogs** ⬜
+- [ ] **WL-2.5: UX Polish** ⬜
 
 dev XS · user med · 🟡
 
   - [ ] Replace browser `confirm()` with styled modal dialog component
   - [ ] Use for category deletion and other destructive actions
+  - [ ] Optional `capture="environment"` on image upload (skips iOS chooser and opens rear camera directly — faster for the common case but prevents picking from photo library)
 
 - [ ] **WL-2.6: Category Drill-Down Navigation** ⬜
 

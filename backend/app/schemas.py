@@ -83,6 +83,7 @@ class ProductCreate(BaseModel):
 
 class ProductUpdate(BaseModel):
     category_id: int | None = None
+    image_url: str | None = None
 
 
 class ProductRead(BaseModel):

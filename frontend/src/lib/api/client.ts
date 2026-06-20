@@ -154,11 +154,34 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
-        update: (id: number, data: { category_id: number | null }) =>
+        update: (
+            id: number,
+            data: { category_id?: number | null; image_url?: string | null },
+        ) =>
             request<Product>(`/products/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify(data),
             }),
+        uploadImage: async (id: number, file: File): Promise<Product> => {
+            const form = new FormData()
+            form.append('file', file)
+            const res = await fetch(`${API_BASE}/products/${id}/image`, {
+                method: 'POST',
+                body: form,
+            })
+            if (!res.ok) {
+                let detail: string | undefined
+                try {
+                    detail = (await res.json()).detail
+                } catch {
+                    /* empty */
+                }
+                throw new ApiError(res.status, res.statusText, detail)
+            }
+            return res.json()
+        },
+        deleteImage: (id: number) =>
+            request<void>(`/products/${id}/image`, { method: 'DELETE' }),
         lookupEAN: (ean: string) => request<EANLookupResult>(`/products/lookup/${ean}`),
     },
     transactions: {

@@ -12,6 +12,8 @@ let loading = $state(true)
 let error = $state('')
 let editingId: number | null = $state(null)
 let searchOpen = $state(false)
+let uploadingId: number | null = $state(null)
+let fileInput: HTMLInputElement | undefined = $state(undefined)
 let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0))
 
 function selectProductFromSearch(item: unknown) {
@@ -65,6 +67,32 @@ async function createAndAssign(product: Product, name: string) {
     }
 }
 
+function triggerImageUpload(productId: number) {
+    uploadingId = productId
+    fileInput?.click()
+}
+
+async function handleImageSelected(e: Event) {
+    const input = e.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file || uploadingId === null) { return }
+
+    const productId = uploadingId
+    uploadingId = null
+    input.value = ''
+
+    try {
+        const updated = await api.products.uploadImage(productId, file)
+        products = products.map((p) =>
+            p.id === productId ? { ...p, image_url: updated.image_url } : p,
+        )
+    } catch (e) {
+        error = get(_)('inventory.uploadFailed', {
+            values: { error: e instanceof ApiError ? (e as ApiError).detail : String(e) },
+        })
+    }
+}
+
 async function handleUpdateIcon(cat: Category, icon: string | null) {
     const updated = await api.categories.update(cat.id, { icon })
     categories = categories.map((c) => (c.id === updated.id ? updated : c))
@@ -74,6 +102,14 @@ async function handleUpdateIcon(cat: Category, icon: string | null) {
     )
 }
 </script>
+
+<input
+    type="file"
+    accept="image/*"
+    class="hidden"
+    bind:this={fileInput}
+    onchange={handleImageSelected}
+/>
 
 <div class="heading-row">
     <h1 class="mt-0">{$_("nav.inventory")} ({totalItems})</h1>
@@ -123,19 +159,27 @@ async function handleUpdateIcon(cat: Category, icon: string | null) {
                 data-product-id={product.id}
             >
                 <div class="flex items-center gap-4">
-                    {#if product.image_url}
-                        <img
-                            src={product.image_url}
-                            alt={product.name}
-                            class="w-12 h-12 rounded-lg object-cover"
-                        />
-                    {:else}
-                        <div
-                            class="w-12 h-12 rounded-lg bg-[#26221b] border border-[#4f4534] flex items-center justify-center text-gray-300 text-xl"
-                        >
-                            ?
-                        </div>
-                    {/if}
+                    <button
+                        type="button"
+                        class="image-btn"
+                        title={$_(product.image_url ? 'inventory.changeImage' : 'inventory.addImage')}
+                        onclick={() => triggerImageUpload(product.id)}
+                    >
+                        {#if product.image_url}
+                            <img
+                                src={product.image_url}
+                                alt={product.name}
+                                class="w-12 h-12 rounded-lg object-cover"
+                            />
+                        {:else}
+                            <div
+                                class="w-12 h-12 rounded-lg bg-[#26221b] border border-[#4f4534] flex items-center justify-center text-gray-300 text-xl"
+                            >
+                                ?
+                            </div>
+                        {/if}
+                        <span class="image-btn-icon">📷</span>
+                    </button>
                     <div class="flex-1 min-w-0">
                         <h3 class="m-0 text-base text-gray-100">{product.name}</h3>
                         {#if product.brand}
@@ -216,6 +260,43 @@ async function handleUpdateIcon(cat: Category, icon: string | null) {
     .search-indicator-icon {
         font-size: 0.85rem;
         line-height: 1;
+    }
+
+    .image-btn {
+        position: relative;
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        background: none;
+        border-radius: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .image-btn-icon {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        font-size: 0.7rem;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 50%;
+        width: 1.2rem;
+        height: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+
+    .image-btn:hover .image-btn-icon,
+    .image-btn:focus-visible .image-btn-icon {
+        opacity: 1;
+    }
+
+    @media (hover: none) {
+        .image-btn-icon {
+            opacity: 0.7;
+        }
     }
 
     .stock {

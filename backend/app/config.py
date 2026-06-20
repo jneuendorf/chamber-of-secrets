@@ -15,3 +15,9 @@ settings = Settings()
 
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
+
+UPLOAD_DIR = DATA_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+PRODUCT_IMAGE_DIR = UPLOAD_DIR / "products"
+PRODUCT_IMAGE_DIR.mkdir(exist_ok=True)

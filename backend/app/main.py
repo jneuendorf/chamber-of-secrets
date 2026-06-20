@@ -6,9 +6,10 @@ from alembic.config import Config
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from alembic import command
-from app.config import settings
+from app.config import UPLOAD_DIR, settings
 from app.database import engine
 from app.models import Base
 from app.routers import analytics, categories, products, transactions
@@ -51,6 +52,9 @@ app.include_router(products.router, prefix="/api")
 app.include_router(transactions.router, prefix="/api")
 app.include_router(categories.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
+
+
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 @app.exception_handler(Exception)

@@ -415,6 +415,8 @@ function isUrl(s: string) {
         transform: translate(-50%, -50%);
         line-height: 1;
         cursor: default;
+        user-select: none;
+        -webkit-touch-callout: none;
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
     }
 

@@ -121,6 +121,9 @@
     "failedToLoad": "Inventar konnte nicht geladen werden: {error}",
     "empty": "Noch keine Artikel im Inventar.",
     "scanCta": "Etwas scannen!",
+    "addImage": "Bild hinzufügen",
+    "changeImage": "Bild ändern",
+    "uploadFailed": "Bild konnte nicht hochgeladen werden: {error}",
     "searchPlaceholder": "Inventar durchsuchen...",
     "searchNoResults": "Keine passenden Artikel gefunden.",
     "searchHint": "Drücke Strg+K / Cmd+K, um die Suche zu öffnen oder zu schließen."
