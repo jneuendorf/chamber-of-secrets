@@ -28,7 +28,7 @@ def spending_by_category(
         select(
             func.coalesce(Category.name, "Uncategorized").label("category"),
             func.sum(InventoryTransaction.quantity * InventoryTransaction.unit_price).label(
-                "total_spent"
+                "total_spent",
             ),
             func.count(InventoryTransaction.id).label("item_count"),
         )
@@ -48,7 +48,9 @@ def spending_by_category(
     result = db.execute(query)
     return [
         SpendingByCategory(
-            category=row.category, total_spent=row.total_spent or 0, item_count=row.item_count
+            category=row.category,
+            total_spent=row.total_spent or 0,
+            item_count=row.item_count,
         )
         for row in result.all()
     ]
@@ -66,7 +68,8 @@ def timeseries_by_category(
             func.coalesce(Category.name, "Uncategorized").label("category"),
             func.count(InventoryTransaction.id).label("item_count"),
             func.coalesce(
-                func.sum(InventoryTransaction.quantity * InventoryTransaction.unit_price), 0
+                func.sum(InventoryTransaction.quantity * InventoryTransaction.unit_price),
+                0,
             ).label("total_spent"),
         )
         .select_from(InventoryTransaction)

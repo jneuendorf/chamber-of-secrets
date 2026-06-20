@@ -9,7 +9,8 @@ async def lookup_ean(ean: str) -> EANLookupResult | None:
     url = f"{settings.ean_api_base_url}/product/{ean}"
     async with httpx.AsyncClient(timeout=10) as client:
         response = await client.get(
-            url, params={"fields": "product_name,brands,image_url,categories"}
+            url,
+            params={"fields": "product_name,brands,image_url,categories"},
         )
 
     if response.status_code != 200:

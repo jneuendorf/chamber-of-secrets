@@ -20,7 +20,9 @@ class Category(Base):
     restock_inherit: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     parent: Mapped[Category | None] = relationship(
-        "Category", remote_side="Category.id", back_populates="children"
+        "Category",
+        remote_side="Category.id",
+        back_populates="children",
     )
     children: Mapped[list[Category]] = relationship("Category", back_populates="parent")
     products: Mapped[list[Product]] = relationship(back_populates="category")
@@ -37,13 +39,16 @@ class Product(Base):
     image_url: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now(), onupdate=func.now()
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     category: Mapped[Category | None] = relationship(back_populates="products")
     transactions: Mapped[list[InventoryTransaction]] = relationship(back_populates="product")
     revisions: Mapped[list[ProductRevision]] = relationship(
-        back_populates="product", order_by="ProductRevision.superseded_at.desc()"
+        back_populates="product",
+        order_by="ProductRevision.superseded_at.desc()",
     )
 
 

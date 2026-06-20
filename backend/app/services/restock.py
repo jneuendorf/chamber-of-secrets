@@ -182,7 +182,7 @@ def build_restock_overview_rows(
                 needs_restock=computed.needs_restock,
                 top_parent_category_id=top_parent_id,
                 top_parent_category_name=top_parent_name,
-            )
+            ),
         )
 
     return rows

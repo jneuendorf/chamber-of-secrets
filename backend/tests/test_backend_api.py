@@ -122,7 +122,7 @@ class BackendAPITestCase(unittest.TestCase):
                 "total_products_needing_restock",
                 "by_child_category",
                 "by_parent_category",
-            }.issubset(payload.keys())
+            }.issubset(payload.keys()),
         )
 
     # ---------- JSON contract checks ----------
@@ -147,7 +147,7 @@ class BackendAPITestCase(unittest.TestCase):
                 "image_url",
                 "created_at",
                 "updated_at",
-            }.issubset(created.keys())
+            }.issubset(created.keys()),
         )
 
         fetched = self.client.get(f"/api/products/{created['id']}")
@@ -166,7 +166,7 @@ class BackendAPITestCase(unittest.TestCase):
                 "updated_at",
                 "stock",
                 "category",
-            }.issubset(body.keys())
+            }.issubset(body.keys()),
         )
         self.assertEqual(body["name"], "Milk")
         self.assertEqual(body["stock"], 0.0)
@@ -196,7 +196,7 @@ class BackendAPITestCase(unittest.TestCase):
                 "unit_price",
                 "transacted_at",
                 "notes",
-            }.issubset(body.keys())
+            }.issubset(body.keys()),
         )
         self.assertEqual(body["type"], "in")
         self.assertEqual(body["quantity"], 2.5)
@@ -246,7 +246,8 @@ class BackendAPITestCase(unittest.TestCase):
 
     def test_category_create_with_nonexistent_parent_returns_404(self) -> None:
         res = self.client.post(
-            "/api/categories/", json={"name": "Orphan", "parent_id": 999999}
+            "/api/categories/",
+            json={"name": "Orphan", "parent_id": 999999},
         )
         self.assertEqual(res.status_code, 404)
         self.assertIn("parent", res.json()["detail"].lower())
@@ -255,7 +256,8 @@ class BackendAPITestCase(unittest.TestCase):
         # parent_id must point to an existing category, so a new category
         # can never reference itself — the ID doesn't exist yet.
         res = self.client.post(
-            "/api/categories/", json={"name": "Loop", "parent_id": 1}
+            "/api/categories/",
+            json={"name": "Loop", "parent_id": 1},
         )
         # Either 404 (no category with id=1) or 201 if id=1 happens to
         # exist from a prior insert — either way, no cycle is possible.
@@ -270,7 +272,8 @@ class BackendAPITestCase(unittest.TestCase):
 
         # Try to close the loop: A → B → C → A
         res = self.client.patch(
-            f"/api/categories/{a['id']}", json={"parent_id": c["id"]}
+            f"/api/categories/{a['id']}",
+            json={"parent_id": c["id"]},
         )
         self.assertEqual(res.status_code, 422)
         self.assertIn("cycle", res.json()["detail"].lower())

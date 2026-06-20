@@ -41,6 +41,7 @@ def _detect_ext(data: bytes) -> str | None:
                 return ext
     return None
 
+
 router = APIRouter(prefix="/products", tags=["products"])
 
 
@@ -97,7 +98,9 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> Produc
 
 @router.patch("/{product_id}", response_model=ProductRead)
 def update_product(
-    product_id: int, data: ProductUpdate, db: Session = Depends(get_db)
+    product_id: int,
+    data: ProductUpdate,
+    db: Session = Depends(get_db),
 ) -> ProductRead:
     product = db.get(Product, product_id)
     if not product:
@@ -147,7 +150,8 @@ async def upload_product_image(
 
 @router.delete("/{product_id}/image", status_code=204)
 def delete_product_image(
-    product_id: int, db: Session = Depends(get_db)
+    product_id: int,
+    db: Session = Depends(get_db),
 ) -> None:
     product = db.get(Product, product_id)
     if not product:
@@ -196,7 +200,7 @@ async def refresh_product(product_id: int, db: Session = Depends(get_db)) -> Pro
             name=product.name,
             brand=product.brand,
             image_url=product.image_url,
-        )
+        ),
     )
 
     fresh = await lookup_ean(product.ean)

@@ -57,7 +57,9 @@ def create_category(data: CategoryCreate, db: Session = Depends(get_db)) -> Cate
 
 @router.patch("/{category_id}", response_model=CategoryRead)
 def update_category(
-    category_id: int, data: CategoryUpdate, db: Session = Depends(get_db)
+    category_id: int,
+    data: CategoryUpdate,
+    db: Session = Depends(get_db),
 ) -> CategoryRead:
     category = db.get(Category, category_id)
     if not category:
