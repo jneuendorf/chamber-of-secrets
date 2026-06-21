@@ -76,7 +76,10 @@ emerges from knowing what's in stock:
 ### 2.4 Analytics
 
 - Spending breakdown by category over a configurable date range.
-- Charts: bar chart, pie chart aggregated by parent category.
+- Interactive drill-down donut charts: tap a parent category to slide
+  into its children (iOS-style navigation with back button). Categories
+  with only one source row are not drillable.
+- Line charts for items and spending over time (child and parent views).
 - Date-range picker (`since` / `until`).
 - Restock overview: per-category view of products needing restocking,
   sorted by urgency.

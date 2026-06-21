@@ -141,12 +141,14 @@ dev M · user med · 🟡
   - [x] Manually add an image to an inventory item (camera capture)
   - [x] Fix chamber selection behaviour (disable marking)
 
-- [ ] **WL-2.4: Analytics Fixes** ⬜
+- [x] **WL-2.4: Analytics Fixes** ✅
 
 dev S · user med · 🟡
 
-  - [ ] Fix translation bug: English strings shown despite German selected
-  - [ ] Improve parent/child aggregation in pie chart (avoid double-counting)
+  - [x] Fix translation bug: English strings shown despite German selected
+  - [x] Improve parent/child aggregation in pie chart (avoid double-counting)
+  - [x] Replace static pie charts with interactive drill-down donut (iOS-style slide navigation)
+  - [x] Extract analytics utils into testable module with 23 tests
 
 - [ ] **WL-2.5: UX Polish** ⬜
 

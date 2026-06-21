@@ -1,9 +1,7 @@
 <script lang="ts">
 import {
-    ArcElement,
     CategoryScale,
     Chart,
-    DoughnutController,
     Filler,
     Legend,
     LinearScale,
@@ -23,10 +21,17 @@ import {
     type SpendingByCategory,
     type TimeseriesPoint,
 } from '$lib/api/client'
+import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
+import {
+    aggregateTimeseriesToParents,
+    aggregateToParents,
+    buildCategoryMaps,
+    getItemSlices as getItemSlicesUtil,
+    getSpendingSlices as getSpendingSlicesUtil,
+    UNCATEGORIZED,
+} from '$lib/utils/analytics'
 
 Chart.register(
-    DoughnutController,
-    ArcElement,
     LineController,
     LineElement,
     PointElement,
@@ -50,8 +55,6 @@ const COLORS = [
     '#e91e63',
 ]
 
-const UNCATEGORIZED = 'Uncategorized'
-const NO_PARENT = 'No parent'
 
 function toISODate(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -95,8 +98,6 @@ $effect(() => {
     load()
 })
 
-type Agg = { category: string; total_spent: number; item_count: number }
-
 function fmtQty(value: number): string {
     return Number.isInteger(value) ? String(value) : value.toFixed(2)
 }
@@ -131,59 +132,15 @@ let sortedRestockRows = $derived.by(() => {
     return copy
 })
 
-let categoryByName = $derived(new Map(categories.map((c) => [c.name, c])))
-let categoryById = $derived(new Map(categories.map((c) => [c.id, c])))
-
-function toParentLabel(childName: string): string {
-    if (childName === UNCATEGORIZED) { return UNCATEGORIZED }
-    const child = categoryByName.get(childName)
-    if (!child) { return childName }
-    if (child.parent_id == null) { return NO_PARENT }
-    const parent = categoryById.get(child.parent_id)
-    return parent?.name ?? NO_PARENT
+function displayCategory(name: string): string {
+    return name === UNCATEGORIZED ? get(_)('analytics.uncategorized') : name
 }
 
-function aggregateToParents(rows: SpendingByCategory[]): Agg[] {
-    const m = new Map<string, Agg>()
-    for (const row of rows) {
-        const label = toParentLabel(row.category)
-        const prev = m.get(label) ?? { category: label, total_spent: 0, item_count: 0 }
-        prev.total_spent += row.total_spent
-        prev.item_count += row.item_count
-        m.set(label, prev)
-    }
-    return [...m.values()].sort((a, b) => b.total_spent - a.total_spent)
-}
+let catMaps = $derived(buildCategoryMaps(categories))
 
-function aggregateTimeseriesToParents(rows: TimeseriesPoint[]): TimeseriesPoint[] {
-    const m = new Map<string, TimeseriesPoint>()
-    for (const row of rows) {
-        const parentCategory = toParentLabel(row.category)
-        const key = `${row.date}__${parentCategory}`
-        const prev = m.get(key) ?? {
-            date: row.date,
-            category: parentCategory,
-            item_count: 0,
-            total_spent: 0,
-        }
-        prev.item_count += row.item_count
-        prev.total_spent += row.total_spent
-        m.set(key, prev)
-    }
-    return [...m.values()].sort((a, b) =>
-        a.date === b.date
-            ? a.category.localeCompare(b.category)
-            : a.date.localeCompare(b.date),
-    )
-}
+let parentSpending = $derived(aggregateToParents(spending, catMaps.byName, catMaps.byId))
+let parentTimeseries = $derived(aggregateTimeseriesToParents(timeseries, catMaps.byName, catMaps.byId))
 
-let parentSpending = $derived(aggregateToParents(spending))
-let parentTimeseries = $derived(aggregateTimeseriesToParents(timeseries))
-
-let totalSpent = $derived(spending.reduce((sum, s) => sum + s.total_spent, 0))
-let totalItems = $derived(spending.reduce((sum, s) => sum + s.item_count, 0))
-
-let childSpendingWithPrice = $derived(spending.filter((s) => s.total_spent > 0))
 let parentSpendingWithPrice = $derived(parentSpending.filter((s) => s.total_spent > 0))
 
 let childTsCategories = $derived([...new Set(timeseries.map((d) => d.category))])
@@ -192,28 +149,12 @@ let childTsDates = $derived([...new Set(timeseries.map((d) => d.date))].sort())
 let parentTsCategories = $derived([...new Set(parentTimeseries.map((d) => d.category))])
 let parentTsDates = $derived([...new Set(parentTimeseries.map((d) => d.date))].sort())
 
-function makeCenterTextPlugin(line1: string, line2: string) {
-    return {
-        id: 'centerText',
-        afterDraw(chart: Chart) {
-            const {
-                ctx,
-                chartArea: { top, bottom, left, right },
-            } = chart
-            const cx = (left + right) / 2
-            const cy = (top + bottom) / 2
-            ctx.save()
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            ctx.fillStyle = '#f3f4f6'
-            ctx.font = 'bold 20px sans-serif'
-            ctx.fillText(line1, cx, cy - 8)
-            ctx.fillStyle = '#d1d5db'
-            ctx.font = '11px sans-serif'
-            ctx.fillText(line2, cx, cy + 10)
-            ctx.restore()
-        },
-    }
+function getItemSlices(parentKey: string | null) {
+    return getItemSlicesUtil(parentKey, spending, parentSpending, catMaps.byName, catMaps.byId, displayCategory)
+}
+
+function getSpendingSlices(parentKey: string | null) {
+    return getSpendingSlicesUtil(parentKey, spending, parentSpendingWithPrice, catMaps.byName, catMaps.byId, displayCategory)
 }
 
 function buildLineDatasets(
@@ -223,7 +164,7 @@ function buildLineDatasets(
     getValue: (p: TimeseriesPoint) => number,
 ) {
     return categoriesForLines.map((cat, i) => ({
-        label: cat,
+        label: displayCategory(cat),
         data: dates.map((date) => {
             const pt = data.find((d) => d.date === date && d.category === cat)
             return pt ? getValue(pt) : 0
@@ -236,134 +177,9 @@ function buildLineDatasets(
     }))
 }
 
-let childItemsDonutCanvas: HTMLCanvasElement | undefined = $state()
-let parentItemsDonutCanvas: HTMLCanvasElement | undefined = $state()
-let spendingDonutCanvas: HTMLCanvasElement | undefined = $state()
 let childItemsLineCanvas: HTMLCanvasElement | undefined = $state()
 let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state()
 let spendingLineCanvas: HTMLCanvasElement | undefined = $state()
-
-$effect(() => {
-    if (!childItemsDonutCanvas || !spending.length) { return }
-    const chart = new Chart<'doughnut'>(childItemsDonutCanvas, {
-        type: 'doughnut',
-        data: {
-            labels: spending.map((s) => s.category),
-            datasets: [
-                {
-                    data: spending.map((s) => s.item_count),
-                    backgroundColor: spending.map((_, i) => COLORS[i % COLORS.length]),
-                    borderWidth: 2,
-                },
-            ],
-        },
-        options: {
-            cutout: '60%',
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) =>
-                            ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / totalItems) * 100).toFixed(0)}%)`,
-                    },
-                },
-            },
-        },
-        plugins: [
-            makeCenterTextPlugin(String(totalItems), get(_)('analytics.itemsLabel')),
-        ],
-    })
-    return () => chart.destroy()
-})
-
-$effect(() => {
-    if (!parentItemsDonutCanvas || !parentSpending.length) { return }
-    const parentTotalItems = parentSpending.reduce((sum, s) => sum + s.item_count, 0)
-    const chart = new Chart<'doughnut'>(parentItemsDonutCanvas, {
-        type: 'doughnut',
-        data: {
-            labels: parentSpending.map((s) => s.category),
-            datasets: [
-                {
-                    data: parentSpending.map((s) => s.item_count),
-                    backgroundColor: parentSpending.map(
-                        (_, i) => COLORS[i % COLORS.length],
-                    ),
-                    borderWidth: 2,
-                },
-            ],
-        },
-        options: {
-            cutout: '60%',
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) =>
-                            ` ${ctx.label}: ${ctx.raw} (${(((ctx.raw as number) / parentTotalItems) * 100).toFixed(0)}%)`,
-                    },
-                },
-            },
-        },
-        plugins: [
-            makeCenterTextPlugin(
-                String(parentTotalItems),
-                get(_)('analytics.itemsLabel'),
-            ),
-        ],
-    })
-    return () => chart.destroy()
-})
-
-$effect(() => {
-    if (!spendingDonutCanvas || !childSpendingWithPrice.length) { return }
-    const chart = new Chart<'doughnut'>(spendingDonutCanvas, {
-        type: 'doughnut',
-        data: {
-            labels: childSpendingWithPrice.map((s) => s.category),
-            datasets: [
-                {
-                    data: childSpendingWithPrice.map((s) => s.total_spent),
-                    backgroundColor: childSpendingWithPrice.map(
-                        (_, i) => COLORS[i % COLORS.length],
-                    ),
-                    borderWidth: 2,
-                },
-            ],
-        },
-        options: {
-            cutout: '60%',
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) =>
-                            ` ${ctx.label}: €${(ctx.raw as number).toFixed(2)} (${(((ctx.raw as number) / totalSpent) * 100).toFixed(0)}%)`,
-                    },
-                },
-            },
-        },
-        plugins: [
-            makeCenterTextPlugin(
-                `€${totalSpent.toFixed(0)}`,
-                get(_)('analytics.totalSpent'),
-            ),
-        ],
-    })
-    return () => chart.destroy()
-})
 
 $effect(() => {
     if (!childItemsLineCanvas || !childTsDates.length) { return }
@@ -495,10 +311,10 @@ $effect(() => {
 
 <div class="restock-summary">
     <div class="summary-text">
-        Total units to buy:
+        {$_("analytics.totalUnitsToBuy")}:
         <strong>{fmtQty(restockOverview?.total_missing_quantity ?? 0)}</strong>
     </div>
-    <button type="button" class="restock-btn" onclick={() => (restockOpen = true)}>Restock overview</button>
+    <button type="button" class="restock-btn" onclick={() => (restockOpen = true)}>{$_("analytics.restockOverview")}</button>
 </div>
 
 {#if loading}
@@ -510,25 +326,20 @@ $effect(() => {
 {:else}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section class="pane">
-            <h2>Items / Categories</h2>
+            <h2>{$_("analytics.sectionItems")}</h2>
             <div class="stack">
-                <div class="card">
-                    <h3>Child Categories — {$_("analytics.itemsByCategory")}</h3>
-                    <div class="chart-wrap">
-                        <canvas bind:this={childItemsDonutCanvas}></canvas>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Parent Categories — {$_("analytics.itemsByCategory")}</h3>
-                    <div class="chart-wrap">
-                        <canvas bind:this={parentItemsDonutCanvas}></canvas>
-                    </div>
-                </div>
+                <DrillDownDonut
+                    title={$_("analytics.itemsByCategory")}
+                    getSlices={getItemSlices}
+                    formatTotal={(t) => String(t)}
+                    centerLabel={$_("analytics.itemsLabel")}
+                    formatTooltip={(label, value, pct) =>
+                        ` ${label}: ${value} (${pct}%)`}
+                />
 
                 {#if childTsDates.length > 0}
                     <div class="card">
-                        <h3>Child Categories — {$_("analytics.itemsOverTime")}</h3>
+                        <h3>{$_("analytics.childCategories")} — {$_("analytics.itemsOverTime")}</h3>
                         <div class="chart-wrap">
                             <canvas bind:this={childItemsLineCanvas}></canvas>
                         </div>
@@ -537,7 +348,7 @@ $effect(() => {
 
                 {#if parentTsDates.length > 0}
                     <div class="card">
-                        <h3>Parent Categories — {$_("analytics.itemsOverTime")}</h3>
+                        <h3>{$_("analytics.parentCategories")} — {$_("analytics.itemsOverTime")}</h3>
                         <div class="chart-wrap">
                             <canvas bind:this={parentItemsLineCanvas}></canvas>
                         </div>
@@ -547,18 +358,16 @@ $effect(() => {
         </section>
 
         <section class="pane">
-            <h2>Spendings</h2>
+            <h2>{$_("analytics.sectionSpending")}</h2>
             <div class="stack">
-                <div class="card">
-                    <h3>{$_("analytics.spendingByCategory")}</h3>
-                    {#if childSpendingWithPrice.length === 0}
-                        <p class="muted">{$_("analytics.noPrices")}</p>
-                    {:else}
-                        <div class="chart-wrap">
-                            <canvas bind:this={spendingDonutCanvas}></canvas>
-                        </div>
-                    {/if}
-                </div>
+                <DrillDownDonut
+                    title={$_("analytics.spendingByCategory")}
+                    getSlices={getSpendingSlices}
+                    formatTotal={(t) => `€${t.toFixed(0)}`}
+                    centerLabel={$_("analytics.totalSpent")}
+                    formatTooltip={(label, value, pct) =>
+                        ` ${label}: €${value.toFixed(2)} (${pct}%)`}
+                />
 
                 {#if childTsDates.length > 0}
                     <div class="card">
@@ -568,22 +377,6 @@ $effect(() => {
                         </div>
                     </div>
                 {/if}
-
-                <div class="card">
-                    <h3>Parent Categories — {$_("analytics.spendingByCategory")}</h3>
-                    {#if parentSpendingWithPrice.length === 0}
-                        <p class="muted">{$_("analytics.noPrices")}</p>
-                    {:else}
-                        <ul class="parent-list">
-                            {#each parentSpendingWithPrice as row}
-                                <li>
-                                    <span>{row.category}</span>
-                                    <strong>€{row.total_spent.toFixed(2)}</strong>
-                                </li>
-                            {/each}
-                        </ul>
-                    {/if}
-                </div>
             </div>
         </section>
     </div>
@@ -595,7 +388,7 @@ $effect(() => {
         class="restock-backdrop"
         role="button"
         tabindex="0"
-        aria-label="Close"
+        aria-label={$_("common.close")}
         onclick={(e) => {
             if (e.target === e.currentTarget) { restockOpen = false }
         }}
@@ -605,19 +398,19 @@ $effect(() => {
     >
         <div class="restock-modal">
             <div class="restock-head">
-                <h2>Restock overview</h2>
+                <h2>{$_("analytics.restockOverview")}</h2>
                 <button type="button" class="icon-btn" onclick={() => (restockOpen = false)}>✕</button>
             </div>
 
             <div class="kpis">
                 <div class="kpi">
-                    <div class="kpi-label">Total units to buy</div>
+                    <div class="kpi-label">{$_("analytics.totalUnitsToBuy")}</div>
                     <div class="kpi-value">
                         {fmtQty(restockOverview?.total_missing_quantity ?? 0)}
                     </div>
                 </div>
                 <div class="kpi">
-                    <div class="kpi-label">Products needing restock</div>
+                    <div class="kpi-label">{$_("analytics.productsNeedingRestock")}</div>
                     <div class="kpi-value">
                         {restockOverview?.total_products_needing_restock ?? 0}
                     </div>
@@ -626,32 +419,32 @@ $effect(() => {
 
             <div class="controls">
                 <label>
-                    Sort by
+                    {$_("analytics.sortBy")}
                     <select bind:value={restockSort}>
-                        <option value="urgency">Urgency</option>
-                        <option value="missing">Missing quantity</option>
-                        <option value="name">Name</option>
+                        <option value="urgency">{$_("analytics.sortUrgency")}</option>
+                        <option value="missing">{$_("analytics.sortMissing")}</option>
+                        <option value="name">{$_("analytics.sortName")}</option>
                     </select>
                 </label>
             </div>
 
             <div class="restock-layout">
                 <section class="panel">
-                    <h3>Products needing restock</h3>
+                    <h3>{$_("analytics.productsNeedingRestock")}</h3>
                     {#if !restockOverview || sortedRestockRows.length === 0}
-                        <p class="muted">No restock-needed products right now.</p>
+                        <p class="muted">{$_("analytics.noRestockNeeded")}</p>
                     {:else}
                         <div class="table-wrap">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Product</th>
-                                        <th>Category</th>
-                                        <th>Stock</th>
-                                        <th>Target</th>
-                                        <th>Min</th>
-                                        <th>Missing</th>
-                                        <th>Urgent</th>
+                                        <th>{$_("analytics.colProduct")}</th>
+                                        <th>{$_("analytics.colCategory")}</th>
+                                        <th>{$_("analytics.colStock")}</th>
+                                        <th>{$_("analytics.colTarget")}</th>
+                                        <th>{$_("analytics.colMin")}</th>
+                                        <th>{$_("analytics.colMissing")}</th>
+                                        <th>{$_("analytics.colUrgent")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -673,7 +466,7 @@ $effect(() => {
                 </section>
 
                 <section class="panel">
-                    <h3>Child category totals</h3>
+                    <h3>{$_("analytics.childTotals")}</h3>
                     <ul class="totals">
                         {#each restockOverview?.by_child_category ?? [] as g}
                             <li>
@@ -685,7 +478,7 @@ $effect(() => {
                         {/each}
                     </ul>
 
-                    <h3 class="mt">Parent category totals</h3>
+                    <h3 class="mt">{$_("analytics.parentTotals")}</h3>
                     <ul class="totals">
                         {#each restockOverview?.by_parent_category ?? [] as g}
                             <li>
@@ -724,6 +517,7 @@ $effect(() => {
         border-radius: 0.4rem;
         background: #111827;
         color: #f3f4f6;
+        color-scheme: dark;
     }
 
     .restock-summary {
@@ -795,21 +589,6 @@ $effect(() => {
     .chart-wrap {
         position: relative;
         height: 14rem;
-    }
-
-    .parent-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .parent-list li {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.45rem 0;
-        border-bottom: 1px solid #374151;
-        font-size: 0.9rem;
-        color: #e5e7eb;
     }
 
     .muted {
