@@ -35,7 +35,9 @@
     "searchHint": "Mit ↑/↓ navigieren, Enter auswählen, Esc schließen",
     "noResults": "Keine Treffer",
     "close": "Schließen",
-    "searchIndicator": "Suche (Strg/Cmd+K)"
+    "searchIndicator": "Suche (Strg/Cmd+K)",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen"
   },
   "scanner": {
     "startCamera": "Kamerascan starten",
@@ -124,6 +126,7 @@
     "addImage": "Bild hinzufügen",
     "changeImage": "Bild ändern",
     "uploadFailed": "Bild konnte nicht hochgeladen werden: {error}",
+    "chooseFromLibrary": "Aus Bibliothek wählen",
     "searchPlaceholder": "Inventar durchsuchen...",
     "searchNoResults": "Keine passenden Artikel gefunden.",
     "searchHint": "Drücke Strg+K / Cmd+K, um die Suche zu öffnen oder zu schließen."

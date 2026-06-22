@@ -4,6 +4,7 @@ import { _ } from 'svelte-i18n'
 
 import { ApiError, api, type Category } from '$lib/api/client'
 import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+import Modal from '$lib/components/Modal.svelte'
 import { resolveIcon } from '$lib/utils/category'
 
 type CategoryForm = {
@@ -288,10 +289,12 @@ async function createCategory() {
     }
 }
 
-async function deleteCategory(cat: Category) {
-    if (!confirm(get(_)('category.deleteConfirm', { values: { name: cat.name } }))) {
-        return
-    }
+let confirmingDelete: Category | null = $state(null)
+
+async function confirmDelete() {
+    if (!confirmingDelete) { return }
+    const cat = confirmingDelete
+    confirmingDelete = null
     deletingId = cat.id
     error = ''
     try {
@@ -507,7 +510,7 @@ function hasChildren(id: number): boolean {
                             type="button"
                             class="delete"
                             disabled={deletingId === root.id}
-                            onclick={() => deleteCategory(root)}
+                            onclick={() => (confirmingDelete = root)}
                         >
                             {$_("category.deleteButton")}
                         </button>
@@ -635,7 +638,7 @@ function hasChildren(id: number): boolean {
                                             type="button"
                                             class="delete"
                                             disabled={deletingId === child.id}
-                                            onclick={() => deleteCategory(child)}
+                                            onclick={() => (confirmingDelete = child)}
                                         >
                                             {$_("category.deleteButton")}
                                         </button>
@@ -660,7 +663,61 @@ function hasChildren(id: number): boolean {
     </div>
 {/if}
 
+<Modal
+    open={confirmingDelete !== null}
+    title={$_("category.deleteConfirm", { values: { name: confirmingDelete?.name ?? "" } })}
+    onclose={() => (confirmingDelete = null)}
+>
+    <div class="confirm-actions">
+        <button
+            type="button"
+            class="confirm-cancel"
+            onclick={() => (confirmingDelete = null)}
+        >
+            {$_("common.cancel")}
+        </button>
+        <button type="button" class="confirm-delete" onclick={confirmDelete}>
+            {$_("category.deleteButton")}
+        </button>
+    </div>
+</Modal>
+
 <style>
+    .confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .confirm-cancel {
+        background: #26221b;
+        color: #e5e7eb;
+        border: 1px solid #5b4f3a;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .confirm-cancel:hover {
+        background: #3b3327;
+    }
+
+    .confirm-delete {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border: 1px solid #991b1b;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .confirm-delete:hover {
+        background: #991b1b;
+    }
+
     .tree {
         display: grid;
         gap: 1rem;

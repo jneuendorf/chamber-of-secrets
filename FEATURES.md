@@ -58,8 +58,10 @@ emerges from knowing what's in stock:
 - View current stock levels derived from all recorded transactions
   (`sum(in) - sum(out)`).
 - Each product shows name, image, brand, current quantity, and category.
-- Tap the product image (or placeholder) to capture a photo with the
-  device camera and upload it. Replaces any previous image.
+- Tap the product image (or placeholder) to open the standard file
+  picker. On mobile (touch devices), a small 📷 button opens the rear
+  camera directly via `capture="environment"`. Replaces any previous
+  image.
 - Fuzzy search across all products.
 
 ### 2.3 Categories
@@ -71,7 +73,8 @@ emerges from knowing what's in stock:
   inheritance from parent — children inherit thresholds unless overridden.
 - Assign a product to a category on scan or from the inventory view.
 - Category management page: create, edit, and delete categories. Deletion
-  is blocked if products are still assigned to the category.
+  shows a styled confirmation modal (no browser `confirm()`). Deletion is
+  blocked if products are still assigned to the category.
 
 ### 2.4 Analytics
 

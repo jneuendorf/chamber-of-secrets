@@ -35,7 +35,9 @@
     "searchPlaceholder": "Type to search...",
     "noResults": "No results found.",
     "searchHint": "Use ↑/↓ to navigate, Enter to select, Esc to close",
-    "searchIndicator": "Search (Ctrl/Cmd+K)"
+    "searchIndicator": "Search (Ctrl/Cmd+K)",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "scanner": {
     "startCamera": "Start Camera Scan",
@@ -122,6 +124,7 @@
     "addImage": "Add image",
     "changeImage": "Change image",
     "uploadFailed": "Could not upload image: {error}",
+    "chooseFromLibrary": "Choose from library",
     "searchPlaceholder": "Search inventory...",
     "searchNoResults": "No matching inventory items.",
     "searchHint": "Find products by name, brand, barcode, or category. Ctrl/Cmd+K to open."

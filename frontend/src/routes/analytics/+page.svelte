@@ -22,6 +22,7 @@ import {
     type TimeseriesPoint,
 } from '$lib/api/client'
 import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
+import Modal from '$lib/components/Modal.svelte'
 import {
     aggregateTimeseriesToParents,
     aggregateToParents,
@@ -382,118 +383,102 @@ $effect(() => {
     </div>
 {/if}
 
-{#if restockOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div
-        class="restock-backdrop"
-        role="button"
-        tabindex="0"
-        aria-label={$_("common.close")}
-        onclick={(e) => {
-            if (e.target === e.currentTarget) { restockOpen = false }
-        }}
-        onkeydown={(e) => {
-            if (e.key === "Escape") { restockOpen = false }
-        }}
-    >
-        <div class="restock-modal">
-            <div class="restock-head">
-                <h2>{$_("analytics.restockOverview")}</h2>
-                <button type="button" class="icon-btn" onclick={() => (restockOpen = false)}>✕</button>
+<Modal
+    open={restockOpen}
+    title={$_("analytics.restockOverview")}
+    onclose={() => (restockOpen = false)}
+    width="min(1200px, 100%)"
+>
+    <div class="kpis">
+        <div class="kpi">
+            <div class="kpi-label">{$_("analytics.totalUnitsToBuy")}</div>
+            <div class="kpi-value">
+                {fmtQty(restockOverview?.total_missing_quantity ?? 0)}
             </div>
-
-            <div class="kpis">
-                <div class="kpi">
-                    <div class="kpi-label">{$_("analytics.totalUnitsToBuy")}</div>
-                    <div class="kpi-value">
-                        {fmtQty(restockOverview?.total_missing_quantity ?? 0)}
-                    </div>
-                </div>
-                <div class="kpi">
-                    <div class="kpi-label">{$_("analytics.productsNeedingRestock")}</div>
-                    <div class="kpi-value">
-                        {restockOverview?.total_products_needing_restock ?? 0}
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls">
-                <label>
-                    {$_("analytics.sortBy")}
-                    <select bind:value={restockSort}>
-                        <option value="urgency">{$_("analytics.sortUrgency")}</option>
-                        <option value="missing">{$_("analytics.sortMissing")}</option>
-                        <option value="name">{$_("analytics.sortName")}</option>
-                    </select>
-                </label>
-            </div>
-
-            <div class="restock-layout">
-                <section class="panel">
-                    <h3>{$_("analytics.productsNeedingRestock")}</h3>
-                    {#if !restockOverview || sortedRestockRows.length === 0}
-                        <p class="muted">{$_("analytics.noRestockNeeded")}</p>
-                    {:else}
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>{$_("analytics.colProduct")}</th>
-                                        <th>{$_("analytics.colCategory")}</th>
-                                        <th>{$_("analytics.colStock")}</th>
-                                        <th>{$_("analytics.colTarget")}</th>
-                                        <th>{$_("analytics.colMin")}</th>
-                                        <th>{$_("analytics.colMissing")}</th>
-                                        <th>{$_("analytics.colUrgent")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {#each sortedRestockRows as row (row.id)}
-                                        <tr>
-                                            <td>{row.name}</td>
-                                            <td>{row.category_name}</td>
-                                            <td>{fmtQty(row.current_stock)}</td>
-                                            <td>{fmtMaybe(row.effective_target)}</td>
-                                            <td>{fmtMaybe(row.effective_min)}</td>
-                                            <td>{fmtQty(row.missing_to_target)}</td>
-                                            <td>{row.below_min ? "⚠️" : "—"}</td>
-                                        </tr>
-                                    {/each}
-                                </tbody>
-                            </table>
-                        </div>
-                    {/if}
-                </section>
-
-                <section class="panel">
-                    <h3>{$_("analytics.childTotals")}</h3>
-                    <ul class="totals">
-                        {#each restockOverview?.by_child_category ?? [] as g}
-                            <li>
-                                <span>{g.category_name}</span>
-                                <strong
-                                    >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
-                                >
-                            </li>
-                        {/each}
-                    </ul>
-
-                    <h3 class="mt">{$_("analytics.parentTotals")}</h3>
-                    <ul class="totals">
-                        {#each restockOverview?.by_parent_category ?? [] as g}
-                            <li>
-                                <span>{g.category_name}</span>
-                                <strong
-                                    >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
-                                >
-                            </li>
-                        {/each}
-                    </ul>
-                </section>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">{$_("analytics.productsNeedingRestock")}</div>
+            <div class="kpi-value">
+                {restockOverview?.total_products_needing_restock ?? 0}
             </div>
         </div>
     </div>
-{/if}
+
+    <div class="controls">
+        <label>
+            {$_("analytics.sortBy")}
+            <select bind:value={restockSort}>
+                <option value="urgency">{$_("analytics.sortUrgency")}</option>
+                <option value="missing">{$_("analytics.sortMissing")}</option>
+                <option value="name">{$_("analytics.sortName")}</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="restock-layout">
+        <section class="panel">
+            <h3>{$_("analytics.productsNeedingRestock")}</h3>
+            {#if !restockOverview || sortedRestockRows.length === 0}
+                <p class="muted">{$_("analytics.noRestockNeeded")}</p>
+            {:else}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{$_("analytics.colProduct")}</th>
+                                <th>{$_("analytics.colCategory")}</th>
+                                <th>{$_("analytics.colStock")}</th>
+                                <th>{$_("analytics.colTarget")}</th>
+                                <th>{$_("analytics.colMin")}</th>
+                                <th>{$_("analytics.colMissing")}</th>
+                                <th>{$_("analytics.colUrgent")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each sortedRestockRows as row (row.id)}
+                                <tr>
+                                    <td>{row.name}</td>
+                                    <td>{row.category_name}</td>
+                                    <td>{fmtQty(row.current_stock)}</td>
+                                    <td>{fmtMaybe(row.effective_target)}</td>
+                                    <td>{fmtMaybe(row.effective_min)}</td>
+                                    <td>{fmtQty(row.missing_to_target)}</td>
+                                    <td>{row.below_min ? "⚠️" : "—"}</td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+            {/if}
+        </section>
+
+        <section class="panel">
+            <h3>{$_("analytics.childTotals")}</h3>
+            <ul class="totals">
+                {#each restockOverview?.by_child_category ?? [] as g}
+                    <li>
+                        <span>{g.category_name}</span>
+                        <strong
+                            >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
+                        >
+                    </li>
+                {/each}
+            </ul>
+
+            <h3 class="mt">{$_("analytics.parentTotals")}</h3>
+            <ul class="totals">
+                {#each restockOverview?.by_parent_category ?? [] as g}
+                    <li>
+                        <span>{g.category_name}</span>
+                        <strong
+                            >{fmtQty(g.total_missing_to_target)} · {g.affected_products}</strong
+                        >
+                    </li>
+                {/each}
+            </ul>
+        </section>
+    </div>
+</Modal>
 
 <style>
     .filters {
@@ -595,51 +580,6 @@ $effect(() => {
         color: #9ca3af;
         font-size: 0.9rem;
         margin: 1rem 0;
-    }
-
-    .restock-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 9998;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .restock-modal {
-        width: min(1200px, 100%);
-        max-height: calc(100vh - 2rem);
-        overflow: auto;
-        background: #2f2a22;
-        border: 1px solid #5b4f3a;
-        border-radius: 0.9rem;
-        padding: 1rem;
-        color: #e5e7eb;
-    }
-
-    .restock-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.75rem;
-    }
-
-    .restock-head h2 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #f3f4f6;
-    }
-
-    .icon-btn {
-        border: 1px solid #5b4f3a;
-        background: #26221b;
-        color: #f3f4f6;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 0.45rem;
-        cursor: pointer;
     }
 
     .kpis {

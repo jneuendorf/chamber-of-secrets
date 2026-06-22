@@ -150,13 +150,13 @@ dev S · user med · 🟡
   - [x] Replace static pie charts with interactive drill-down donut (iOS-style slide navigation)
   - [x] Extract analytics utils into testable module with 23 tests
 
-- [ ] **WL-2.5: UX Polish** ⬜
+- [x] **WL-2.5: UX Polish** ✅
 
 dev XS · user med · 🟡
 
-  - [ ] Replace browser `confirm()` with styled modal dialog component
-  - [ ] Use for category deletion and other destructive actions
-  - [ ] Optional `capture="environment"` on image upload (skips iOS chooser and opens rear camera directly — faster for the common case but prevents picking from photo library)
+  - [x] Replace browser `confirm()` with styled modal dialog component
+  - [x] Use for category deletion and other destructive actions
+  - [x] Image upload: standard file picker as primary, small camera shortcut via `capture="environment"` on mobile
 
 - [ ] **WL-2.6: Category Drill-Down Navigation** ⬜
 
