@@ -72,9 +72,13 @@ emerges from knowing what's in stock:
 - Restock thresholds per category (`restock_target`, `restock_min`) with
   inheritance from parent — children inherit thresholds unless overridden.
 - Assign a product to a category on scan or from the inventory view.
-- Category management page: create, edit, and delete categories. Deletion
-  shows a styled confirmation modal (no browser `confirm()`). Deletion is
-  blocked if products are still assigned to the category.
+- Category management page with folder-style drill-down navigation: tap a
+  category with children to slide into its subcategories (iOS-style back
+  button, slide animation matching analytics drill-down). One level visible
+  at a time, full-width cards, supports arbitrary nesting depth.
+- Create, edit, and delete categories at any level. Deletion shows a styled
+  confirmation modal (no browser `confirm()`). Deletion is blocked if
+  products are still assigned to the category.
 
 ### 2.4 Analytics
 

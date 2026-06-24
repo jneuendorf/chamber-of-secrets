@@ -1,11 +1,5 @@
 <script lang="ts">
-    import {
-        ArcElement,
-        Chart,
-        DoughnutController,
-        Legend,
-        Tooltip,
-    } from 'chart.js'
+    import { ArcElement, Chart, DoughnutController, Legend, Tooltip } from 'chart.js'
     import { _ } from 'svelte-i18n'
 
     Chart.register(DoughnutController, ArcElement, Legend, Tooltip)
@@ -25,8 +19,7 @@
         formatTooltip: (label: string, value: number, pct: string) => string
     }
 
-    let { title, getSlices, formatTotal, centerLabel, formatTooltip }: Props =
-        $props()
+    let { title, getSlices, formatTotal, centerLabel, formatTooltip }: Props = $props()
 
     const COLORS = [
         '#e74c3c',
@@ -45,13 +38,9 @@
     let direction: 'forward' | 'back' = $state('forward')
 
     let level = $derived(stack.length)
-    let currentKey = $derived(
-        stack.length > 0 ? stack[stack.length - 1].key : null,
-    )
+    let currentKey = $derived(stack.length > 0 ? stack[stack.length - 1].key : null)
     let currentSlices = $derived(getSlices(currentKey))
-    let currentTotal = $derived(
-        currentSlices.reduce((sum, s) => sum + s.value, 0),
-    )
+    let currentTotal = $derived(currentSlices.reduce((sum, s) => sum + s.value, 0))
 
     function drillIn(key: string, label: string) {
         direction = 'forward'
@@ -66,7 +55,9 @@
     let canvas: HTMLCanvasElement | undefined = $state()
 
     $effect(() => {
-        if (!canvas || currentSlices.length === 0) { return }
+        if (!canvas || currentSlices.length === 0) {
+            return
+        }
 
         const slices = currentSlices
         const total = currentTotal
@@ -77,9 +68,7 @@
         const chart = new Chart<'doughnut'>(canvas, {
             type: 'doughnut',
             data: {
-                labels: slices.map((s) =>
-                    s.drillable ? `${s.label} ›` : s.label,
-                ),
+                labels: slices.map((s) => (s.drillable ? `${s.label} ›` : s.label)),
                 datasets: [
                     {
                         data: slices.map((s) => s.value),
@@ -95,17 +84,22 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 onHover: (_event, elements) => {
-                    if (!canvas) { return }
+                    if (!canvas) {
+                        return
+                    }
                     canvas.style.cursor =
-                        elements.length > 0 &&
-                        slices[elements[0].index]?.drillable
+                        elements.length > 0 && slices[elements[0].index]?.drillable
                             ? 'pointer'
                             : 'default'
                 },
                 onClick: (_event, elements) => {
-                    if (elements.length === 0) { return }
+                    if (elements.length === 0) {
+                        return
+                    }
                     const slice = slices[elements[0].index]
-                    if (slice?.drillable) { drillIn(slice.key, slice.label) }
+                    if (slice?.drillable) {
+                        drillIn(slice.key, slice.label)
+                    }
                 },
                 plugins: {
                     legend: {
@@ -132,19 +126,12 @@
                     tooltip: {
                         callbacks: {
                             label: (ctx) => {
-                                const label = (ctx.label as string).replace(
-                                    /\s›$/,
-                                    '',
-                                )
+                                const label = (ctx.label as string).replace(/\s›$/, '')
                                 const pct = (
                                     ((ctx.raw as number) / total) *
                                     100
                                 ).toFixed(0)
-                                return fTooltip(
-                                    label,
-                                    ctx.raw as number,
-                                    pct,
-                                )
+                                return fTooltip(label, ctx.raw as number, pct)
                             },
                         },
                     },
@@ -182,9 +169,7 @@
 <div class="card">
     <div class="drill-header">
         {#if stack.length > 0}
-            <button type="button" class="drill-back" onclick={goBack}>
-                ‹
-            </button>
+            <button type="button" class="drill-back" onclick={goBack}> ‹ </button>
             <h3>{stack[stack.length - 1].label}</h3>
         {:else}
             <h3>{title}</h3>

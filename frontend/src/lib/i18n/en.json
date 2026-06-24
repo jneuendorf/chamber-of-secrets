@@ -92,6 +92,7 @@
     "managementTitle": "Categories",
     "managementSubtitle": "Configure category hierarchy and restock policy. Effective values are resolved through parent chain.",
     "emptyManagement": "No categories yet. Create one from Scan or Inventory.",
+    "emptyLevel": "No subcategories yet. Add one above.",
     "collapse": "Collapse",
     "expand": "Expand",
     "idLabel": "ID {id}",

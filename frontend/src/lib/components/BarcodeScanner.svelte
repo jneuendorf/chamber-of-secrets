@@ -1,185 +1,206 @@
 <script lang="ts">
-import { tick } from 'svelte'
-import { get } from 'svelte/store'
-import { _ } from 'svelte-i18n'
+    import { tick } from 'svelte'
+    import { get } from 'svelte/store'
+    import { _ } from 'svelte-i18n'
 
-let {
-    onScan,
-    manualVisible = $bindable(false),
-    restartSignal = 0,
-}: {
-    onScan: (code: string) => void
-    manualVisible?: boolean
-    restartSignal?: number
-} = $props()
+    import Select from '$lib/components/Select.svelte'
 
-let videoEl: HTMLVideoElement | undefined = $state()
-let stream: MediaStream | null = null
-let scanning = $state(false)
-let modalOpen = $state(false)
-let error = $state('')
-let manualCode = $state('')
+    let {
+        onScan,
+        manualVisible = $bindable(false),
+        restartSignal = 0,
+    }: {
+        onScan: (code: string) => void
+        manualVisible?: boolean
+        restartSignal?: number
+    } = $props()
 
-let cameras: MediaDeviceInfo[] = $state([])
-let selectedDeviceId = $state('')
-let detectorLoading = $state(false)
-let lastScanWasCamera = $state(false)
+    let videoEl: HTMLVideoElement | undefined = $state()
+    let stream: MediaStream | null = null
+    let scanning = $state(false)
+    let modalOpen = $state(false)
+    let error = $state('')
+    let manualCode = $state('')
 
-type DetectorCtor = new (options?: {
-    formats: string[]
-}) => {
-    detect(image: ImageBitmapSource): Promise<{ rawValue: string; format: string }[]>
-}
+    let cameras: MediaDeviceInfo[] = $state([])
+    let selectedDeviceId = $state('')
+    let detectorLoading = $state(false)
+    let lastScanWasCamera = $state(false)
 
-let detectorCtor: DetectorCtor | null = null
-
-async function enumerateCameras() {
-    // getUserMedia must have been called first to get device labels
-    const devices = await navigator.mediaDevices.enumerateDevices()
-    cameras = devices.filter((d) => d.kind === 'videoinput')
-    if (cameras.length > 0 && !selectedDeviceId) {
-        // Prefer rear/environment camera on mobile
-        const rear = cameras.find((c) => /back|rear|environment/i.test(c.label))
-        selectedDeviceId = rear?.deviceId ?? cameras[cameras.length - 1].deviceId
-    }
-}
-
-async function openStream() {
-    stream?.getTracks().forEach((t) => { t.stop() })
-    stream = null
-    scanning = false
-
-    const videoConstraints: MediaTrackConstraints = selectedDeviceId
-        ? { deviceId: { exact: selectedDeviceId } }
-        : { facingMode: 'environment' }
-
-    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints })
-
-    if (videoEl) {
-        videoEl.srcObject = stream
-        await videoEl.play()
-        scanning = true
-        detectBarcode()
-    }
-}
-
-async function startCamera() {
-    error = ''
-    modalOpen = true
-    await tick()
-
-    try {
-        // Initial getUserMedia call to get permission + labels
-        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true })
-        tempStream.getTracks().forEach((t) => { t.stop() })
-
-        await enumerateCameras()
-        await openStream()
-    } catch (e) {
-        error = get(_)('scanner.cameraError', { values: { error: String(e) } })
-    }
-}
-
-async function switchCamera(deviceId: string) {
-    selectedDeviceId = deviceId
-    scanning = false
-    try {
-        await openStream()
-    } catch (e) {
-        error = get(_)('scanner.cameraError', { values: { error: String(e) } })
-    }
-}
-
-function stopCamera() {
-    scanning = false
-    stream?.getTracks().forEach((t) => { t.stop() })
-    stream = null
-    modalOpen = false
-}
-
-async function resolveDetectorCtor(): Promise<DetectorCtor> {
-    if (detectorCtor) { return detectorCtor }
-
-    // Native support first
-    if ('BarcodeDetector' in window) {
-            detectorCtor = (window as unknown as { BarcodeDetector: DetectorCtor }).BarcodeDetector
-        return detectorCtor
+    type DetectorCtor = new (options?: { formats: string[] }) => {
+        detect(
+            image: ImageBitmapSource,
+        ): Promise<{ rawValue: string; format: string }[]>
     }
 
-    detectorLoading = true
-    try {
-        const mod = await import('@undecaf/barcode-detector-polyfill')
-        detectorCtor = mod.BarcodeDetectorPolyfill as DetectorCtor
-        return detectorCtor
-    } finally {
-        detectorLoading = false
+    let detectorCtor: DetectorCtor | null = null
+
+    async function enumerateCameras() {
+        // getUserMedia must have been called first to get device labels
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        cameras = devices.filter((d) => d.kind === 'videoinput')
+        if (cameras.length > 0 && !selectedDeviceId) {
+            // Prefer rear/environment camera on mobile
+            const rear = cameras.find((c) => /back|rear|environment/i.test(c.label))
+            selectedDeviceId = rear?.deviceId ?? cameras[cameras.length - 1].deviceId
+        }
     }
-}
 
-async function detectBarcode() {
-    if (!scanning || !videoEl) { return }
-
-    try {
-        const ctor = await resolveDetectorCtor()
-        if (!scanning || !videoEl) { return }
-
-        const detector = new ctor({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+    async function openStream() {
+        stream?.getTracks().forEach((t) => {
+            t.stop()
         })
+        stream = null
+        scanning = false
 
-        const detect = async () => {
-            if (!scanning || !videoEl) { return }
-            try {
-                const barcodes = await detector.detect(videoEl)
-                if (barcodes.length > 0) {
-                    lastScanWasCamera = true
-                    stopCamera()
-                    onScan(barcodes[0].rawValue)
+        const videoConstraints: MediaTrackConstraints = selectedDeviceId
+            ? { deviceId: { exact: selectedDeviceId } }
+            : { facingMode: 'environment' }
+
+        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints })
+
+        if (videoEl) {
+            videoEl.srcObject = stream
+            await videoEl.play()
+            scanning = true
+            detectBarcode()
+        }
+    }
+
+    async function startCamera() {
+        error = ''
+        modalOpen = true
+        await tick()
+
+        try {
+            // Initial getUserMedia call to get permission + labels
+            const tempStream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+            })
+            tempStream.getTracks().forEach((t) => {
+                t.stop()
+            })
+
+            await enumerateCameras()
+            await openStream()
+        } catch (e) {
+            error = get(_)('scanner.cameraError', { values: { error: String(e) } })
+        }
+    }
+
+    async function switchCamera(deviceId: string) {
+        selectedDeviceId = deviceId
+        scanning = false
+        try {
+            await openStream()
+        } catch (e) {
+            error = get(_)('scanner.cameraError', { values: { error: String(e) } })
+        }
+    }
+
+    function stopCamera() {
+        scanning = false
+        stream?.getTracks().forEach((t) => {
+            t.stop()
+        })
+        stream = null
+        modalOpen = false
+    }
+
+    async function resolveDetectorCtor(): Promise<DetectorCtor> {
+        if (detectorCtor) {
+            return detectorCtor
+        }
+
+        // Native support first
+        if ('BarcodeDetector' in window) {
+            detectorCtor = (window as unknown as { BarcodeDetector: DetectorCtor })
+                .BarcodeDetector
+            return detectorCtor
+        }
+
+        detectorLoading = true
+        try {
+            const mod = await import('@undecaf/barcode-detector-polyfill')
+            detectorCtor = mod.BarcodeDetectorPolyfill as DetectorCtor
+            return detectorCtor
+        } finally {
+            detectorLoading = false
+        }
+    }
+
+    async function detectBarcode() {
+        if (!scanning || !videoEl) {
+            return
+        }
+
+        try {
+            const ctor = await resolveDetectorCtor()
+            if (!scanning || !videoEl) {
+                return
+            }
+
+            const detector = new ctor({
+                formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+            })
+
+            const detect = async () => {
+                if (!scanning || !videoEl) {
                     return
                 }
-            } catch {
-                // Detection failed, retry
+                try {
+                    const barcodes = await detector.detect(videoEl)
+                    if (barcodes.length > 0) {
+                        lastScanWasCamera = true
+                        stopCamera()
+                        onScan(barcodes[0].rawValue)
+                        return
+                    }
+                } catch {
+                    // Detection failed, retry
+                }
+                requestAnimationFrame(detect)
             }
-            requestAnimationFrame(detect)
-        }
 
-        detect()
-    } catch (e) {
-        error = `${get(_)('scanner.unsupported')} (${String(e)})`
-        stopCamera()
-    }
-}
-
-function submitManual() {
-    const code = manualCode.trim()
-    if (code) {
-        lastScanWasCamera = false
-        onScan(code)
-        manualCode = ''
-    }
-}
-
-function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') { stopCamera() }
-}
-
-function toggleManual() {
-    manualVisible = !manualVisible
-}
-
-let lastRestartSignal = $state(0)
-
-$effect(() => {
-    const signal = restartSignal
-
-    if (signal !== lastRestartSignal) {
-        lastRestartSignal = signal
-
-        if (lastScanWasCamera) {
-            startCamera()
+            detect()
+        } catch (e) {
+            error = `${get(_)('scanner.unsupported')} (${String(e)})`
+            stopCamera()
         }
     }
-})
+
+    function submitManual() {
+        const code = manualCode.trim()
+        if (code) {
+            lastScanWasCamera = false
+            onScan(code)
+            manualCode = ''
+        }
+    }
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+            stopCamera()
+        }
+    }
+
+    function toggleManual() {
+        manualVisible = !manualVisible
+    }
+
+    let lastRestartSignal = $state(0)
+
+    $effect(() => {
+        const signal = restartSignal
+
+        if (signal !== lastRestartSignal) {
+            lastRestartSignal = signal
+
+            if (lastScanWasCamera) {
+                startCamera()
+            }
+        }
+    })
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -190,14 +211,14 @@ $effect(() => {
             <form
                 class="flex-1 flex gap-2"
                 onsubmit={(e) => {
-                    e.preventDefault();
-                    submitManual();
+                    e.preventDefault()
+                    submitManual()
                 }}
             >
                 <input
                     type="text"
                     bind:value={manualCode}
-                    placeholder={$_("scanner.barcodePlaceholder")}
+                    placeholder={$_('scanner.barcodePlaceholder')}
                     inputmode="numeric"
                     pattern="[0-9]*"
                     class="flex-1 h-12 px-2.5 border border-gray-300 rounded-md text-base"
@@ -205,11 +226,11 @@ $effect(() => {
                 <button
                     type="submit"
                     class="flex-1 h-12 px-3 sm:px-4 bg-[#3a3125] text-white border border-[#5b4f3a] rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
-                    aria-label={$_("scanner.lookUp")}
-                    title={$_("scanner.lookUp")}
+                    aria-label={$_('scanner.lookUp')}
+                    title={$_('scanner.lookUp')}
                 >
                     <span aria-hidden="true">⌕</span>
-                    <span class="hidden sm:inline">{$_("scanner.lookUp")}</span>
+                    <span class="hidden sm:inline">{$_('scanner.lookUp')}</span>
                 </button>
             </form>
         {:else}
@@ -218,7 +239,7 @@ $effect(() => {
                 onclick={startCamera}
                 class="flex-1 h-12 px-4 text-base bg-[#3a3125] text-white border border-[#5b4f3a] rounded-lg cursor-pointer"
             >
-                {$_("scanner.startCamera")}
+                {$_('scanner.startCamera')}
             </button>
         {/if}
 
@@ -226,9 +247,11 @@ $effect(() => {
             type="button"
             onclick={toggleManual}
             class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-[#2a251d] border border-[#5b4f3a] rounded-lg"
-            aria-expanded={manualVisible ? "true" : "false"}
-            aria-label={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
-            title={manualVisible ? $_("scanner.hideManual") : $_("scanner.showManual")}
+            aria-expanded={manualVisible ? 'true' : 'false'}
+            aria-label={manualVisible
+                ? $_('scanner.hideManual')
+                : $_('scanner.showManual')}
+            title={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
         >
             {#if manualVisible}
                 ✖️
@@ -250,14 +273,16 @@ $effect(() => {
         class="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4"
         role="button"
         tabindex="0"
-        aria-label={$_("common.close")}
+        aria-label={$_('common.close')}
         onclick={(e) => {
-            if (e.target === e.currentTarget) { stopCamera() }
+            if (e.target === e.currentTarget) {
+                stopCamera()
+            }
         }}
         onkeydown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                stopCamera();
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                stopCamera()
             }
         }}
     >
@@ -266,13 +291,17 @@ $effect(() => {
             class="bg-[#2f2a22] border border-[#5b4f3a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
         >
             <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-3 border-b border-[#5b4f3a]">
-                <span class="font-semibold text-gray-100">{$_("scanner.scanBarcode")}</span>
+            <div
+                class="flex items-center justify-between px-4 py-3 border-b border-[#5b4f3a]"
+            >
+                <span class="font-semibold text-gray-100"
+                    >{$_('scanner.scanBarcode')}</span
+                >
                 <button
                     type="button"
                     onclick={stopCamera}
                     class="text-gray-300 hover:text-gray-100 text-2xl leading-none border-0 bg-transparent cursor-pointer"
-                    aria-label={$_("scanner.stop")}
+                    aria-label={$_('scanner.stop')}
                 >
                     &times;
                 </button>
@@ -281,9 +310,15 @@ $effect(() => {
             <!-- Video feed -->
             <div class="relative bg-black aspect-video">
                 <!-- svelte-ignore element_invalid_self_closing_tag -->
-                <video bind:this={videoEl} playsinline class="w-full h-full object-cover block" />
+                <video
+                    bind:this={videoEl}
+                    playsinline
+                    class="w-full h-full object-cover block"
+                />
                 <!-- Scan overlay -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div
+                    class="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
                     <div
                         class="w-4/5 h-1/3 border-2 border-white/60 rounded-lg flex items-center justify-center"
                     >
@@ -294,11 +329,17 @@ $effect(() => {
                 </div>
 
                 {#if detectorLoading}
-                    <div class="absolute inset-0 bg-black/55 flex items-center justify-center z-10">
-                        <div class="flex flex-col items-center gap-2 text-white text-sm">
+                    <div
+                        class="absolute inset-0 bg-black/55 flex items-center justify-center z-10"
+                    >
+                        <div
+                            class="flex flex-col items-center gap-2 text-white text-sm"
+                        >
                             <div class="loader" aria-hidden="true"></div>
-                            <span>{$_("common.loading")}</span>
-                            <span class="text-xs text-gray-200">{$_("scanner.preparing")}</span>
+                            <span>{$_('common.loading')}</span>
+                            <span class="text-xs text-gray-200"
+                                >{$_('scanner.preparing')}</span
+                            >
                         </div>
                     </div>
                 {/if}
@@ -312,21 +353,22 @@ $effect(() => {
 
                 {#if cameras.length > 1}
                     <div class="flex items-center gap-2">
-                        <label for="camera-select" class="text-sm text-gray-300 shrink-0">
-                            {$_("scanner.camera")}
+                        <label
+                            for="camera-select"
+                            class="text-sm text-gray-300 shrink-0"
+                        >
+                            {$_('scanner.camera')}
                         </label>
-                        <select
+                        <Select
                             id="camera-select"
                             class="flex-1 px-2 py-1.5 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-sm"
                             value={selectedDeviceId}
-                            onchange={(e) => switchCamera((e.target as HTMLSelectElement).value)}
-                        >
-                            {#each cameras as cam, i}
-                                <option value={cam.deviceId}>
-                                    {cam.label || `${$_("scanner.camera")} ${i + 1}`}
-                                </option>
-                            {/each}
-                        </select>
+                            onchange={switchCamera}
+                            items={cameras.map((cam, i) => ({
+                                value: cam.deviceId,
+                                label: cam.label || `${$_('scanner.camera')} ${i + 1}`,
+                            }))}
+                        />
                     </div>
                 {/if}
 
@@ -335,7 +377,7 @@ $effect(() => {
                     onclick={stopCamera}
                     class="w-full py-2 bg-[#26221b] hover:bg-[#211d17] text-gray-100 border border-[#5b4f3a] rounded-lg text-sm cursor-pointer"
                 >
-                    {$_("scanner.stop")}
+                    {$_('scanner.stop')}
                 </button>
             </div>
         </div>

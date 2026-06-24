@@ -1,0 +1,53 @@
+{
+  // Formatting strategy mirrors `just format-frontend`:
+  //   - Biome formats + lints + organizes imports for JS/TS/JSON/CSS
+  //   - Prettier (prettier-plugin-svelte) formats .svelte files,
+  //     since Biome cannot format Svelte yet.
+  //
+  // Requires the community Biome extension (Extensions → search "Biome").
+  // Both tools read the repo configs: biome.jsonc and frontend/.prettierrc.json.
+  "format_on_save": "on",
+  "languages": {
+    "Svelte": {
+      "formatter": "prettier",
+      "format_on_save": "on"
+    },
+    "JavaScript": {
+      "formatter": { "language_server": { "name": "biome" } },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true
+      }
+    },
+    "TypeScript": {
+      "formatter": { "language_server": { "name": "biome" } },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true
+      }
+    },
+    "TSX": {
+      "formatter": { "language_server": { "name": "biome" } },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true
+      }
+    },
+    "JSON": {
+      "formatter": { "language_server": { "name": "biome" } }
+    },
+    "JSONC": {
+      "formatter": { "language_server": { "name": "biome" } }
+    },
+    "CSS": {
+      "formatter": { "language_server": { "name": "biome" } }
+    }
+  },
+  "lsp": {
+    "biome": {
+      "settings": {
+        "require_config_file": true
+      }
+    }
+  }
+}

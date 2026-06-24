@@ -1,293 +1,431 @@
 <script lang="ts">
-import { _ } from 'svelte-i18n'
+    import { _ } from 'svelte-i18n'
 
-import { ApiError, api, type Category, type Product } from '$lib/api/client'
-import { resolveIcon } from '$lib/utils/category'
+    import { ApiError, api, type Category, type Product } from '$lib/api/client'
+    import { resolveIcon } from '$lib/utils/category'
 
-// const BG_ASPECT_RATIO = 1536 / 1024;
+    // const BG_ASPECT_RATIO = 1536 / 1024;
 
-let products: Product[] = $state([])
-let allCategories: Category[] = $state([])
-let loading = $state(true)
-let error = $state('')
-let statsOpen = $state(false)
+    let products: Product[] = $state([])
+    let allCategories: Category[] = $state([])
+    let loading = $state(true)
+    let error = $state('')
+    let statsOpen = $state(false)
 
-$effect(() => {
-    Promise.all([api.products.list(), api.categories.list()])
-        .then(([p, c]) => {
-            products = p
-            allCategories = c
-        })
-        .catch((e: unknown) => {
-            error = e instanceof ApiError ? e.detail : String(e)
-        })
-        .finally(() => {
-            loading = false
-        })
-})
-
-// --- Emoji lookup ---
-function emojiFor(name: string, category: string | null): string {
-    const t = [name, category ?? ''].join(' ').toLowerCase()
-    if (/milk|milch|lait|vollmilch|skimmed|dairy|molkerei/.test(t)) { return '🥛' }
-    if (/egg|ei\b|eier|oeuf/.test(t)) { return '🥚' }
-    if (/bread|brot|pain|toast|baguette|brötchen/.test(t)) { return '🍞' }
-    if (/cheese|käse|fromage/.test(t)) { return '🧀' }
-    if (/butter/.test(t)) { return '🧈' }
-    if (/yogu?rt|joghurt/.test(t)) { return '🫙' }
-    if (/cream|sahne|crème/.test(t)) { return '🍦' }
-    if (/apple|apfel|pomme/.test(t)) { return '🍎' }
-    if (/banana|banane/.test(t)) { return '🍌' }
-    if (/orange/.test(t)) { return '🍊' }
-    if (/lemon|zitrone|citron/.test(t)) { return '🍋' }
-    if (/strawberr|erdbeere/.test(t)) { return '🍓' }
-    if (/cherry|kirsche|cerise/.test(t)) { return '🍒' }
-    if (/grape|traube|weintraube|raisin/.test(t)) { return '🍇' }
-    if (/pineapple|ananas/.test(t)) { return '🍍' }
-    if (/mango/.test(t)) { return '🥭' }
-    if (/avocado/.test(t)) { return '🥑' }
-    if (/peach|pfirsich|pêche/.test(t)) { return '🍑' }
-    if (/pear|birne|poire/.test(t)) { return '🍐' }
-    if (/melon|melone/.test(t)) { return '🍈' }
-    if (/kiwi/.test(t)) { return '🥝' }
-    if (/tomato|tomate/.test(t)) { return '🍅' }
-    if (/carrot|karotte|möhre|rübe/.test(t)) { return '🥕' }
-    if (/potato|kartoffel|pommes/.test(t)) { return '🥔' }
-    if (/broccoli|brokkoli/.test(t)) { return '🥦' }
-    if (/corn|mais/.test(t)) { return '🌽' }
-    if (/cucumber|gurke|concombre/.test(t)) { return '🥒' }
-    if (/pepper|paprika/.test(t)) { return '🫑' }
-    if (/onion|zwiebel|oignon/.test(t)) { return '🧅' }
-    if (/garlic|knoblauch|ail/.test(t)) { return '🧄' }
-    if (/lettuce|kopfsalat|laitue/.test(t)) { return '🥬' }
-    if (/mushroom|pilz|champignon/.test(t)) { return '🍄' }
-    if (/eggplant|aubergine/.test(t)) { return '🍆' }
-    if (/chicken|hähnchen|poulet|hühn/.test(t)) { return '🍗' }
-    if (/ham|schinken|jambon/.test(t)) { return '🍖' }
-    if (/sausage|wurst|bratwurst|salami|würst/.test(t)) { return '🌭' }
-    if (/beef|steak|rind|fleisch|meat|viande/.test(t)) { return '🥩' }
-    if (/fish|fisch|lachs|salmon|thun|tuna|forelle|trout/.test(t)) { return '🐟' }
-    if (/shrimp|garnele|prawn|crevette/.test(t)) { return '🦐' }
-    if (/coffee|kaffee|espresso|cappuccino|latte/.test(t)) { return '☕' }
-    if (/tea|tee|thé/.test(t)) { return '🍵' }
-    if (/juice|saft|jus/.test(t)) { return '🧃' }
-    if (/water|wasser|eau/.test(t)) { return '💧' }
-    if (/beer|bier|bière/.test(t)) { return '🍺' }
-    if (/wine|wein|vin/.test(t)) { return '🍷' }
-    if (/cola|soda|limo|limonade|softdrink/.test(t)) { return '🥤' }
-    if (/chocolate|schokolade|kakao|chocolat/.test(t)) { return '🍫' }
-    if (/pasta|nudel|spaghetti|penne|fusilli|tagliatelle/.test(t)) { return '🍝' }
-    if (/rice|reis|riz/.test(t)) { return '🍚' }
-    if (/pizza/.test(t)) { return '🍕' }
-    if (/burger/.test(t)) { return '🍔' }
-    if (/cereal|müsli|muesli|granola|haferflocken|oat/.test(t)) { return '🥣' }
-    if (/oil|öl|olive|huile/.test(t)) { return '🫒' }
-    if (/salt|salz|sel/.test(t)) { return '🧂' }
-    if (/sugar|zucker|sucre/.test(t)) { return '🍬' }
-    if (/honey|honig|miel/.test(t)) { return '🍯' }
-    if (/jam|marmelade|confiture/.test(t)) { return '🫙' }
-    if (/sauce|ketchup|mustard|senf/.test(t)) { return '🥫' }
-    if (/soup|suppe|bouillon/.test(t)) { return '🍲' }
-    if (/nut|nuss|peanut|cashew|almond|mandel|haselnuss/.test(t)) { return '🥜' }
-    if (/cookie|keks|biscuit/.test(t)) { return '🍪' }
-    if (/cake|torte|kuchen/.test(t)) { return '🎂' }
-    if (/chip|crisp|snack|cracker/.test(t)) { return '🥨' }
-    if (/bean|bohne/.test(t)) { return '🫘' }
-    if (/pea|erbse/.test(t)) { return '🫛' }
-    if (/tofu/.test(t)) { return '🧆' }
-    if (/frozen|tiefkühl|surgelé/.test(t)) { return '🧊' }
-    return '📦'
-}
-
-// --- Deterministic positioning ---
-
-// djb2-style hash → unsigned 32-bit
-function hash(s: string): number {
-    let h = 5381
-    for (let i = 0; i < s.length; i++) {
-        h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0
-    }
-    return h
-}
-
-// Seeded PRNG (mulberry32) and Box-Muller for stable but well-spread randomness.
-// Motivation:
-// - We need deterministic placement (stable across reloads).
-// - But we also need enough variance so points do not collapse visually.
-// - A seeded PRNG gives independent uniform samples from one integer seed.
-function mulberry32(seed: number): () => number {
-    let t = seed >>> 0
-    return () => {
-        t += 0x6d2b79f5
-        let x = Math.imul(t ^ (t >>> 15), 1 | t)
-        x ^= x + Math.imul(x ^ (x >>> 7), 61 | x)
-        return ((x ^ (x >>> 14)) >>> 0) / 4294967296
-    }
-}
-
-function randomNormalPair(seed: number): [number, number] {
-    const rand = mulberry32(seed)
-    const u1 = Math.max(rand(), 1e-12)
-    const u2 = rand()
-    const r = Math.sqrt(-2 * Math.log(u1))
-    return [r * Math.cos(2 * Math.PI * u2), r * Math.sin(2 * Math.PI * u2)]
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-    return Math.max(lo, Math.min(hi, v))
-}
-
-// Unnormalized Gaussian bell at position x.
-// We use it only as a relative "lift factor" (center higher, edges lower),
-// so no normalization constant is required.
-function normalPdf(x: number, mu: number, sigma: number): number {
-    const z = (x - mu) / sigma
-    return Math.exp(-0.5 * z * z)
-}
-
-interface EmojiDot {
-    emoji: string
-    isUrl: boolean
-    src: string
-    x: number // absolute % of scene width
-    y: number // absolute % of scene height
-    z: number // z-index
-    depleted: boolean
-    title: string
-}
-
-// --- Derived values ---
-let maxStock = $derived(Math.max(1, ...products.map((p) => p.stock)))
-
-function emojiCount(stock: number): number {
-    if (stock <= 0) { return 0 }
-    return Math.max(1, Math.round((stock / maxStock) * 10))
-}
-
-let grouped = $derived(
-    (() => {
-        const map = new Map<string, Product[]>()
-        for (const p of products) {
-            const key = p.category?.name ?? '?'
-            if (!map.has(key)) { map.set(key, []) }
-            map.get(key)!.push(p)
-        }
-        return [...map.entries()].sort((a, b) => {
-            const sumA = a[1].reduce((s, p) => s + p.stock, 0)
-            const sumB = b[1].reduce((s, p) => s + p.stock, 0)
-            return sumB - sumA
-        })
-    })(),
-)
-
-// Build 2D piles: categories get x-centers based on a normal-distribution quantile,
-// and each category forms a Gaussian blob that sits on the chamber floor.
-function buildPile(
-    catName: string,
-    items: Product[],
-    catIndex: number,
-    catCount: number,
-): EmojiDot[] {
-    const dots: EmojiDot[] = []
-
-    // Map category rank -> horizontal center in screen-percent coordinates.
-    // Units:
-    // - x/y are percentages of the full scene (CSS left/top in %).
-    // - So x=50 means middle of viewport width.
-    //
-    // We transform rank to a soft S-curve so categories cluster naturally near center
-    // with thinner tails near the sides (normal-like spacing without true inverse-erf).
-    //
-    // Scene wrapper matches visible image width, so x can safely span 0..100%.
-    // We keep a tiny inner padding so large emojis don't clip against hard edges.
-    const safetyPadding = 5
-    const safeLeft = safetyPadding
-    const safeRight = 100 - safetyPadding
-
-    const u = (catIndex + 0.5) / Math.max(1, catCount)
-    const centered = (u - 0.5) * 2 // -1..1
-    const gaussLike = centered / Math.sqrt(1 + 0.6 * centered * centered) // soft S-shape
-    const cx = safeLeft + ((gaussLike + 1) / 2) * (safeRight - safeLeft)
-
-    // Floor line in scene-percent coordinates.
-    // Keep it above the bottom and inside visible image content.
-    const floorY = 85
-
-    for (const product of items) {
-        const catIcon = resolveIcon(product.category, allCategories)
-        const emoji =
-            catIcon && !isUrl(catIcon)
-                ? catIcon
-                : emojiFor(product.name, product.category?.name ?? null)
-        const urlEmoji = !!catIcon && isUrl(catIcon)
-        const isDepleted = product.stock <= 0
-        const count = isDepleted ? 1 : emojiCount(product.stock)
-
-        for (let i = 0; i < count; i++) {
-            // Mix seed components more aggressively to avoid near-identical streams.
-            const seed = hash(`${catName}|${product.id}|${i}|${count}|${catIndex}`)
-            const [gx, gy] = randomNormalPair(seed)
-
-            // gx/gy are standard normal values (roughly -3..3 typical).
-            // Scale factors convert those to percentage offsets on screen.
-            // Wider x spread avoids "single emoji" collapse.
-            const x = clamp(cx + gx * 12.5, safeLeft, safeRight)
-
-            // Vertical model:
-            // - centerLift raises points near pile center (smaller y -> visually higher)
-            // - gy term adds random depth/stack variation.
-            // Clamps keep dots in the visible chamber/floor region, especially on short viewports.
-            const centerLift = normalPdf(x, cx, 10.5) * 11.5
-            const y = clamp(floorY - centerLift + gy * 4.6, 60, floorY)
-
-            dots.push({
-                emoji,
-                isUrl: urlEmoji,
-                src: urlEmoji ? catIcon! : '',
-                x,
-                y,
-                z: 0,
-                depleted: isDepleted,
-                title: `${product.name}${product.stock > 0 ? ` ×${product.stock}` : ' (depleted)'}`,
+    $effect(() => {
+        Promise.all([api.products.list(), api.categories.list()])
+            .then(([p, c]) => {
+                products = p
+                allCategories = c
             })
+            .catch((e: unknown) => {
+                error = e instanceof ApiError ? e.detail : String(e)
+            })
+            .finally(() => {
+                loading = false
+            })
+    })
+
+    // --- Emoji lookup ---
+    function emojiFor(name: string, category: string | null): string {
+        const t = [name, category ?? ''].join(' ').toLowerCase()
+        if (/milk|milch|lait|vollmilch|skimmed|dairy|molkerei/.test(t)) {
+            return '🥛'
+        }
+        if (/egg|ei\b|eier|oeuf/.test(t)) {
+            return '🥚'
+        }
+        if (/bread|brot|pain|toast|baguette|brötchen/.test(t)) {
+            return '🍞'
+        }
+        if (/cheese|käse|fromage/.test(t)) {
+            return '🧀'
+        }
+        if (/butter/.test(t)) {
+            return '🧈'
+        }
+        if (/yogu?rt|joghurt/.test(t)) {
+            return '🫙'
+        }
+        if (/cream|sahne|crème/.test(t)) {
+            return '🍦'
+        }
+        if (/apple|apfel|pomme/.test(t)) {
+            return '🍎'
+        }
+        if (/banana|banane/.test(t)) {
+            return '🍌'
+        }
+        if (/orange/.test(t)) {
+            return '🍊'
+        }
+        if (/lemon|zitrone|citron/.test(t)) {
+            return '🍋'
+        }
+        if (/strawberr|erdbeere/.test(t)) {
+            return '🍓'
+        }
+        if (/cherry|kirsche|cerise/.test(t)) {
+            return '🍒'
+        }
+        if (/grape|traube|weintraube|raisin/.test(t)) {
+            return '🍇'
+        }
+        if (/pineapple|ananas/.test(t)) {
+            return '🍍'
+        }
+        if (/mango/.test(t)) {
+            return '🥭'
+        }
+        if (/avocado/.test(t)) {
+            return '🥑'
+        }
+        if (/peach|pfirsich|pêche/.test(t)) {
+            return '🍑'
+        }
+        if (/pear|birne|poire/.test(t)) {
+            return '🍐'
+        }
+        if (/melon|melone/.test(t)) {
+            return '🍈'
+        }
+        if (/kiwi/.test(t)) {
+            return '🥝'
+        }
+        if (/tomato|tomate/.test(t)) {
+            return '🍅'
+        }
+        if (/carrot|karotte|möhre|rübe/.test(t)) {
+            return '🥕'
+        }
+        if (/potato|kartoffel|pommes/.test(t)) {
+            return '🥔'
+        }
+        if (/broccoli|brokkoli/.test(t)) {
+            return '🥦'
+        }
+        if (/corn|mais/.test(t)) {
+            return '🌽'
+        }
+        if (/cucumber|gurke|concombre/.test(t)) {
+            return '🥒'
+        }
+        if (/pepper|paprika/.test(t)) {
+            return '🫑'
+        }
+        if (/onion|zwiebel|oignon/.test(t)) {
+            return '🧅'
+        }
+        if (/garlic|knoblauch|ail/.test(t)) {
+            return '🧄'
+        }
+        if (/lettuce|kopfsalat|laitue/.test(t)) {
+            return '🥬'
+        }
+        if (/mushroom|pilz|champignon/.test(t)) {
+            return '🍄'
+        }
+        if (/eggplant|aubergine/.test(t)) {
+            return '🍆'
+        }
+        if (/chicken|hähnchen|poulet|hühn/.test(t)) {
+            return '🍗'
+        }
+        if (/ham|schinken|jambon/.test(t)) {
+            return '🍖'
+        }
+        if (/sausage|wurst|bratwurst|salami|würst/.test(t)) {
+            return '🌭'
+        }
+        if (/beef|steak|rind|fleisch|meat|viande/.test(t)) {
+            return '🥩'
+        }
+        if (/fish|fisch|lachs|salmon|thun|tuna|forelle|trout/.test(t)) {
+            return '🐟'
+        }
+        if (/shrimp|garnele|prawn|crevette/.test(t)) {
+            return '🦐'
+        }
+        if (/coffee|kaffee|espresso|cappuccino|latte/.test(t)) {
+            return '☕'
+        }
+        if (/tea|tee|thé/.test(t)) {
+            return '🍵'
+        }
+        if (/juice|saft|jus/.test(t)) {
+            return '🧃'
+        }
+        if (/water|wasser|eau/.test(t)) {
+            return '💧'
+        }
+        if (/beer|bier|bière/.test(t)) {
+            return '🍺'
+        }
+        if (/wine|wein|vin/.test(t)) {
+            return '🍷'
+        }
+        if (/cola|soda|limo|limonade|softdrink/.test(t)) {
+            return '🥤'
+        }
+        if (/chocolate|schokolade|kakao|chocolat/.test(t)) {
+            return '🍫'
+        }
+        if (/pasta|nudel|spaghetti|penne|fusilli|tagliatelle/.test(t)) {
+            return '🍝'
+        }
+        if (/rice|reis|riz/.test(t)) {
+            return '🍚'
+        }
+        if (/pizza/.test(t)) {
+            return '🍕'
+        }
+        if (/burger/.test(t)) {
+            return '🍔'
+        }
+        if (/cereal|müsli|muesli|granola|haferflocken|oat/.test(t)) {
+            return '🥣'
+        }
+        if (/oil|öl|olive|huile/.test(t)) {
+            return '🫒'
+        }
+        if (/salt|salz|sel/.test(t)) {
+            return '🧂'
+        }
+        if (/sugar|zucker|sucre/.test(t)) {
+            return '🍬'
+        }
+        if (/honey|honig|miel/.test(t)) {
+            return '🍯'
+        }
+        if (/jam|marmelade|confiture/.test(t)) {
+            return '🫙'
+        }
+        if (/sauce|ketchup|mustard|senf/.test(t)) {
+            return '🥫'
+        }
+        if (/soup|suppe|bouillon/.test(t)) {
+            return '🍲'
+        }
+        if (/nut|nuss|peanut|cashew|almond|mandel|haselnuss/.test(t)) {
+            return '🥜'
+        }
+        if (/cookie|keks|biscuit/.test(t)) {
+            return '🍪'
+        }
+        if (/cake|torte|kuchen/.test(t)) {
+            return '🎂'
+        }
+        if (/chip|crisp|snack|cracker/.test(t)) {
+            return '🥨'
+        }
+        if (/bean|bohne/.test(t)) {
+            return '🫘'
+        }
+        if (/pea|erbse/.test(t)) {
+            return '🫛'
+        }
+        if (/tofu/.test(t)) {
+            return '🧆'
+        }
+        if (/frozen|tiefkühl|surgelé/.test(t)) {
+            return '🧊'
+        }
+        return '📦'
+    }
+
+    // --- Deterministic positioning ---
+
+    // djb2-style hash → unsigned 32-bit
+    function hash(s: string): number {
+        let h = 5381
+        for (let i = 0; i < s.length; i++) {
+            h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0
+        }
+        return h
+    }
+
+    // Seeded PRNG (mulberry32) and Box-Muller for stable but well-spread randomness.
+    // Motivation:
+    // - We need deterministic placement (stable across reloads).
+    // - But we also need enough variance so points do not collapse visually.
+    // - A seeded PRNG gives independent uniform samples from one integer seed.
+    function mulberry32(seed: number): () => number {
+        let t = seed >>> 0
+        return () => {
+            t += 0x6d2b79f5
+            let x = Math.imul(t ^ (t >>> 15), 1 | t)
+            x ^= x + Math.imul(x ^ (x >>> 7), 61 | x)
+            return ((x ^ (x >>> 14)) >>> 0) / 4294967296
         }
     }
 
-    // Painter's order / layering:
-    // Larger y (closer to floor / bottom of screen) should render in front.
-    // Keep z-index intentionally low so modal layers can stay above.
-    for (const d of dots) {
-        d.z = Math.round((d.y - 50) * 0.8) + catIndex
+    function randomNormalPair(seed: number): [number, number] {
+        const rand = mulberry32(seed)
+        const u1 = Math.max(rand(), 1e-12)
+        const u2 = rand()
+        const r = Math.sqrt(-2 * Math.log(u1))
+        return [r * Math.cos(2 * Math.PI * u2), r * Math.sin(2 * Math.PI * u2)]
     }
 
-    return dots
-}
+    function clamp(v: number, lo: number, hi: number): number {
+        return Math.max(lo, Math.min(hi, v))
+    }
 
-let allDots = $derived(
-    grouped.flatMap(([catName, items], idx) =>
-        buildPile(catName, items, idx, grouped.length),
-    ),
-)
+    // Unnormalized Gaussian bell at position x.
+    // We use it only as a relative "lift factor" (center higher, edges lower),
+    // so no normalization constant is required.
+    function normalPdf(x: number, mu: number, sigma: number): number {
+        const z = (x - mu) / sigma
+        return Math.exp(-0.5 * z * z)
+    }
 
-let available = $derived(products.filter((p) => p.stock > 0).length)
-let depleted = $derived(products.filter((p) => p.stock <= 0).length)
-let totalItems = $derived(products.reduce((s, p) => s + Math.max(0, p.stock), 0))
+    interface EmojiDot {
+        emoji: string
+        isUrl: boolean
+        src: string
+        x: number // absolute % of scene width
+        y: number // absolute % of scene height
+        z: number // z-index
+        depleted: boolean
+        title: string
+    }
 
-function isUrl(s: string) {
-    return s.startsWith('http') || s.startsWith('data:')
-}
+    // --- Derived values ---
+    let maxStock = $derived(Math.max(1, ...products.map((p) => p.stock)))
+
+    function emojiCount(stock: number): number {
+        if (stock <= 0) {
+            return 0
+        }
+        return Math.max(1, Math.round((stock / maxStock) * 10))
+    }
+
+    let grouped = $derived(
+        (() => {
+            const map = new Map<string, Product[]>()
+            for (const p of products) {
+                const key = p.category?.name ?? '?'
+                if (!map.has(key)) {
+                    map.set(key, [])
+                }
+                map.get(key)!.push(p)
+            }
+            return [...map.entries()].sort((a, b) => {
+                const sumA = a[1].reduce((s, p) => s + p.stock, 0)
+                const sumB = b[1].reduce((s, p) => s + p.stock, 0)
+                return sumB - sumA
+            })
+        })(),
+    )
+
+    // Build 2D piles: categories get x-centers based on a normal-distribution quantile,
+    // and each category forms a Gaussian blob that sits on the chamber floor.
+    function buildPile(
+        catName: string,
+        items: Product[],
+        catIndex: number,
+        catCount: number,
+    ): EmojiDot[] {
+        const dots: EmojiDot[] = []
+
+        // Map category rank -> horizontal center in screen-percent coordinates.
+        // Units:
+        // - x/y are percentages of the full scene (CSS left/top in %).
+        // - So x=50 means middle of viewport width.
+        //
+        // We transform rank to a soft S-curve so categories cluster naturally near center
+        // with thinner tails near the sides (normal-like spacing without true inverse-erf).
+        //
+        // Scene wrapper matches visible image width, so x can safely span 0..100%.
+        // We keep a tiny inner padding so large emojis don't clip against hard edges.
+        const safetyPadding = 5
+        const safeLeft = safetyPadding
+        const safeRight = 100 - safetyPadding
+
+        const u = (catIndex + 0.5) / Math.max(1, catCount)
+        const centered = (u - 0.5) * 2 // -1..1
+        const gaussLike = centered / Math.sqrt(1 + 0.6 * centered * centered) // soft S-shape
+        const cx = safeLeft + ((gaussLike + 1) / 2) * (safeRight - safeLeft)
+
+        // Floor line in scene-percent coordinates.
+        // Keep it above the bottom and inside visible image content.
+        const floorY = 85
+
+        for (const product of items) {
+            const catIcon = resolveIcon(product.category, allCategories)
+            const emoji =
+                catIcon && !isUrl(catIcon)
+                    ? catIcon
+                    : emojiFor(product.name, product.category?.name ?? null)
+            const urlEmoji = !!catIcon && isUrl(catIcon)
+            const isDepleted = product.stock <= 0
+            const count = isDepleted ? 1 : emojiCount(product.stock)
+
+            for (let i = 0; i < count; i++) {
+                // Mix seed components more aggressively to avoid near-identical streams.
+                const seed = hash(`${catName}|${product.id}|${i}|${count}|${catIndex}`)
+                const [gx, gy] = randomNormalPair(seed)
+
+                // gx/gy are standard normal values (roughly -3..3 typical).
+                // Scale factors convert those to percentage offsets on screen.
+                // Wider x spread avoids "single emoji" collapse.
+                const x = clamp(cx + gx * 12.5, safeLeft, safeRight)
+
+                // Vertical model:
+                // - centerLift raises points near pile center (smaller y -> visually higher)
+                // - gy term adds random depth/stack variation.
+                // Clamps keep dots in the visible chamber/floor region, especially on short viewports.
+                const centerLift = normalPdf(x, cx, 10.5) * 11.5
+                const y = clamp(floorY - centerLift + gy * 4.6, 60, floorY)
+
+                dots.push({
+                    emoji,
+                    isUrl: urlEmoji,
+                    src: urlEmoji ? catIcon! : '',
+                    x,
+                    y,
+                    z: 0,
+                    depleted: isDepleted,
+                    title: `${product.name}${product.stock > 0 ? ` ×${product.stock}` : ' (depleted)'}`,
+                })
+            }
+        }
+
+        // Painter's order / layering:
+        // Larger y (closer to floor / bottom of screen) should render in front.
+        // Keep z-index intentionally low so modal layers can stay above.
+        for (const d of dots) {
+            d.z = Math.round((d.y - 50) * 0.8) + catIndex
+        }
+
+        return dots
+    }
+
+    let allDots = $derived(
+        grouped.flatMap(([catName, items], idx) =>
+            buildPile(catName, items, idx, grouped.length),
+        ),
+    )
+
+    let available = $derived(products.filter((p) => p.stock > 0).length)
+    let depleted = $derived(products.filter((p) => p.stock <= 0).length)
+    let totalItems = $derived(products.reduce((s, p) => s + Math.max(0, p.stock), 0))
+
+    function isUrl(s: string) {
+        return s.startsWith('http') || s.startsWith('data:')
+    }
 </script>
 
 <div class="chamber-root">
     {#if loading}
-        <p class="state-msg">{$_("common.loading")}</p>
+        <p class="state-msg">{$_('common.loading')}</p>
     {:else if error}
         <p class="state-msg error-msg">{error}</p>
     {:else if products.length === 0}
         <div class="empty-state">
             <p class="empty-icon">🏚️</p>
-            <p class="empty-text">{$_("chamber.empty")}</p>
-            <a href="/scan" class="cta-link">{$_("chamber.scanCta")}</a>
+            <p class="empty-text">{$_('chamber.empty')}</p>
+            <a href="/scan" class="cta-link">{$_('chamber.scanCta')}</a>
         </div>
     {:else}
         <!-- Full-scene canvas: one emoji per dot, 2D Gaussian piles per category -->
@@ -317,7 +455,12 @@ function isUrl(s: string) {
 
 <!-- Floating stats toggle -->
 {#if !loading && products.length > 0}
-    <button type="button" class="stats-btn" onclick={() => (statsOpen = true)} title={$_("chamber.statsTitle")}>
+    <button
+        type="button"
+        class="stats-btn"
+        onclick={() => (statsOpen = true)}
+        title={$_('chamber.statsTitle')}
+    >
         📜
     </button>
 {/if}
@@ -331,33 +474,39 @@ function isUrl(s: string) {
         tabindex="0"
         aria-label="Close"
         onclick={(e) => {
-            if (e.target === e.currentTarget) { statsOpen = false }
+            if (e.target === e.currentTarget) {
+                statsOpen = false
+            }
         }}
         onkeydown={(e) => {
-            if (e.key === "Escape") { statsOpen = false }
+            if (e.key === 'Escape') {
+                statsOpen = false
+            }
         }}
     >
         <div class="modal-card">
-            <h2 class="modal-title">📜 {$_("chamber.statsTitle")}</h2>
+            <h2 class="modal-title">📜 {$_('chamber.statsTitle')}</h2>
             <table class="stats-table">
                 <tbody>
                     <tr>
-                        <td>{$_("chamber.available")}</td>
+                        <td>{$_('chamber.available')}</td>
                         <td class="stat-val">{available}</td>
                     </tr>
                     <tr>
-                        <td>{$_("chamber.required")}</td>
-                        <td class="stat-val" class:stat-depleted={depleted > 0}>{depleted}</td>
+                        <td>{$_('chamber.required')}</td>
+                        <td class="stat-val" class:stat-depleted={depleted > 0}
+                            >{depleted}</td
+                        >
                     </tr>
                     <tr>
-                        <td>{$_("chamber.totalStock")}</td>
+                        <td>{$_('chamber.totalStock')}</td>
                         <td class="stat-val">{totalItems}</td>
                     </tr>
                 </tbody>
             </table>
 
             <button type="button" class="close-btn" onclick={() => (statsOpen = false)}>
-                {$_("chamber.close")}
+                {$_('chamber.close')}
             </button>
         </div>
     </div>
@@ -394,7 +543,7 @@ function isUrl(s: string) {
         width: 100%;
         height: 100%;
         z-index: 1;
-        background-image: url("/chamber-background.png");
+        background-image: url('/chamber-background.png');
         background-repeat: no-repeat;
         background-position: top center;
         background-size: auto 100%;

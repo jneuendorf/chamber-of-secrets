@@ -94,6 +94,7 @@
     "managementTitle": "Kategorien",
     "managementSubtitle": "Konfiguriere Kategorien-Hierarchie und Nachfüllregeln. Effektive Werte werden über die Elternkette aufgelöst.",
     "emptyManagement": "Noch keine Kategorien vorhanden. Erstelle eine über Scannen oder Inventar.",
+    "emptyLevel": "Noch keine Unterkategorien. Erstelle eine oben.",
     "collapse": "Einklappen",
     "expand": "Ausklappen",
     "idLabel": "ID {id}",

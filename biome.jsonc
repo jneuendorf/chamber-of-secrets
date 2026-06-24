@@ -68,9 +68,13 @@
       "formatter": { "enabled": false }
     },
     // Svelte: disable rules that produce false positives with
-    // html.experimentalFullSupportEnabled (biome ≤2.5)
+    // html.experimentalFullSupportEnabled (biome ≤2.5).
+    // Formatting is delegated to Prettier + prettier-plugin-svelte
+    // (Biome cannot format .svelte yet); Biome still lints + organizes
+    // imports for .svelte files.
     {
       "includes": ["**/*.svelte"],
+      "formatter": { "enabled": false },
       "linter": {
         "rules": {
           "a11y": {

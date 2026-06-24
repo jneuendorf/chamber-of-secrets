@@ -59,14 +59,26 @@ Bullet list ok. No co-author trailer unless asked.
 
 - **Package manager**: Bun (never npm/yarn/pnpm).
 - **Backend tooling**: uv + ruff (lint + format).
-- **Frontend tooling**: Biome v2 (lint + format). 4-space indent app code,
-  2-space configs/JSON/HTML/YAML, line width 88, single quotes,
-  semicolons asNeeded, trailing commas all. Markdown formatting disabled.
+- **Frontend tooling**: Biome v2 (lint + format) for JS/TS/JSON/CSS.
+  4-space indent app code, 2-space configs/JSON/HTML/YAML, line width 88,
+  single quotes, semicolons asNeeded, trailing commas all. Markdown
+  formatting disabled.
+- **Svelte formatting**: Biome cannot format `.svelte` files yet, so
+  Prettier + `prettier-plugin-svelte` owns them. Config in
+  `frontend/.prettierrc.json` mirrors the Biome rules (single quotes,
+  no semicolons, trailing commas all, 4-space, width 88). Just run
+  `just format-frontend` — it routes Biome to non-Svelte files and
+  Prettier to `.svelte` files; don't hand-format Svelte. Biome still
+  lints and organizes imports for `.svelte` (its formatter is disabled
+  for them in `biome.jsonc`). Editor formatting is wired up in
+  `.zed/settings.json` (needs the community Biome extension).
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no config file).
   Entry point: `src/app.css`.
 - **i18n**: svelte-i18n v4 (EN + DE). Keys: `nav.*`, `dashboard.*`,
   etc. Both locale files must stay in sync.
 - Scoped `<style>` blocks coexist with Tailwind.
+- **Naming**: avoid single-character variable names. Use descriptive
+  names even for short-lived locals (e.g. `cat` not `c`, `err` not `e`).
 
 ## Prohibited
 

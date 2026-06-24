@@ -1,11 +1,11 @@
 <script lang="ts">
-import { _ } from 'svelte-i18n'
+    import { _ } from 'svelte-i18n'
 
-import { page } from '$app/state'
-import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
-import '../app.css'
+    import { page } from '$app/state'
+    import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
+    import '../app.css'
 
-let { children } = $props()
+    let { children } = $props()
 </script>
 
 <svelte:head>
@@ -17,53 +17,65 @@ let { children } = $props()
     <title>Chamber of Secrets</title>
 </svelte:head>
 
-<div class="layout-root" class:chamber-bg={page.url.pathname === "/chamber"}>
+<div class="layout-root" class:chamber-bg={page.url.pathname === '/chamber'}>
     <nav class="site-nav bg-[#1a1a2e] text-white">
         <div class="nav-main">
-            <a href="/chamber" class="brand-link">{$_("nav.brand")}</a>
+            <a href="/chamber" class="brand-link">{$_('nav.brand')}</a>
             <div class="nav-links-wrap">
                 <ul class="nav-links">
                     <li>
                         <a
                             href="/chamber"
-                            aria-current={page.url.pathname === "/chamber" ? "page" : false}
-                            class="nav-link">{$_("nav.chamber")}</a
+                            aria-current={page.url.pathname === '/chamber'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.chamber')}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/scan"
-                            aria-current={page.url.pathname === "/scan" ? "page" : false}
-                            class="nav-link">{$_("nav.scan")}</a
+                            aria-current={page.url.pathname === '/scan'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.scan')}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/inventory"
-                            aria-current={page.url.pathname === "/inventory" ? "page" : false}
-                            class="nav-link">{$_("nav.inventory")}</a
+                            aria-current={page.url.pathname === '/inventory'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.inventory')}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/categories"
-                            aria-current={page.url.pathname === "/categories" ? "page" : false}
-                            class="nav-link">{$_("nav.categories")}</a
+                            aria-current={page.url.pathname === '/categories'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.categories')}</a
                         >
                     </li>
                     <li>
                         <a
                             href="/analytics"
-                            aria-current={page.url.pathname === "/analytics" ? "page" : false}
-                            class="nav-link">{$_("nav.analytics")}</a
+                            aria-current={page.url.pathname === '/analytics'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.analytics')}</a
                         >
                     </li>
-                    {#if page.url.searchParams.has("api")}
+                    {#if page.url.searchParams.has('api')}
                         <li>
                             <a
                                 href="/docs?api"
-                                aria-current={page.url.pathname === "/docs" ? "page" : false}
-                                class="nav-link">{$_("nav.docs")}</a
+                                aria-current={page.url.pathname === '/docs'
+                                    ? 'page'
+                                    : false}
+                                class="nav-link">{$_('nav.docs')}</a
                             >
                         </li>
                     {/if}
@@ -75,8 +87,8 @@ let { children } = $props()
 
     <main class="content-root">
         <div
-            class:content-shell={page.url.pathname !== "/chamber"}
-            class:chamber-shell={page.url.pathname === "/chamber"}
+            class:content-shell={page.url.pathname !== '/chamber'}
+            class:chamber-shell={page.url.pathname === '/chamber'}
         >
             {@render children()}
         </div>
@@ -151,8 +163,8 @@ let { children } = $props()
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
             grid-template-areas:
-                "brand locale"
-                "links links";
+                'brand locale'
+                'links links';
             align-items: center;
             row-gap: 0.35rem;
             column-gap: 0.75rem;
@@ -223,12 +235,12 @@ let { children } = $props()
     }
 
     .nav-link:hover,
-    .nav-link[aria-current="page"] {
+    .nav-link[aria-current='page'] {
         background: rgba(255, 255, 255, 0.1);
         color: white;
     }
 
-    .nav-link[aria-current="page"] {
+    .nav-link[aria-current='page'] {
         background: rgba(255, 255, 255, 0.15);
     }
 </style>

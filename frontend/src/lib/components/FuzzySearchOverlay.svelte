@@ -1,140 +1,150 @@
 <script lang="ts">
-import type { FuseOptionKey } from 'fuse.js'
-import Fuse from 'fuse.js'
-import { onMount } from 'svelte'
-import { _ } from 'svelte-i18n'
+    import type { FuseOptionKey } from 'fuse.js'
+    import Fuse from 'fuse.js'
+    import { onMount } from 'svelte'
+    import { _ } from 'svelte-i18n'
 
-type Fuseable = unknown
+    type Fuseable = unknown
 
-let {
-    items,
-    keys,
-    getId,
-    getLabel,
-    getSecondaryLabel,
-    onSelect,
-    placeholder = $_('common.searchPlaceholder'),
-    noResultsText = $_('common.noResults'),
-    hintText = $_('common.searchHint'),
-    maxResults = 12,
-    open = $bindable(false),
-}: {
-    items: Fuseable[]
-    keys: FuseOptionKey<Fuseable>[]
-    getId: (item: Fuseable) => string | number
-    getLabel: (item: Fuseable) => string
-    getSecondaryLabel?: (item: Fuseable) => string | null | undefined
-    onSelect: (item: Fuseable) => void
-    placeholder?: string
-    noResultsText?: string
-    hintText?: string
-    maxResults?: number
-    open?: boolean
-} = $props()
-
-let query = $state('')
-let activeIndex = $state(0)
-
-let inputEl: HTMLInputElement | null = $state(null)
-let wasOpen = $state(false)
-
-const fuse = $derived(
-    new Fuse(items, {
+    let {
+        items,
         keys,
-        includeScore: true,
-        threshold: 0.35,
-        ignoreLocation: true,
-        minMatchCharLength: 1,
-    }),
-)
+        getId,
+        getLabel,
+        getSecondaryLabel,
+        onSelect,
+        placeholder = $_('common.searchPlaceholder'),
+        noResultsText = $_('common.noResults'),
+        hintText = $_('common.searchHint'),
+        maxResults = 12,
+        open = $bindable(false),
+    }: {
+        items: Fuseable[]
+        keys: FuseOptionKey<Fuseable>[]
+        getId: (item: Fuseable) => string | number
+        getLabel: (item: Fuseable) => string
+        getSecondaryLabel?: (item: Fuseable) => string | null | undefined
+        onSelect: (item: Fuseable) => void
+        placeholder?: string
+        noResultsText?: string
+        hintText?: string
+        maxResults?: number
+        open?: boolean
+    } = $props()
 
-const results = $derived.by(() => {
-    const q = query.trim()
-    if (!q) {
-        return items.slice(0, maxResults)
-    }
-    return fuse.search(q, { limit: maxResults }).map((r) => r.item)
-})
+    let query = $state('')
+    let activeIndex = $state(0)
 
-$effect(() => {
-    const len = results.length
-    if (len === 0) {
-        activeIndex = 0
-        return
-    }
-    if (activeIndex >= len) { activeIndex = len - 1 }
-    if (activeIndex < 0) { activeIndex = 0 }
-})
+    let inputEl: HTMLInputElement | null = $state(null)
+    let wasOpen = $state(false)
 
-function isHotkey(e: KeyboardEvent): boolean {
-    const isK = e.key.toLowerCase() === 'k'
-    return isK && (e.ctrlKey || e.metaKey)
-}
+    const fuse = $derived(
+        new Fuse(items, {
+            keys,
+            includeScore: true,
+            threshold: 0.35,
+            ignoreLocation: true,
+            minMatchCharLength: 1,
+        }),
+    )
 
-function closeOverlay() {
-    open = false
-    query = ''
-    activeIndex = 0
-}
-
-$effect(() => {
-    const currentlyOpen = open
-    if (currentlyOpen && !wasOpen) {
-        query = ''
-        activeIndex = 0
-        queueMicrotask(() => inputEl?.focus())
-    } else if (!currentlyOpen && wasOpen) {
-        query = ''
-        activeIndex = 0
-    }
-    wasOpen = currentlyOpen
-})
-
-function choose(item: Fuseable) {
-    onSelect(item)
-    closeOverlay()
-}
-
-function onGlobalKeydown(e: KeyboardEvent) {
-    if (isHotkey(e)) {
-        e.preventDefault()
-        open = !open
-        return
-    }
-
-    if (!open) { return }
-
-    if (e.key === 'Escape') {
-        e.preventDefault()
-        closeOverlay()
-        return
-    }
-
-    if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        if (results.length > 0) { activeIndex = (activeIndex + 1) % results.length }
-        return
-    }
-
-    if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        if (results.length > 0) {
-            activeIndex = (activeIndex - 1 + results.length) % results.length
+    const results = $derived.by(() => {
+        const q = query.trim()
+        if (!q) {
+            return items.slice(0, maxResults)
         }
-        return
+        return fuse.search(q, { limit: maxResults }).map((r) => r.item)
+    })
+
+    $effect(() => {
+        const len = results.length
+        if (len === 0) {
+            activeIndex = 0
+            return
+        }
+        if (activeIndex >= len) {
+            activeIndex = len - 1
+        }
+        if (activeIndex < 0) {
+            activeIndex = 0
+        }
+    })
+
+    function isHotkey(e: KeyboardEvent): boolean {
+        const isK = e.key.toLowerCase() === 'k'
+        return isK && (e.ctrlKey || e.metaKey)
     }
 
-    if (e.key === 'Enter') {
-        e.preventDefault()
-        const item = results[activeIndex]
-        if (item) { choose(item) }
+    function closeOverlay() {
+        open = false
+        query = ''
+        activeIndex = 0
     }
-}
 
-onMount(() => {
-    window.addEventListener('keydown', onGlobalKeydown)
-    return () => window.removeEventListener('keydown', onGlobalKeydown)
-})
+    $effect(() => {
+        const currentlyOpen = open
+        if (currentlyOpen && !wasOpen) {
+            query = ''
+            activeIndex = 0
+            queueMicrotask(() => inputEl?.focus())
+        } else if (!currentlyOpen && wasOpen) {
+            query = ''
+            activeIndex = 0
+        }
+        wasOpen = currentlyOpen
+    })
+
+    function choose(item: Fuseable) {
+        onSelect(item)
+        closeOverlay()
+    }
+
+    function onGlobalKeydown(e: KeyboardEvent) {
+        if (isHotkey(e)) {
+            e.preventDefault()
+            open = !open
+            return
+        }
+
+        if (!open) {
+            return
+        }
+
+        if (e.key === 'Escape') {
+            e.preventDefault()
+            closeOverlay()
+            return
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            if (results.length > 0) {
+                activeIndex = (activeIndex + 1) % results.length
+            }
+            return
+        }
+
+        if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            if (results.length > 0) {
+                activeIndex = (activeIndex - 1 + results.length) % results.length
+            }
+            return
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            const item = results[activeIndex]
+            if (item) {
+                choose(item)
+            }
+        }
+    }
+
+    onMount(() => {
+        window.addEventListener('keydown', onGlobalKeydown)
+        return () => window.removeEventListener('keydown', onGlobalKeydown)
+    })
 </script>
 
 {#if open}
@@ -142,14 +152,14 @@ onMount(() => {
         type="button"
         class="fuzzy-overlay-backdrop"
         onclick={closeOverlay}
-        aria-label={$_("common.close")}
+        aria-label={$_('common.close')}
     ></button>
 
     <div
         class="fuzzy-overlay-panel"
         role="dialog"
         aria-modal="true"
-        aria-label={$_("common.search")}
+        aria-label={$_('common.search')}
         tabindex="-1"
     >
         <div class="fuzzy-overlay-input-wrap">
@@ -169,7 +179,7 @@ onMount(() => {
                 type="button"
                 class="fuzzy-overlay-close"
                 onclick={closeOverlay}
-                aria-label={$_("common.close")}>Esc</button
+                aria-label={$_('common.close')}>Esc</button
             >
         </div>
 
@@ -178,7 +188,7 @@ onMount(() => {
         {#if results.length === 0}
             <div class="fuzzy-overlay-empty">{noResultsText}</div>
         {:else}
-            <ul class="fuzzy-overlay-list" aria-label={$_("common.searchResults")}>
+            <ul class="fuzzy-overlay-list" aria-label={$_('common.searchResults')}>
                 {#each results as item, index (getId(item))}
                     <li>
                         <button
@@ -188,7 +198,7 @@ onMount(() => {
                             onclick={() => choose(item)}
                             onmousemove={() => (activeIndex = index)}
                             role="option"
-                            aria-selected={index === activeIndex ? "true" : "false"}
+                            aria-selected={index === activeIndex ? 'true' : 'false'}
                         >
                             <span class="primary">{getLabel(item)}</span>
                             {#if getSecondaryLabel}

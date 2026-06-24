@@ -43,8 +43,11 @@ lint-backend:
 # format all. Biome defaults to --staged; pass "" for all files
 format *SCOPE="--staged": (format-frontend SCOPE) format-backend
 
-# format frontend with biome (--staged by default; pass "" for all files)
-format-frontend *SCOPE="--staged":
+# format frontend: Biome (non-Svelte) + Prettier (Svelte). --staged by default; pass "" for all files
+format-frontend *SCOPE="--staged": (format-frontend-biome SCOPE) (prettier-svelte "--write" SCOPE)
+
+# format non-Svelte frontend files with Biome
+format-frontend-biome *SCOPE="--staged":
     cd frontend && bun run format -- {{ SCOPE }}
 
 # format backend with ruff
@@ -54,9 +57,29 @@ format-backend:
 # check formatting without writing. Biome defaults to --staged; pass "" for all files
 format-check *SCOPE="--staged": (format-check-frontend SCOPE) format-check-backend
 
-# check frontend formatting (--staged by default; pass "" for all files)
-format-check-frontend *SCOPE="--staged":
+# check frontend formatting: Biome (non-Svelte) + Prettier (Svelte). --staged by default; pass "" for all files
+format-check-frontend *SCOPE="--staged": (format-check-frontend-biome SCOPE) (prettier-svelte "--check" SCOPE)
+
+# check non-Svelte frontend formatting with Biome
+format-check-frontend-biome *SCOPE="--staged":
     cd frontend && bun run format:check -- {{ SCOPE }}
+
+# run Prettier on Svelte files (Biome can't format .svelte yet). MODE = --write | --check
+[private]
+prettier-svelte MODE *SCOPE="--staged":
+    #!/usr/bin/env sh
+    set -eu
+    cd frontend
+    if [ "{{ SCOPE }}" = "--staged" ]; then
+        files=$(git diff --cached --name-only --relative --diff-filter=ACMR -- '*.svelte')
+        if [ -n "$files" ]; then
+            printf '%s\n' "$files" | xargs bunx prettier {{ MODE }}
+        else
+            echo "prettier: no staged .svelte files"
+        fi
+    else
+        bunx prettier {{ MODE }} "**/*.svelte"
+    fi
 
 # check backend formatting
 format-check-backend:
@@ -92,8 +115,8 @@ check-all: (check "")
 biome-check-frontend *SCOPE="--staged":
     cd frontend && bun run biome:check -- {{ SCOPE }}
 
-# check frontend: biome check + typecheck + test (--staged applies to biome only)
-check-frontend *SCOPE="--staged": (biome-check-frontend SCOPE) typecheck-frontend test-frontend
+# check frontend: biome check + prettier (svelte) + typecheck + test (--staged applies to biome/prettier)
+check-frontend *SCOPE="--staged": (biome-check-frontend SCOPE) (prettier-svelte "--check" SCOPE) typecheck-frontend test-frontend
 
 # check backend: lint + test
 check-backend: lint-backend test-backend

@@ -1,346 +1,382 @@
 <script lang="ts">
-import {
-    CategoryScale,
-    Chart,
-    Filler,
-    Legend,
-    LinearScale,
-    LineController,
-    LineElement,
-    PointElement,
-    Tooltip,
-} from 'chart.js'
-import { get } from 'svelte/store'
-import { _ } from 'svelte-i18n'
+    import {
+        CategoryScale,
+        Chart,
+        Filler,
+        Legend,
+        LinearScale,
+        LineController,
+        LineElement,
+        PointElement,
+        Tooltip,
+    } from 'chart.js'
+    import { get } from 'svelte/store'
+    import { _ } from 'svelte-i18n'
 
-import {
-    ApiError,
-    api,
-    type Category,
-    type RestockOverviewResponse,
-    type SpendingByCategory,
-    type TimeseriesPoint,
-} from '$lib/api/client'
-import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
-import Modal from '$lib/components/Modal.svelte'
-import {
-    aggregateTimeseriesToParents,
-    aggregateToParents,
-    buildCategoryMaps,
-    getItemSlices as getItemSlicesUtil,
-    getSpendingSlices as getSpendingSlicesUtil,
-    UNCATEGORIZED,
-} from '$lib/utils/analytics'
+    import {
+        ApiError,
+        api,
+        type Category,
+        type RestockOverviewResponse,
+        type SpendingByCategory,
+        type TimeseriesPoint,
+    } from '$lib/api/client'
+    import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
+    import Modal from '$lib/components/Modal.svelte'
+    import Select from '$lib/components/Select.svelte'
+    import {
+        aggregateTimeseriesToParents,
+        aggregateToParents,
+        buildCategoryMaps,
+        getItemSlices as getItemSlicesUtil,
+        getSpendingSlices as getSpendingSlicesUtil,
+        UNCATEGORIZED,
+    } from '$lib/utils/analytics'
 
-Chart.register(
-    LineController,
-    LineElement,
-    PointElement,
-    LinearScale,
-    CategoryScale,
-    Filler,
-    Legend,
-    Tooltip,
-)
+    Chart.register(
+        LineController,
+        LineElement,
+        PointElement,
+        LinearScale,
+        CategoryScale,
+        Filler,
+        Legend,
+        Tooltip,
+    )
 
-const COLORS = [
-    '#1a1a2e',
-    '#e74c3c',
-    '#3498db',
-    '#2ecc71',
-    '#f39c12',
-    '#9b59b6',
-    '#1abc9c',
-    '#e67e22',
-    '#34495e',
-    '#e91e63',
-]
+    const COLORS = [
+        '#1a1a2e',
+        '#e74c3c',
+        '#3498db',
+        '#2ecc71',
+        '#f39c12',
+        '#9b59b6',
+        '#1abc9c',
+        '#e67e22',
+        '#34495e',
+        '#e91e63',
+    ]
 
-
-function toISODate(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-const now = new Date()
-const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-
-let spending: SpendingByCategory[] = $state([])
-let timeseries: TimeseriesPoint[] = $state([])
-let categories: Category[] = $state([])
-let restockOverview: RestockOverviewResponse | null = $state(null)
-
-let restockOpen = $state(false)
-let restockSort: 'urgency' | 'missing' | 'name' = $state('urgency')
-
-let loading = $state(true)
-let error = $state('')
-let since = $state(toISODate(monthStart))
-let until = $state(toISODate(now))
-
-async function load() {
-    loading = true
-    error = ''
-    try {
-        ;[spending, timeseries, categories, restockOverview] = await Promise.all([
-            api.analytics.spending(since || undefined, until || undefined),
-            api.analytics.timeseries(since || undefined, until || undefined),
-            api.categories.list(),
-            api.analytics.restockOverview(),
-        ])
-    } catch (e) {
-        const detail = e instanceof ApiError ? e.detail : String(e)
-        error = get(_)('analytics.failedToLoad', { values: { error: detail } })
-    } finally {
-        loading = false
+    function toISODate(d: Date): string {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     }
-}
 
-$effect(() => {
-    load()
-})
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-function fmtQty(value: number): string {
-    return Number.isInteger(value) ? String(value) : value.toFixed(2)
-}
+    let spending: SpendingByCategory[] = $state([])
+    let timeseries: TimeseriesPoint[] = $state([])
+    let categories: Category[] = $state([])
+    let restockOverview: RestockOverviewResponse | null = $state(null)
 
-function fmtMaybe(value: number | null): string {
-    return value == null ? '—' : fmtQty(value)
-}
+    let restockOpen = $state(false)
+    let restockSort: 'urgency' | 'missing' | 'name' = $state('urgency')
 
-let sortedRestockRows = $derived.by(() => {
-    const rows = restockOverview?.rows ?? []
-    const copy = [...rows]
+    let loading = $state(true)
+    let error = $state('')
+    let since = $state(toISODate(monthStart))
+    let until = $state(toISODate(now))
 
-    if (restockSort === 'missing') {
+    async function load() {
+        loading = true
+        error = ''
+        try {
+            ;[spending, timeseries, categories, restockOverview] = await Promise.all([
+                api.analytics.spending(since || undefined, until || undefined),
+                api.analytics.timeseries(since || undefined, until || undefined),
+                api.categories.list(),
+                api.analytics.restockOverview(),
+            ])
+        } catch (e) {
+            const detail = e instanceof ApiError ? e.detail : String(e)
+            error = get(_)('analytics.failedToLoad', { values: { error: detail } })
+        } finally {
+            loading = false
+        }
+    }
+
+    $effect(() => {
+        load()
+    })
+
+    function fmtQty(value: number): string {
+        return Number.isInteger(value) ? String(value) : value.toFixed(2)
+    }
+
+    function fmtMaybe(value: number | null): string {
+        return value == null ? '—' : fmtQty(value)
+    }
+
+    let sortedRestockRows = $derived.by(() => {
+        const rows = restockOverview?.rows ?? []
+        const copy = [...rows]
+
+        if (restockSort === 'missing') {
+            copy.sort((a, b) =>
+                b.missing_to_target === a.missing_to_target
+                    ? Number(b.below_min) - Number(a.below_min)
+                    : b.missing_to_target - a.missing_to_target,
+            )
+            return copy
+        }
+
+        if (restockSort === 'name') {
+            copy.sort((a, b) => a.name.localeCompare(b.name))
+            return copy
+        }
+
         copy.sort((a, b) =>
-            b.missing_to_target === a.missing_to_target
-                ? Number(b.below_min) - Number(a.below_min)
-                : b.missing_to_target - a.missing_to_target,
+            Number(b.below_min) === Number(a.below_min)
+                ? b.missing_to_target - a.missing_to_target
+                : Number(b.below_min) - Number(a.below_min),
         )
         return copy
+    })
+
+    function displayCategory(name: string): string {
+        return name === UNCATEGORIZED ? get(_)('analytics.uncategorized') : name
     }
 
-    if (restockSort === 'name') {
-        copy.sort((a, b) => a.name.localeCompare(b.name))
-        return copy
-    }
+    let catMaps = $derived(buildCategoryMaps(categories))
 
-    copy.sort((a, b) =>
-        Number(b.below_min) === Number(a.below_min)
-            ? b.missing_to_target - a.missing_to_target
-            : Number(b.below_min) - Number(a.below_min),
+    let parentSpending = $derived(
+        aggregateToParents(spending, catMaps.byName, catMaps.byId),
     )
-    return copy
-})
+    let parentTimeseries = $derived(
+        aggregateTimeseriesToParents(timeseries, catMaps.byName, catMaps.byId),
+    )
 
-function displayCategory(name: string): string {
-    return name === UNCATEGORIZED ? get(_)('analytics.uncategorized') : name
-}
+    let parentSpendingWithPrice = $derived(
+        parentSpending.filter((s) => s.total_spent > 0),
+    )
 
-let catMaps = $derived(buildCategoryMaps(categories))
+    let childTsCategories = $derived([...new Set(timeseries.map((d) => d.category))])
+    let childTsDates = $derived([...new Set(timeseries.map((d) => d.date))].sort())
 
-let parentSpending = $derived(aggregateToParents(spending, catMaps.byName, catMaps.byId))
-let parentTimeseries = $derived(aggregateTimeseriesToParents(timeseries, catMaps.byName, catMaps.byId))
+    let parentTsCategories = $derived([
+        ...new Set(parentTimeseries.map((d) => d.category)),
+    ])
+    let parentTsDates = $derived(
+        [...new Set(parentTimeseries.map((d) => d.date))].sort(),
+    )
 
-let parentSpendingWithPrice = $derived(parentSpending.filter((s) => s.total_spent > 0))
+    function getItemSlices(parentKey: string | null) {
+        return getItemSlicesUtil(
+            parentKey,
+            spending,
+            parentSpending,
+            catMaps.byName,
+            catMaps.byId,
+            displayCategory,
+        )
+    }
 
-let childTsCategories = $derived([...new Set(timeseries.map((d) => d.category))])
-let childTsDates = $derived([...new Set(timeseries.map((d) => d.date))].sort())
+    function getSpendingSlices(parentKey: string | null) {
+        return getSpendingSlicesUtil(
+            parentKey,
+            spending,
+            parentSpendingWithPrice,
+            catMaps.byName,
+            catMaps.byId,
+            displayCategory,
+        )
+    }
 
-let parentTsCategories = $derived([...new Set(parentTimeseries.map((d) => d.category))])
-let parentTsDates = $derived([...new Set(parentTimeseries.map((d) => d.date))].sort())
+    function buildLineDatasets(
+        data: TimeseriesPoint[],
+        dates: string[],
+        categoriesForLines: string[],
+        getValue: (p: TimeseriesPoint) => number,
+    ) {
+        return categoriesForLines.map((cat, i) => ({
+            label: displayCategory(cat),
+            data: dates.map((date) => {
+                const pt = data.find((d) => d.date === date && d.category === cat)
+                return pt ? getValue(pt) : 0
+            }),
+            borderColor: COLORS[i % COLORS.length],
+            backgroundColor: `${COLORS[i % COLORS.length]}22`,
+            tension: 0.3,
+            pointRadius: 3,
+            fill: true,
+        }))
+    }
 
-function getItemSlices(parentKey: string | null) {
-    return getItemSlicesUtil(parentKey, spending, parentSpending, catMaps.byName, catMaps.byId, displayCategory)
-}
+    let childItemsLineCanvas: HTMLCanvasElement | undefined = $state()
+    let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state()
+    let spendingLineCanvas: HTMLCanvasElement | undefined = $state()
 
-function getSpendingSlices(parentKey: string | null) {
-    return getSpendingSlicesUtil(parentKey, spending, parentSpendingWithPrice, catMaps.byName, catMaps.byId, displayCategory)
-}
-
-function buildLineDatasets(
-    data: TimeseriesPoint[],
-    dates: string[],
-    categoriesForLines: string[],
-    getValue: (p: TimeseriesPoint) => number,
-) {
-    return categoriesForLines.map((cat, i) => ({
-        label: displayCategory(cat),
-        data: dates.map((date) => {
-            const pt = data.find((d) => d.date === date && d.category === cat)
-            return pt ? getValue(pt) : 0
-        }),
-        borderColor: COLORS[i % COLORS.length],
-        backgroundColor: `${COLORS[i % COLORS.length]}22`,
-        tension: 0.3,
-        pointRadius: 3,
-        fill: true,
-    }))
-}
-
-let childItemsLineCanvas: HTMLCanvasElement | undefined = $state()
-let parentItemsLineCanvas: HTMLCanvasElement | undefined = $state()
-let spendingLineCanvas: HTMLCanvasElement | undefined = $state()
-
-$effect(() => {
-    if (!childItemsLineCanvas || !childTsDates.length) { return }
-    const chart = new Chart(childItemsLineCanvas, {
-        type: 'line',
-        data: {
-            labels: childTsDates,
-            datasets: buildLineDatasets(
-                timeseries,
-                childTsDates,
-                childTsCategories,
-                (p) => p.item_count,
-            ),
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+    $effect(() => {
+        if (!childItemsLineCanvas || !childTsDates.length) {
+            return
+        }
+        const chart = new Chart(childItemsLineCanvas, {
+            type: 'line',
+            data: {
+                labels: childTsDates,
+                datasets: buildLineDatasets(
+                    timeseries,
+                    childTsDates,
+                    childTsCategories,
+                    (p) => p.item_count,
+                ),
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
                 },
             },
-            scales: {
-                x: {
-                    ticks: { color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-            },
-        },
+        })
+        return () => chart.destroy()
     })
-    return () => chart.destroy()
-})
 
-$effect(() => {
-    if (!parentItemsLineCanvas || !parentTsDates.length) { return }
-    const chart = new Chart(parentItemsLineCanvas, {
-        type: 'line',
-        data: {
-            labels: parentTsDates,
-            datasets: buildLineDatasets(
-                parentTimeseries,
-                parentTsDates,
-                parentTsCategories,
-                (p) => p.item_count,
-            ),
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+    $effect(() => {
+        if (!parentItemsLineCanvas || !parentTsDates.length) {
+            return
+        }
+        const chart = new Chart(parentItemsLineCanvas, {
+            type: 'line',
+            data: {
+                labels: parentTsDates,
+                datasets: buildLineDatasets(
+                    parentTimeseries,
+                    parentTsDates,
+                    parentTsCategories,
+                    (p) => p.item_count,
+                ),
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
                 },
             },
-            scales: {
-                x: {
-                    ticks: { color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-            },
-        },
+        })
+        return () => chart.destroy()
     })
-    return () => chart.destroy()
-})
 
-$effect(() => {
-    if (!spendingLineCanvas || !childTsDates.length) { return }
-    const chart = new Chart(spendingLineCanvas, {
-        type: 'line',
-        data: {
-            labels: childTsDates,
-            datasets: buildLineDatasets(
-                timeseries,
-                childTsDates,
-                childTsCategories,
-                (p) => p.total_spent,
-            ),
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+    $effect(() => {
+        if (!spendingLineCanvas || !childTsDates.length) {
+            return
+        }
+        const chart = new Chart(spendingLineCanvas, {
+            type: 'line',
+            data: {
+                labels: childTsDates,
+                datasets: buildLineDatasets(
+                    timeseries,
+                    childTsDates,
+                    childTsCategories,
+                    (p) => p.total_spent,
+                ),
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (v) => `€${v}`, color: '#d1d5db' },
+                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                    },
                 },
             },
-            scales: {
-                x: {
-                    ticks: { color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: { callback: (v) => `€${v}`, color: '#d1d5db' },
-                    grid: { color: 'rgba(209, 213, 219, 0.15)' },
-                },
-            },
-        },
+        })
+        return () => chart.destroy()
     })
-    return () => chart.destroy()
-})
 </script>
 
-<h1 class="mt-0">{$_("nav.analytics")}</h1>
+<h1 class="mt-0">{$_('nav.analytics')}</h1>
 
 <div class="filters">
     <label class="date-field">
-        {$_("analytics.from")}
+        {$_('analytics.from')}
         <input type="date" bind:value={since} />
     </label>
     <label class="date-field">
-        {$_("analytics.to")}
+        {$_('analytics.to')}
         <input type="date" bind:value={until} />
     </label>
 </div>
 
 <div class="restock-summary">
     <div class="summary-text">
-        {$_("analytics.totalUnitsToBuy")}:
+        {$_('analytics.totalUnitsToBuy')}:
         <strong>{fmtQty(restockOverview?.total_missing_quantity ?? 0)}</strong>
     </div>
-    <button type="button" class="restock-btn" onclick={() => (restockOpen = true)}>{$_("analytics.restockOverview")}</button>
+    <button type="button" class="restock-btn" onclick={() => (restockOpen = true)}
+        >{$_('analytics.restockOverview')}</button
+    >
 </div>
 
 {#if loading}
-    <p>{$_("common.loading")}</p>
+    <p>{$_('common.loading')}</p>
 {:else if error}
     <p class="error">{error}</p>
 {:else if spending.length === 0}
-    <p class="empty">{$_("analytics.empty")}</p>
+    <p class="empty">{$_('analytics.empty')}</p>
 {:else}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section class="pane">
-            <h2>{$_("analytics.sectionItems")}</h2>
+            <h2>{$_('analytics.sectionItems')}</h2>
             <div class="stack">
                 <DrillDownDonut
-                    title={$_("analytics.itemsByCategory")}
+                    title={$_('analytics.itemsByCategory')}
                     getSlices={getItemSlices}
                     formatTotal={(t) => String(t)}
-                    centerLabel={$_("analytics.itemsLabel")}
+                    centerLabel={$_('analytics.itemsLabel')}
                     formatTooltip={(label, value, pct) =>
                         ` ${label}: ${value} (${pct}%)`}
                 />
 
                 {#if childTsDates.length > 0}
                     <div class="card">
-                        <h3>{$_("analytics.childCategories")} — {$_("analytics.itemsOverTime")}</h3>
+                        <h3>
+                            {$_('analytics.childCategories')} — {$_(
+                                'analytics.itemsOverTime',
+                            )}
+                        </h3>
                         <div class="chart-wrap">
                             <canvas bind:this={childItemsLineCanvas}></canvas>
                         </div>
@@ -349,7 +385,11 @@ $effect(() => {
 
                 {#if parentTsDates.length > 0}
                     <div class="card">
-                        <h3>{$_("analytics.parentCategories")} — {$_("analytics.itemsOverTime")}</h3>
+                        <h3>
+                            {$_('analytics.parentCategories')} — {$_(
+                                'analytics.itemsOverTime',
+                            )}
+                        </h3>
                         <div class="chart-wrap">
                             <canvas bind:this={parentItemsLineCanvas}></canvas>
                         </div>
@@ -359,20 +399,20 @@ $effect(() => {
         </section>
 
         <section class="pane">
-            <h2>{$_("analytics.sectionSpending")}</h2>
+            <h2>{$_('analytics.sectionSpending')}</h2>
             <div class="stack">
                 <DrillDownDonut
-                    title={$_("analytics.spendingByCategory")}
+                    title={$_('analytics.spendingByCategory')}
                     getSlices={getSpendingSlices}
                     formatTotal={(t) => `€${t.toFixed(0)}`}
-                    centerLabel={$_("analytics.totalSpent")}
+                    centerLabel={$_('analytics.totalSpent')}
                     formatTooltip={(label, value, pct) =>
                         ` ${label}: €${value.toFixed(2)} (${pct}%)`}
                 />
 
                 {#if childTsDates.length > 0}
                     <div class="card">
-                        <h3>{$_("analytics.spendingOverTime")}</h3>
+                        <h3>{$_('analytics.spendingOverTime')}</h3>
                         <div class="chart-wrap">
                             <canvas bind:this={spendingLineCanvas}></canvas>
                         </div>
@@ -385,19 +425,19 @@ $effect(() => {
 
 <Modal
     open={restockOpen}
-    title={$_("analytics.restockOverview")}
+    title={$_('analytics.restockOverview')}
     onclose={() => (restockOpen = false)}
     width="min(1200px, 100%)"
 >
     <div class="kpis">
         <div class="kpi">
-            <div class="kpi-label">{$_("analytics.totalUnitsToBuy")}</div>
+            <div class="kpi-label">{$_('analytics.totalUnitsToBuy')}</div>
             <div class="kpi-value">
                 {fmtQty(restockOverview?.total_missing_quantity ?? 0)}
             </div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">{$_("analytics.productsNeedingRestock")}</div>
+            <div class="kpi-label">{$_('analytics.productsNeedingRestock')}</div>
             <div class="kpi-value">
                 {restockOverview?.total_products_needing_restock ?? 0}
             </div>
@@ -406,32 +446,38 @@ $effect(() => {
 
     <div class="controls">
         <label>
-            {$_("analytics.sortBy")}
-            <select bind:value={restockSort}>
-                <option value="urgency">{$_("analytics.sortUrgency")}</option>
-                <option value="missing">{$_("analytics.sortMissing")}</option>
-                <option value="name">{$_("analytics.sortName")}</option>
-            </select>
+            {$_('analytics.sortBy')}
+            <Select
+                value={restockSort}
+                onchange={(value) => {
+                    restockSort = value
+                }}
+                items={[
+                    { value: 'urgency', label: $_('analytics.sortUrgency') },
+                    { value: 'missing', label: $_('analytics.sortMissing') },
+                    { value: 'name', label: $_('analytics.sortName') },
+                ]}
+            />
         </label>
     </div>
 
     <div class="restock-layout">
         <section class="panel">
-            <h3>{$_("analytics.productsNeedingRestock")}</h3>
+            <h3>{$_('analytics.productsNeedingRestock')}</h3>
             {#if !restockOverview || sortedRestockRows.length === 0}
-                <p class="muted">{$_("analytics.noRestockNeeded")}</p>
+                <p class="muted">{$_('analytics.noRestockNeeded')}</p>
             {:else}
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>{$_("analytics.colProduct")}</th>
-                                <th>{$_("analytics.colCategory")}</th>
-                                <th>{$_("analytics.colStock")}</th>
-                                <th>{$_("analytics.colTarget")}</th>
-                                <th>{$_("analytics.colMin")}</th>
-                                <th>{$_("analytics.colMissing")}</th>
-                                <th>{$_("analytics.colUrgent")}</th>
+                                <th>{$_('analytics.colProduct')}</th>
+                                <th>{$_('analytics.colCategory')}</th>
+                                <th>{$_('analytics.colStock')}</th>
+                                <th>{$_('analytics.colTarget')}</th>
+                                <th>{$_('analytics.colMin')}</th>
+                                <th>{$_('analytics.colMissing')}</th>
+                                <th>{$_('analytics.colUrgent')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -443,7 +489,7 @@ $effect(() => {
                                     <td>{fmtMaybe(row.effective_target)}</td>
                                     <td>{fmtMaybe(row.effective_min)}</td>
                                     <td>{fmtQty(row.missing_to_target)}</td>
-                                    <td>{row.below_min ? "⚠️" : "—"}</td>
+                                    <td>{row.below_min ? '⚠️' : '—'}</td>
                                 </tr>
                             {/each}
                         </tbody>
@@ -453,7 +499,7 @@ $effect(() => {
         </section>
 
         <section class="panel">
-            <h3>{$_("analytics.childTotals")}</h3>
+            <h3>{$_('analytics.childTotals')}</h3>
             <ul class="totals">
                 {#each restockOverview?.by_child_category ?? [] as g}
                     <li>
@@ -465,7 +511,7 @@ $effect(() => {
                 {/each}
             </ul>
 
-            <h3 class="mt">{$_("analytics.parentTotals")}</h3>
+            <h3 class="mt">{$_('analytics.parentTotals')}</h3>
             <ul class="totals">
                 {#each restockOverview?.by_parent_category ?? [] as g}
                     <li>
@@ -620,7 +666,7 @@ $effect(() => {
         color: #d1d5db;
     }
 
-    .controls select {
+    .controls :global(.select-base) {
         border: 1px solid #5b4f3a;
         border-radius: 0.5rem;
         padding: 0.35rem 0.45rem;

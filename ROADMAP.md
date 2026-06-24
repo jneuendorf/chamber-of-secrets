@@ -114,7 +114,7 @@ dev S · user low · 🔴
 
 ---
 
-## Milestone 2 — UX Polish 🚧
+## Milestone 2 — UX Polish ✅
 
 Goal: fix rough edges, improve scanning flow, categories UX.
 
@@ -158,13 +158,13 @@ dev XS · user med · 🟡
   - [x] Use for category deletion and other destructive actions
   - [x] Image upload: standard file picker as primary, small camera shortcut via `capture="environment"` on mobile
 
-- [ ] **WL-2.6: Category Drill-Down Navigation** ⬜
+- [x] **WL-2.6: Category Drill-Down Navigation** ✅
 
 dev S · user med · 🟡
 
-  - [ ] Replace flat two-level tree with folder-style drill-down (tap to enter subcategory, breadcrumb to go back)
-  - [ ] Support arbitrary nesting depth
-  - [ ] Mobile-friendly: one level visible at a time, full-width cards
+  - [x] Replace flat two-level tree with folder-style drill-down (tap to enter subcategory, back button to go back)
+  - [x] Support arbitrary nesting depth
+  - [x] Mobile-friendly: one level visible at a time, full-width cards
 
 ---
 
@@ -200,6 +200,29 @@ dev S · user med · 🟡
   - [ ] Add `dark:` variant support so light/dark both work
   - [ ] Add theme toggle component (system / light / dark)
   - [ ] Persist preference in `localStorage`
+
+- [ ] **WL-3.4: Adopt a Headless Component Library** ⬜
+
+dev M · user low · 🟡
+
+  - [ ] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) for shared primitives
+  - [ ] Migrate the hand-rolled `Select` to Bits UI's `Select` (custom one built because `appearance: base-select` has no iOS Safari support — see component header)
+  - [ ] Standardise other interactive primitives (dropdowns, dialogs, tooltips) on the library for consistency and a11y
+  - [ ] Keep bundle impact in check — only pull in components actually used
+
+- [ ] **WL-3.5: UX Polish (round 2)** ⬜
+
+dev S · user med · 🟡
+
+  - [ ] Analytics: when the restock modal contains an open `Select`, the first
+        Escape should close only the dropdown (not the modal); Escape closes the
+        modal only when the dropdown is already closed. Coordinate Esc handling
+        between `Select` and `Modal`.
+  - [ ] Scan on mobile: handle missing `navigator.mediaDevices` /
+        `getUserMedia` gracefully (TypeError on some mobile browsers / insecure
+        contexts) — show a clear "camera unavailable" message and fall back to
+        manual entry instead of throwing. `getUserMedia` requires a secure
+        context (HTTPS); verify the LAN/Pi deployment serves HTTPS to mobile.
 
 ---
 

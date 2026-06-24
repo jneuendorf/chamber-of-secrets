@@ -9,26 +9,26 @@
         children: Snippet
     }
 
-    let {
-        open,
-        title,
-        onclose,
-        width = 'min(480px, 100%)',
-        children,
-    }: Props = $props()
+    let { open, title, onclose, width = 'min(480px, 100%)', children }: Props = $props()
 
     let backdrop: HTMLDivElement | undefined = $state()
 
     $effect(() => {
-        if (open) { backdrop?.focus() }
+        if (open) {
+            backdrop?.focus()
+        }
     })
 
     function handleBackdrop(e: MouseEvent) {
-        if (e.target === backdrop) { onclose() }
+        if (e.target === backdrop) {
+            onclose()
+        }
     }
 
     function handleKeydown(e: KeyboardEvent) {
-        if (e.key === 'Escape') { onclose() }
+        if (e.key === 'Escape') {
+            onclose()
+        }
     }
 </script>
 
