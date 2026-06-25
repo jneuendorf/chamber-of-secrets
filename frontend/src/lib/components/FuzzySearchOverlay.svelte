@@ -230,8 +230,8 @@
         left: 50%;
         transform: translateX(-50%);
         width: min(680px, calc(100vw - 2rem));
-        background: #2f2a22;
-        border: 1px solid #5b4f3a;
+        background: var(--color-bark-800);
+        border: 1px solid var(--color-bark-600);
         border-radius: 14px;
         box-shadow:
             0 20px 40px rgba(15, 23, 42, 0.2),
@@ -244,12 +244,12 @@
         display: flex;
         align-items: center;
         gap: 0.55rem;
-        border-bottom: 1px solid #5b4f3a;
+        border-bottom: 1px solid var(--color-bark-600);
         padding: 0.7rem 0.85rem;
     }
 
     .fuzzy-overlay-icon {
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.95rem;
     }
 
@@ -258,14 +258,14 @@
         outline: none;
         width: 100%;
         font-size: 0.98rem;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
         background: transparent;
     }
 
     .fuzzy-overlay-close {
-        border: 1px solid #5b4f3a;
-        background: #26221b;
-        color: #f3f4f6;
+        border: 1px solid var(--color-bark-600);
+        background: var(--color-bark-850);
+        color: var(--color-ink-100);
         border-radius: 0.45rem;
         padding: 0.2rem 0.5rem;
         font-size: 0.75rem;
@@ -275,13 +275,13 @@
 
     .fuzzy-overlay-hint {
         padding: 0.45rem 0.9rem 0.2rem;
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.78rem;
     }
 
     .fuzzy-overlay-empty {
         padding: 1rem 0.9rem 1.1rem;
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.9rem;
     }
 
@@ -308,17 +308,17 @@
 
     .fuzzy-overlay-item:hover,
     .fuzzy-overlay-item.active {
-        background: #4a3f2f;
+        background: var(--color-bark-700);
     }
 
     .fuzzy-overlay-item .primary {
-        color: #f3f4f6;
+        color: var(--color-ink-100);
         font-size: 0.92rem;
         font-weight: 500;
     }
 
     .fuzzy-overlay-item .secondary {
-        color: #cbd5e1;
+        color: var(--color-ink-300);
         font-size: 0.8rem;
     }
 </style>

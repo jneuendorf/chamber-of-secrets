@@ -6,8 +6,8 @@ See `FEATURES.md` (scope + core principles), `ROADMAP.md` (status),
 `TODOS.md` (code/spec misalignments needing immediate attention).
 
 Core principles (in priority order): **easy to use** > **fun to use** >
-lightweight > portable. Every feature must pass: *would a 10-year-old
-use this without being told to?*
+lightweight > portable. Every feature must pass: _would a 10-year-old
+use this without being told to?_
 
 ## Workflow
 
@@ -28,7 +28,7 @@ use this without being told to?*
 - **Test-driven**: critical functionality MUST be tested. Target >90%
   coverage. Frontend tests use `bun test`. Write tests before or
   alongside implementation, not as an afterthought.
-- Run `just check-frontend` (lint + typecheck + test) or `just check-backend`, 
+- Run `just check-frontend` (lint + typecheck + test) or `just check-backend`,
   respectively, before declaring done.
 - Use `just lint-frontend` / `just format-frontend` for quick checks
   on staged files. Pass `""` to check all files instead:
@@ -64,7 +64,7 @@ Bullet list ok. No co-author trailer unless asked.
   `DROP COLUMN`. Wrap such changes in `with op.batch_alter_table(...)`
   (table rebuild) — standalone `op.alter_column(... server_default=...)`
   or `op.drop_column(...)` fail at runtime even though `render_as_batch=True`
-  makes autogenerate *look* fine (that flag only affects rendering, not
+  makes autogenerate _look_ fine (that flag only affects rendering, not
   execution). `tests/test_migrations.py` runs `upgrade head` on a fresh DB
   to catch this.
 - **Frontend tooling**: Biome v2 (lint + format) for JS/TS/JSON/CSS.
@@ -82,6 +82,12 @@ Bullet list ok. No co-author trailer unless asked.
   `.zed/settings.json` (needs the community Biome extension).
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no config file).
   Entry point: `src/app.css`.
+- **Colors**: use the `@theme` tokens in `src/app.css`
+  (`bark-*` surfaces, `ink-*` neutrals, `accent-*`, `danger/success/warning/info`)
+  — never hardcode hex. In markup use the utilities (`bg-bark-850`,
+  `text-ink-100`); in scoped `<style>` use `var(--color-…)`. Chart series
+  colours live in `src/lib/theme.ts` (`CHART_PALETTE` + `themeColor()`), since
+  canvas needs raw strings. App is dark-only for now (WL-3.3).
 - **i18n**: svelte-i18n v4 (EN + DE). Keys: `nav.*`, `dashboard.*`,
   etc. Both locale files must stay in sync.
 - Scoped `<style>` blocks coexist with Tailwind.

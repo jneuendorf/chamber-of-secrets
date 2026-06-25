@@ -71,8 +71,8 @@
         type="button"
         onclick={() => onSelect(null)}
         class="px-4 py-2 rounded-full text-sm font-medium border transition-colors {!selected
-            ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
-            : 'bg-[#2f2a22] text-gray-200 border-[#5b4f3a] active:bg-[#26221b]'}"
+            ? 'bg-accent-900 text-white border-accent-900'
+            : 'bg-bark-800 text-gray-200 border-bark-600 active:bg-bark-850'}"
     >
         {$_('category.none')}
     </button>
@@ -83,8 +83,8 @@
             onclick={() => onSelect(cat)}
             class="px-4 py-2 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5 {selected?.id ===
             cat.id
-                ? 'bg-[#1a1a2e] text-white border-[#1a1a2e]'
-                : 'bg-[#2f2a22] text-gray-200 border-[#5b4f3a] active:bg-[#26221b]'}"
+                ? 'bg-accent-900 text-white border-accent-900'
+                : 'bg-bark-800 text-gray-200 border-bark-600 active:bg-bark-850'}"
         >
             {#if icon}
                 {#if isUrl(icon)}
@@ -116,7 +116,7 @@
     {@const editCat = categories.find((c) => c.id === editingIconId)}
     {#if editCat}
         <div
-            class="flex gap-2 mb-3 items-center bg-[#111827] border border-[#374151] rounded-lg px-3 py-2"
+            class="flex gap-2 mb-3 items-center bg-ink-900 border border-ink-700 rounded-lg px-3 py-2"
         >
             <span class="text-sm text-gray-300 shrink-0">{editCat.name}:</span>
             <input
@@ -124,13 +124,13 @@
                 bind:value={editingIconValue}
                 placeholder={$_('category.iconPlaceholder')}
                 disabled={savingIcon}
-                class="flex-1 min-w-0 px-2 py-1 border border-[#5b4f3a] bg-[#2f2a22] text-gray-100 rounded-md text-sm"
+                class="flex-1 min-w-0 px-2 py-1 border border-bark-600 bg-bark-800 text-gray-100 rounded-md text-sm"
             />
             <button
                 type="button"
                 onclick={saveIcon}
                 disabled={savingIcon}
-                class="px-3 py-1 bg-[#1a1a2e] text-white rounded-md text-sm font-medium disabled:opacity-40 shrink-0"
+                class="px-3 py-1 bg-accent-900 text-white rounded-md text-sm font-medium disabled:opacity-40 shrink-0"
             >
                 {$_('category.save')}
             </button>
@@ -155,12 +155,12 @@
         bind:value={newName}
         placeholder={$_('category.newPlaceholder')}
         disabled={creating}
-        class="flex-1 px-3 py-2 border border-[#5b4f3a] bg-[#2f2a22] text-gray-100 rounded-lg text-sm"
+        class="flex-1 px-3 py-2 border border-bark-600 bg-bark-800 text-gray-100 rounded-lg text-sm"
     />
     <button
         type="submit"
         disabled={!newName.trim() || creating}
-        class="px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium disabled:opacity-40"
+        class="px-4 py-2 bg-accent-900 text-white rounded-lg text-sm font-medium disabled:opacity-40"
     >
         {$_('category.add')}
     </button>

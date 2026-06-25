@@ -153,7 +153,7 @@
 {#if loading}
     <p>{$_('common.loading')}</p>
 {:else if error}
-    <p class="text-[#e74c3c]">{error}</p>
+    <p class="text-danger-500">{error}</p>
 {:else if products.length === 0}
     <p class="text-center text-gray-500 my-12">
         {$_('inventory.empty')} <a href="/scan">{$_('inventory.scanCta')}</a>
@@ -179,7 +179,7 @@
     <div class="flex flex-col gap-3">
         {#each products as product (product.id)}
             <div
-                class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-4 shadow-sm"
+                class="bg-bark-800 border border-bark-600 rounded-xl p-4 shadow-sm"
                 data-product-id={product.id}
             >
                 <div class="flex items-center gap-4">
@@ -202,7 +202,7 @@
                                 />
                             {:else}
                                 <div
-                                    class="w-12 h-12 rounded-lg bg-[#26221b] border border-[#4f4534] flex items-center justify-center text-gray-300 text-xl"
+                                    class="w-12 h-12 rounded-lg bg-bark-850 border border-bark-650 flex items-center justify-center text-gray-300 text-xl"
                                 >
                                     ?
                                 </div>
@@ -233,7 +233,7 @@
                         >
                             {#if product.category}
                                 <span
-                                    class="bg-[#3b3327] text-[#f3f4f6] px-2 py-0.5 rounded text-xs border border-[#5b4f3a]"
+                                    class="bg-bark-730 text-ink-100 px-2 py-0.5 rounded text-xs border border-bark-600"
                                 >
                                     {product.category.name}
                                 </span>
@@ -257,7 +257,7 @@
                 </div>
 
                 {#if editingId === product.id}
-                    <div class="mt-3 pt-3 border-t border-[#4f4534]">
+                    <div class="mt-3 pt-3 border-t border-bark-650">
                         <CategoryPicker
                             {categories}
                             selected={product.category}
@@ -283,9 +283,9 @@
 
     .search-indicator {
         font-size: 0.78rem;
-        color: #d1d5db;
-        background: #111827;
-        border: 1px solid #374151;
+        color: var(--color-ink-250);
+        background: var(--color-ink-900);
+        border: 1px solid var(--color-ink-700);
         border-radius: 999px;
         padding: 0.2rem 0.55rem;
         white-space: nowrap;
@@ -296,9 +296,9 @@
     }
 
     .search-indicator:hover {
-        background: #2f2a22;
-        color: #f3f4f6;
-        border-color: #5b4f3a;
+        background: var(--color-bark-800);
+        color: var(--color-ink-100);
+        border-color: var(--color-bark-600);
     }
 
     .search-indicator-icon {
@@ -347,16 +347,16 @@
     .stock {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #27ae60;
+        color: var(--color-success-600);
         min-width: 3rem;
         text-align: center;
     }
 
     .stock.low {
-        color: #f39c12;
+        color: var(--color-warning-550);
     }
 
     .stock.out {
-        color: #e74c3c;
+        color: var(--color-danger-500);
     }
 </style>

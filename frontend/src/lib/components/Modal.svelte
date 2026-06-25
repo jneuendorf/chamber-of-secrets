@@ -78,11 +78,11 @@
         width: 100%;
         max-height: calc(100vh - 2rem);
         overflow: auto;
-        background: #2f2a22;
-        border: 1px solid #5b4f3a;
+        background: var(--color-bark-800);
+        border: 1px solid var(--color-bark-600);
         border-radius: 0.9rem;
         padding: 1rem;
-        color: #e5e7eb;
+        color: var(--color-ink-200);
     }
 
     .modal-header {
@@ -95,13 +95,13 @@
     .modal-header h2 {
         margin: 0;
         font-size: 1.1rem;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
     }
 
     .modal-close {
-        border: 1px solid #5b4f3a;
-        background: #26221b;
-        color: #f3f4f6;
+        border: 1px solid var(--color-bark-600);
+        background: var(--color-bark-850);
+        color: var(--color-ink-100);
         width: 2rem;
         height: 2rem;
         border-radius: 0.45rem;
@@ -110,6 +110,6 @@
     }
 
     .modal-close:hover {
-        background: #3b3327;
+        background: var(--color-bark-730);
     }
 </style>

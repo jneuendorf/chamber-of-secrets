@@ -411,10 +411,10 @@
             bind:value={newCategoryName}
             placeholder={$_('category.newPlaceholder')}
             disabled={creatingCategory}
-            class="flex-1 px-3 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-lg text-sm"
+            class="flex-1 px-3 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-lg text-sm"
         />
         <Select
-            class="px-3 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-lg text-sm"
+            class="px-3 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-lg text-sm"
             disabled={creatingCategory}
             value={newCategoryParentId ?? ROOT_PARENT}
             onchange={(val) => {
@@ -434,7 +434,7 @@
         <button
             type="submit"
             disabled={!newCategoryName.trim() || creatingCategory}
-            class="px-4 py-2 bg-[#1a1a2e] text-white rounded-lg text-sm font-medium disabled:opacity-40 shrink-0"
+            class="px-4 py-2 bg-accent-900 text-white rounded-lg text-sm font-medium disabled:opacity-40 shrink-0"
         >
             {$_('category.add')}
         </button>
@@ -453,7 +453,7 @@
 {/if}
 
 {#if error}
-    <p class="text-[#e74c3c]">{error}</p>
+    <p class="text-danger-500">{error}</p>
 {/if}
 
 {#if !loading && categories.length === 0}
@@ -680,9 +680,9 @@
     }
 
     .confirm-cancel {
-        background: #26221b;
-        color: #e5e7eb;
-        border: 1px solid #5b4f3a;
+        background: var(--color-bark-850);
+        color: var(--color-ink-200);
+        border: 1px solid var(--color-bark-600);
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         font-weight: 600;
@@ -690,13 +690,13 @@
     }
 
     .confirm-cancel:hover {
-        background: #3b3327;
+        background: var(--color-bark-730);
     }
 
     .confirm-delete {
-        background: #7f1d1d;
-        color: #fca5a5;
-        border: 1px solid #991b1b;
+        background: var(--color-danger-900);
+        color: var(--color-danger-200);
+        border: 1px solid var(--color-danger-800);
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         font-weight: 600;
@@ -704,7 +704,7 @@
     }
 
     .confirm-delete:hover {
-        background: #991b1b;
+        background: var(--color-danger-800);
     }
 
     .drill-header {
@@ -717,7 +717,7 @@
     .drill-back {
         background: none;
         border: none;
-        color: #3498db;
+        color: var(--color-info-500);
         font-size: 1.4rem;
         font-weight: 600;
         cursor: pointer;
@@ -726,13 +726,13 @@
     }
 
     .drill-back:hover {
-        color: #5dade2;
+        color: var(--color-info-400);
     }
 
     .drill-title {
         font-size: 1rem;
         font-weight: 600;
-        color: #e5e7eb;
+        color: var(--color-ink-200);
     }
 
     .drill-panel {
@@ -775,8 +775,8 @@
     }
 
     .node-card {
-        background: #2f2a22;
-        border: 1px solid #5b4f3a;
+        background: var(--color-bark-800);
+        border: 1px solid var(--color-bark-600);
         border-radius: 12px;
         padding: 1rem;
     }
@@ -792,9 +792,9 @@
         width: 1.7rem;
         height: 1.7rem;
         border-radius: 0.4rem;
-        border: 1px solid #4b5563;
-        background: #111827;
-        color: #e5e7eb;
+        border: 1px solid var(--color-ink-600);
+        background: var(--color-ink-900);
+        color: var(--color-ink-200);
         cursor: pointer;
         flex-shrink: 0;
         transition: transform 0.15s ease;
@@ -827,7 +827,7 @@
     .child-badge {
         margin-left: auto;
         font-size: 0.8rem;
-        color: #3498db;
+        color: var(--color-info-500);
         font-weight: 600;
         white-space: nowrap;
     }
@@ -835,9 +835,9 @@
     .pill {
         margin-left: auto;
         font-size: 0.75rem;
-        color: #d1d5db;
-        background: #111827;
-        border: 1px solid #374151;
+        color: var(--color-ink-250);
+        background: var(--color-ink-900);
+        border: 1px solid var(--color-ink-700);
         border-radius: 999px;
         padding: 0.15rem 0.5rem;
         flex-shrink: 0;
@@ -854,16 +854,16 @@
         flex-direction: column;
         gap: 0.35rem;
         font-size: 0.85rem;
-        color: #4b5563;
+        color: var(--color-ink-600);
     }
 
     input {
-        border: 1px solid #4b5563;
+        border: 1px solid var(--color-ink-600);
         border-radius: 8px;
         padding: 0.5rem 0.6rem;
         font-size: 0.95rem;
-        background: #111827;
-        color: #f3f4f6;
+        background: var(--color-ink-900);
+        color: var(--color-ink-100);
     }
 
     .toggle {
@@ -879,14 +879,14 @@
         margin-top: 0.75rem;
         padding: 0.6rem 0.75rem;
         border-radius: 8px;
-        background: #111827;
-        border: 1px solid #374151;
-        color: #e5e7eb;
+        background: var(--color-ink-900);
+        border: 1px solid var(--color-ink-700);
+        color: var(--color-ink-200);
         font-size: 0.9rem;
     }
 
     .muted {
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.8rem;
         margin-top: 0.2rem;
     }
@@ -899,7 +899,7 @@
     }
 
     .save {
-        background: #1a1a2e;
+        background: var(--color-accent-900);
         color: white;
         border: 0;
         border-radius: 8px;
@@ -916,8 +916,8 @@
 
     .delete {
         background: transparent;
-        color: #ef4444;
-        border: 1px solid #7f1d1d;
+        color: var(--color-danger-450);
+        border: 1px solid var(--color-danger-900);
         border-radius: 8px;
         padding: 0.45rem 0.9rem;
         font-weight: 600;
@@ -925,8 +925,8 @@
     }
 
     .delete:hover:not(:disabled) {
-        background: #7f1d1d;
-        color: #fca5a5;
+        background: var(--color-danger-900);
+        color: var(--color-danger-200);
     }
 
     .create-form {
@@ -943,9 +943,9 @@
 
     .search-indicator {
         font-size: 0.78rem;
-        color: #d1d5db;
-        background: #111827;
-        border: 1px solid #374151;
+        color: var(--color-ink-250);
+        background: var(--color-ink-900);
+        border: 1px solid var(--color-ink-700);
         border-radius: 999px;
         padding: 0.2rem 0.55rem;
         white-space: nowrap;
@@ -956,13 +956,13 @@
     }
 
     .search-indicator:hover {
-        background: #2f2a22;
-        color: #f3f4f6;
-        border-color: #5b4f3a;
+        background: var(--color-bark-800);
+        color: var(--color-ink-100);
+        border-color: var(--color-bark-600);
     }
 
     .search-indicator:focus-visible {
-        outline: 2px solid #6366f1;
+        outline: 2px solid var(--color-accent-500);
         outline-offset: 2px;
     }
 </style>

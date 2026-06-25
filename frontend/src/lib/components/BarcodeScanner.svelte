@@ -238,7 +238,7 @@
                 />
                 <button
                     type="submit"
-                    class="flex-1 h-12 px-3 sm:px-4 bg-[#3a3125] text-white border border-[#5b4f3a] rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
+                    class="flex-1 h-12 px-3 sm:px-4 bg-bark-750 text-white border border-bark-600 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
                     aria-label={$_('scanner.lookUp')}
                     title={$_('scanner.lookUp')}
                 >
@@ -250,7 +250,7 @@
             <button
                 type="button"
                 onclick={startCamera}
-                class="flex-1 h-12 px-4 text-base bg-[#3a3125] text-white border border-[#5b4f3a] rounded-lg cursor-pointer"
+                class="flex-1 h-12 px-4 text-base bg-bark-750 text-white border border-bark-600 rounded-lg cursor-pointer"
             >
                 {$_('scanner.startCamera')}
             </button>
@@ -259,7 +259,7 @@
         <button
             type="button"
             onclick={toggleManual}
-            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-[#2a251d] border border-[#5b4f3a] rounded-lg"
+            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-bark-820 border border-bark-600 rounded-lg"
             aria-expanded={manualVisible ? 'true' : 'false'}
             aria-label={manualVisible
                 ? $_('scanner.hideManual')
@@ -275,7 +275,7 @@
     </div>
 
     {#if error && !modalOpen}
-        <p class="text-[#e74c3c] text-sm">{error}</p>
+        <p class="text-danger-500 text-sm">{error}</p>
     {/if}
 </div>
 
@@ -301,11 +301,11 @@
     >
         <!-- Modal -->
         <div
-            class="bg-[#2f2a22] border border-[#5b4f3a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
+            class="bg-bark-800 border border-bark-600 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
         >
             <!-- Header -->
             <div
-                class="flex items-center justify-between px-4 py-3 border-b border-[#5b4f3a]"
+                class="flex items-center justify-between px-4 py-3 border-b border-bark-600"
             >
                 <span class="font-semibold text-gray-100"
                     >{$_('scanner.scanBarcode')}</span
@@ -361,7 +361,7 @@
             <!-- Camera selector + error -->
             <div class="px-4 py-3 flex flex-col gap-2">
                 {#if error}
-                    <p class="text-[#e74c3c] text-sm text-center">{error}</p>
+                    <p class="text-danger-500 text-sm text-center">{error}</p>
                 {/if}
 
                 {#if cameras.length > 1}
@@ -374,7 +374,7 @@
                         </label>
                         <Select
                             id="camera-select"
-                            class="flex-1 px-2 py-1.5 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-sm"
+                            class="flex-1 px-2 py-1.5 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-sm"
                             value={selectedDeviceId}
                             onchange={switchCamera}
                             items={cameras.map((cam, i) => ({
@@ -388,7 +388,7 @@
                 <button
                     type="button"
                     onclick={stopCamera}
-                    class="w-full py-2 bg-[#26221b] hover:bg-[#211d17] text-gray-100 border border-[#5b4f3a] rounded-lg text-sm cursor-pointer"
+                    class="w-full py-2 bg-bark-850 hover:bg-bark-880 text-gray-100 border border-bark-600 rounded-lg text-sm cursor-pointer"
                 >
                     {$_('scanner.stop')}
                 </button>
@@ -401,7 +401,7 @@
     .scan-line {
         width: 100%;
         height: 2px;
-        background: #e74c3c;
+        background: var(--color-danger-500);
         box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
         animation: pulse 1.5s ease-in-out infinite;
     }
@@ -410,7 +410,7 @@
         width: 28px;
         height: 28px;
         border: 3px solid rgba(255, 255, 255, 0.35);
-        border-top-color: #ffffff;
+        border-top-color: var(--color-white);
         border-radius: 9999px;
         animation: spin 0.8s linear infinite;
     }

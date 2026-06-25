@@ -18,7 +18,7 @@
 </svelte:head>
 
 <div class="layout-root" class:chamber-bg={page.url.pathname === '/chamber'}>
-    <nav class="site-nav bg-[#1a1a2e] text-white">
+    <nav class="site-nav bg-accent-900 text-white">
         <div class="nav-main">
             <a href="/chamber" class="brand-link">{$_('nav.brand')}</a>
             <div class="nav-links-wrap">
@@ -212,7 +212,7 @@
         max-width: 960px;
         margin: 0 auto;
         padding: 1.5rem;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
     }
 
     .chamber-shell {
@@ -226,7 +226,7 @@
 
     .nav-link {
         display: inline-block;
-        color: #d1d5db;
+        color: var(--color-ink-250);
         text-decoration: none;
         padding: 0.35rem 0.7rem;
         border-radius: 6px;

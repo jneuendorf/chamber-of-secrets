@@ -283,7 +283,7 @@
 
     .chevron {
         flex-shrink: 0;
-        color: #9ca3af;
+        color: var(--color-ink-400);
         transition: transform 0.15s ease;
     }
 
@@ -294,8 +294,8 @@
     .menu {
         margin: 0;
         padding: 0.25rem;
-        background: #111827;
-        border: 1px solid #4b5563;
+        background: var(--color-ink-900);
+        border: 1px solid var(--color-ink-600);
         border-radius: 8px;
         overflow-y: auto;
         z-index: 60;
@@ -311,18 +311,18 @@
         border: 0;
         border-radius: 0.35rem;
         background: transparent;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
         font: inherit;
         text-align: left;
         cursor: pointer;
     }
 
     .option.highlighted {
-        background: #2f2a22;
+        background: var(--color-bark-800);
     }
 
     .option[aria-selected='true'] {
-        background: #1a1a2e;
+        background: var(--color-accent-900);
     }
 
     .option-icon {

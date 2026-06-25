@@ -521,7 +521,7 @@
         height: calc(100dvh - 3rem);
         overflow: hidden;
         position: relative;
-        color: #e0e0ff;
+        color: var(--color-accent-100);
     }
 
     .scene-frame {
@@ -593,14 +593,14 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: #e0e0ff;
+        color: var(--color-accent-100);
         background: rgba(0, 0, 0, 0.6);
         padding: 1rem 1.5rem;
         border-radius: 8px;
     }
 
     .error-msg {
-        color: #f87171;
+        color: var(--color-danger-300);
     }
 
     .empty-state {
@@ -620,7 +620,7 @@
         margin: 0 0 0.5rem;
     }
     .empty-text {
-        color: #9ca3af;
+        color: var(--color-ink-400);
         margin: 0 0 1rem;
     }
 
@@ -630,7 +630,7 @@
         background: rgba(255, 215, 0, 0.12);
         border: 1px solid rgba(255, 215, 0, 0.35);
         border-radius: 6px;
-        color: #fbbf24;
+        color: var(--color-warning-400);
         text-decoration: none;
         font-size: 0.85rem;
     }
@@ -672,7 +672,7 @@
     }
 
     .modal-card {
-        background: #0a0814;
+        background: var(--color-bark-950);
         border: 1px solid rgba(255, 215, 0, 0.4);
         border-radius: 12px;
         padding: 1.5rem;
@@ -687,7 +687,7 @@
         font-size: 0.78rem;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #fbbf24;
+        color: var(--color-warning-400);
         text-align: center;
         font-weight: 700;
     }
@@ -700,17 +700,17 @@
 
     .stats-table td {
         padding: 0.28rem 0;
-        color: #d1d5db;
+        color: var(--color-ink-250);
     }
 
     .stat-val {
         text-align: right;
         font-weight: 700;
-        color: #e0e0ff;
+        color: var(--color-accent-100);
     }
 
     .stat-depleted {
-        color: #f87171;
+        color: var(--color-danger-300);
     }
 
     .close-btn {
@@ -720,7 +720,7 @@
         background: rgba(255, 215, 0, 0.1);
         border: 1px solid rgba(255, 215, 0, 0.3);
         border-radius: 6px;
-        color: #fbbf24;
+        color: var(--color-warning-400);
         font-size: 0.75rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;

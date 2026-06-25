@@ -21,7 +21,7 @@
     button {
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #d1d5db;
+        color: var(--color-ink-250);
         border-radius: 4px;
         padding: 0.125rem 0.5rem;
         font-size: 0.75rem;

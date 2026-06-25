@@ -192,11 +192,14 @@ dev S · user — · ⚪
   - [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
   - [ ] Component-level tests (requires DOM testing library — future work)
 
-- [ ] **WL-3.3: Tailwind Theme Tokens** ⬜
+- [ ] **WL-3.3: Tailwind Theme Tokens** 🚧
 
 dev S · user med · 🟡
 
-  - [ ] Replace hardcoded hex colours (`bg-[#1a1a2e]` etc.) with Tailwind CSS v4 theme variables / `@theme` directive
+  - [x] Replace hardcoded hex colours (`bg-[#1a1a2e]` etc.) with `@theme`
+        tokens in `src/app.css` (`bark-*`, `ink-*`, `accent-*`, status scales);
+        chart series colours centralised in `src/lib/theme.ts`. App stays
+        dark-only for now — values unchanged.
   - [ ] Add `dark:` variant support so light/dark both work
   - [ ] Add theme toggle component (system / light / dark)
   - [ ] Persist preference in `localStorage`

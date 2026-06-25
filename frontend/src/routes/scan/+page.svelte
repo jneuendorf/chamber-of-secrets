@@ -267,15 +267,15 @@
     {/if}
 
     <!-- 1) First interactive element: mode toggle -->
-    <div class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-2 shadow-sm mb-4">
+    <div class="bg-bark-800 border border-bark-600 rounded-xl p-2 shadow-sm mb-4">
         <div class="grid grid-cols-2 gap-2">
             <button
                 type="button"
                 onclick={() => (transactionType = 'in')}
                 class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
                     transactionType === 'in'
-                        ? 'bg-[#1f9d55] text-white'
-                        : 'bg-[#111827] text-[#86efac] border border-[#14532d]'
+                        ? 'bg-success-700 text-white'
+                        : 'bg-ink-900 text-success-300 border border-success-900'
                 }`}
                 aria-pressed={transactionType === 'in' ? 'true' : 'false'}
             >
@@ -287,8 +287,8 @@
                 onclick={() => (transactionType = 'out')}
                 class={`h-9 px-3 rounded-lg text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${
                     transactionType === 'out'
-                        ? 'bg-[#e74c3c] text-white'
-                        : 'bg-[#111827] text-[#fca5a5] border border-[#7f1d1d]'
+                        ? 'bg-danger-500 text-white'
+                        : 'bg-ink-900 text-danger-200 border border-danger-900'
                 }`}
                 aria-pressed={transactionType === 'out' ? 'true' : 'false'}
             >
@@ -308,17 +308,17 @@
     {/if}
 
     {#if lookupError}
-        <p class="text-center my-4 text-[#e74c3c]">{lookupError}</p>
+        <p class="text-center my-4 text-danger-500">{lookupError}</p>
     {/if}
 
     {#if lookupResult}
         <div
-            class="bg-[#2f2a22] border border-[#5b4f3a] rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-gray-100"
+            class="bg-bark-800 border border-bark-600 rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-gray-100"
         >
             <button
                 type="button"
                 onclick={dismissScannedItem}
-                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
+                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-bark-850 text-gray-300 hover:bg-bark-900 hover:text-gray-100 border border-bark-650 inline-flex items-center justify-center"
                 aria-label={$_('scan.dismissScanned')}
                 title={$_('scan.dismissScanned')}
             >
@@ -359,7 +359,7 @@
                         <button
                             type="button"
                             onclick={dismissCategorySuggestion}
-                            class="h-5 w-5 rounded-full bg-[#26221b] text-gray-300 hover:bg-[#201c16] hover:text-gray-100 border border-[#4f4534] inline-flex items-center justify-center"
+                            class="h-5 w-5 rounded-full bg-bark-850 text-gray-300 hover:bg-bark-900 hover:text-gray-100 border border-bark-650 inline-flex items-center justify-center"
                             aria-label={$_('scan.dismissCategory')}
                             title={$_('scan.dismissCategory')}
                         >
@@ -396,7 +396,7 @@
                         <button
                             type="button"
                             onclick={decrementQuantity}
-                            class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
+                            class="h-11 w-11 shrink-0 rounded-lg border border-bark-600 bg-bark-850 text-xl leading-none"
                             aria-label="Decrease quantity"
                         >
                             −
@@ -412,13 +412,13 @@
                                 updateQuantityFromInput(
                                     (e.currentTarget as HTMLInputElement).value,
                                 )}
-                            class="h-11 flex-1 text-center px-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
+                            class="h-11 flex-1 text-center px-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-base"
                         />
 
                         <button
                             type="button"
                             onclick={incrementQuantity}
-                            class="h-11 w-11 shrink-0 rounded-lg border border-[#5b4f3a] bg-[#26221b] text-xl leading-none"
+                            class="h-11 w-11 shrink-0 rounded-lg border border-bark-600 bg-bark-850 text-xl leading-none"
                             aria-label="Increase quantity"
                         >
                             +
@@ -436,7 +436,7 @@
                         step="0.01"
                         inputmode="decimal"
                         placeholder={$_('scan.pricePlaceholder')}
-                        class="px-2 py-2 border border-[#5b4f3a] bg-[#26221b] text-gray-100 rounded-md text-base"
+                        class="px-2 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-base"
                     />
                 </label>
 
@@ -444,7 +444,7 @@
                     type="button"
                     onclick={saveInventoryTransaction}
                     disabled={loading}
-                    class="p-3 bg-[#1a1a2e] text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
+                    class="p-3 bg-accent-900 text-white border-0 rounded-lg text-base cursor-pointer disabled:opacity-50"
                 >
                     {transactionType === 'in'
                         ? $_('scan.addBtn')
@@ -464,13 +464,13 @@
     }
 
     .category-prompt {
-        color: #f59e0b;
+        color: var(--color-warning-500);
         font-style: italic;
     }
 
     .success-toast {
-        background: #166534;
-        color: #bbf7d0;
+        background: var(--color-success-800);
+        color: var(--color-success-100);
         text-align: center;
         padding: 0.5rem 1rem;
         border-radius: 0.75rem;

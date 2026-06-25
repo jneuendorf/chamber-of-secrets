@@ -24,6 +24,7 @@
     import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
+    import { CHART_PALETTE, themeColor } from '$lib/theme'
     import {
         aggregateTimeseriesToParents,
         aggregateToParents,
@@ -44,18 +45,7 @@
         Tooltip,
     )
 
-    const COLORS = [
-        '#1a1a2e',
-        '#e74c3c',
-        '#3498db',
-        '#2ecc71',
-        '#f39c12',
-        '#9b59b6',
-        '#1abc9c',
-        '#e67e22',
-        '#34495e',
-        '#e91e63',
-    ]
+    const COLORS = CHART_PALETTE
 
     function toISODate(d: Date): string {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -227,17 +217,21 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 11 },
+                            color: themeColor('ink-200'),
+                        },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#d1d5db' },
+                        ticks: { color: themeColor('ink-250') },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#d1d5db' },
+                        ticks: { stepSize: 1, color: themeColor('ink-250') },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                 },
@@ -267,17 +261,21 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 11 },
+                            color: themeColor('ink-200'),
+                        },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#d1d5db' },
+                        ticks: { color: themeColor('ink-250') },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#d1d5db' },
+                        ticks: { stepSize: 1, color: themeColor('ink-250') },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                 },
@@ -307,17 +305,24 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { boxWidth: 12, font: { size: 11 }, color: '#e5e7eb' },
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 11 },
+                            color: themeColor('ink-200'),
+                        },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#d1d5db' },
+                        ticks: { color: themeColor('ink-250') },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { callback: (v) => `€${v}`, color: '#d1d5db' },
+                        ticks: {
+                            callback: (v) => `€${v}`,
+                            color: themeColor('ink-250'),
+                        },
                         grid: { color: 'rgba(209, 213, 219, 0.15)' },
                     },
                 },
@@ -539,15 +544,15 @@
         flex-direction: column;
         gap: 0.25rem;
         font-size: 0.85rem;
-        color: #6b7280;
+        color: var(--color-ink-500);
     }
 
     .date-field input {
         padding: 0.5rem;
-        border: 1px solid #4b5563;
+        border: 1px solid var(--color-ink-600);
         border-radius: 0.4rem;
-        background: #111827;
-        color: #f3f4f6;
+        background: var(--color-ink-900);
+        color: var(--color-ink-100);
         color-scheme: dark;
     }
 
@@ -561,9 +566,9 @@
     }
 
     .restock-btn {
-        border: 1px solid #5b4f3a;
-        background: #2f2a22;
-        color: #f3f4f6;
+        border: 1px solid var(--color-bark-600);
+        background: var(--color-bark-800);
+        color: var(--color-ink-100);
         border-radius: 0.5rem;
         padding: 0.45rem 0.85rem;
         font-weight: 600;
@@ -571,23 +576,23 @@
     }
 
     .summary-text {
-        color: #d1d5db;
+        color: var(--color-ink-250);
         font-size: 0.9rem;
     }
 
     .error {
-        color: #e74c3c;
+        color: var(--color-danger-500);
     }
 
     .empty {
         text-align: center;
-        color: #9ca3af;
+        color: var(--color-ink-400);
         margin: 3rem 0;
     }
 
     .pane {
-        background: #2f2a22;
-        border: 1px solid #5b4f3a;
+        background: var(--color-bark-800);
+        border: 1px solid var(--color-bark-600);
         border-radius: 1rem;
         padding: 1rem 1.25rem;
     }
@@ -595,7 +600,7 @@
     .pane h2 {
         margin: 0 0 1rem;
         font-size: 1rem;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
     }
 
     .stack {
@@ -604,8 +609,8 @@
     }
 
     .card {
-        background: #26221b;
-        border: 1px solid #4f4534;
+        background: var(--color-bark-850);
+        border: 1px solid var(--color-bark-650);
         border-radius: 0.8rem;
         padding: 1rem;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -614,7 +619,7 @@
     .card h3 {
         margin: 0 0 0.8rem;
         font-size: 0.9rem;
-        color: #d1d5db;
+        color: var(--color-ink-250);
     }
 
     .chart-wrap {
@@ -623,7 +628,7 @@
     }
 
     .muted {
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.9rem;
         margin: 1rem 0;
     }
@@ -636,21 +641,21 @@
     }
 
     .kpi {
-        border: 1px solid #4f4534;
+        border: 1px solid var(--color-bark-650);
         border-radius: 0.6rem;
         padding: 0.7rem;
-        background: #26221b;
+        background: var(--color-bark-850);
     }
 
     .kpi-label {
         font-size: 0.78rem;
-        color: #9ca3af;
+        color: var(--color-ink-400);
     }
 
     .kpi-value {
         font-size: 1.15rem;
         font-weight: 700;
-        color: #f3f4f6;
+        color: var(--color-ink-100);
         margin-top: 0.1rem;
     }
 
@@ -663,15 +668,15 @@
         gap: 0.5rem;
         align-items: center;
         font-size: 0.85rem;
-        color: #d1d5db;
+        color: var(--color-ink-250);
     }
 
     .controls :global(.select-base) {
-        border: 1px solid #5b4f3a;
+        border: 1px solid var(--color-bark-600);
         border-radius: 0.5rem;
         padding: 0.35rem 0.45rem;
-        background: #26221b;
-        color: #f3f4f6;
+        background: var(--color-bark-850);
+        color: var(--color-ink-100);
     }
 
     .restock-layout {
@@ -681,16 +686,16 @@
     }
 
     .panel {
-        border: 1px solid #4f4534;
+        border: 1px solid var(--color-bark-650);
         border-radius: 0.7rem;
         padding: 0.75rem;
-        background: #26221b;
+        background: var(--color-bark-850);
     }
 
     .panel h3 {
         margin: 0 0 0.55rem;
         font-size: 0.95rem;
-        color: #e5e7eb;
+        color: var(--color-ink-200);
     }
 
     .mt {
@@ -711,14 +716,14 @@
     td {
         text-align: left;
         padding: 0.45rem;
-        border-bottom: 1px solid #374151;
+        border-bottom: 1px solid var(--color-ink-700);
         white-space: nowrap;
-        color: #e5e7eb;
+        color: var(--color-ink-200);
     }
 
     th {
-        background: #2f2a22;
-        color: #d1d5db;
+        background: var(--color-bark-800);
+        color: var(--color-ink-250);
         font-weight: 600;
         position: sticky;
         top: 0;
@@ -735,9 +740,9 @@
         justify-content: space-between;
         gap: 0.5rem;
         padding: 0.38rem 0;
-        border-bottom: 1px solid #374151;
+        border-bottom: 1px solid var(--color-ink-700);
         font-size: 0.85rem;
-        color: #e5e7eb;
+        color: var(--color-ink-200);
     }
 
     @media (max-width: 900px) {

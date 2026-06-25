@@ -2,6 +2,8 @@
     import { ArcElement, Chart, DoughnutController, Legend, Tooltip } from 'chart.js'
     import { _ } from 'svelte-i18n'
 
+    import { CHART_PALETTE, themeColor } from '$lib/theme'
+
     Chart.register(DoughnutController, ArcElement, Legend, Tooltip)
 
     export type Slice = {
@@ -21,18 +23,7 @@
 
     let { title, getSlices, formatTotal, centerLabel, formatTooltip }: Props = $props()
 
-    const COLORS = [
-        '#e74c3c',
-        '#3498db',
-        '#2ecc71',
-        '#f39c12',
-        '#9b59b6',
-        '#1abc9c',
-        '#e67e22',
-        '#e91e63',
-        '#34495e',
-        '#1a1a2e',
-    ]
+    const COLORS = CHART_PALETTE
 
     let stack: { key: string; label: string }[] = $state([])
     let direction: 'forward' | 'back' = $state('forward')
@@ -107,7 +98,7 @@
                         labels: {
                             boxWidth: 12,
                             font: { size: 11 },
-                            color: '#e5e7eb',
+                            color: themeColor('ink-200'),
                         },
                         onClick: (_e, legendItem, legend) => {
                             const idx = legendItem.index!
@@ -150,10 +141,10 @@
                         ctx.save()
                         ctx.textAlign = 'center'
                         ctx.textBaseline = 'middle'
-                        ctx.fillStyle = '#f3f4f6'
+                        ctx.fillStyle = themeColor('ink-100')
                         ctx.font = 'bold 20px sans-serif'
                         ctx.fillText(totalFormatted, cx, cy - 8)
-                        ctx.fillStyle = '#d1d5db'
+                        ctx.fillStyle = themeColor('ink-250')
                         ctx.font = '11px sans-serif'
                         ctx.fillText(cLabel, cx, cy + 10)
                         ctx.restore()
@@ -194,8 +185,8 @@
 
 <style>
     .card {
-        background: #26221b;
-        border: 1px solid #4f4534;
+        background: var(--color-bark-850);
+        border: 1px solid var(--color-bark-650);
         border-radius: 0.8rem;
         padding: 1rem;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -211,13 +202,13 @@
     .drill-header h3 {
         margin: 0;
         font-size: 0.9rem;
-        color: #d1d5db;
+        color: var(--color-ink-250);
     }
 
     .drill-back {
         background: none;
         border: none;
-        color: #3498db;
+        color: var(--color-info-500);
         font-size: 1.4rem;
         font-weight: 600;
         cursor: pointer;
@@ -226,7 +217,7 @@
     }
 
     .drill-back:hover {
-        color: #5dade2;
+        color: var(--color-info-400);
     }
 
     .drill-viewport {
@@ -241,7 +232,7 @@
     }
 
     .empty-msg {
-        color: #9ca3af;
+        color: var(--color-ink-400);
         font-size: 0.9rem;
         text-align: center;
         padding-top: 5rem;
