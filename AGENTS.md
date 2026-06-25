@@ -13,9 +13,10 @@ use this without being told to?*
 
 - Tackle **at most one WL-\* item from `ROADMAP.md` per change**.
   Small commit scopes.
-- Don't auto-commit, but suggest a commit message.
-  Once a workload is done thoroughly, suggest a commit message to the user.
-  Always let me review the changes and commit only after explicit approval.
+- **Never auto-commit.** When work is complete, generate a suggested
+  commit message and stop — I review the changes and commit manually.
+  Only run `git commit` (or `git push`) when I explicitly ask you to in
+  that turn; prior approval does not carry over to later changes.
 - Reflect every status change in `ROADMAP.md` (✅ done · 🚧 in
   progress · ⬜ not started).
 - **Docs must stay in sync with code.** If a feature is implemented,
