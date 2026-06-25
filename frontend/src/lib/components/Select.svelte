@@ -1,15 +1,17 @@
 <!--
-    Custom button + listbox select.
+    Thin wrapper over Bits UI's Select (headless, accessible, Floating-UI
+    positioned, portaled — so it works on iOS Safari and escapes
+    `overflow: hidden` ancestors like modals). We keep the project's dark
+    styling and a simple `items` / `value` / `onchange` API; Bits UI owns the
+    keyboard / focus / ARIA / positioning behaviour.
 
-    Hand-rolled rather than using CSS `appearance: base-select`: that API has
-    no iOS Safari support (and none in Firefox / desktop Safari) as of 2026,
-    and this is a mobile-first app. A button + fixed-positioned listbox works
-    everywhere and escapes `overflow: hidden` ancestors (e.g. modals).
-    See ROADMAP WL-3.4 — candidate for migration to a headless library.
+    Styling is plain Tailwind utilities (our @theme tokens) rather than a scoped
+    <style> block: classes passed to Bits UI components don't receive Svelte's
+    scope hash, so scoped selectors wouldn't apply. The `select-base` marker is
+    kept for the page-level hook in analytics (`.controls .select-base`).
 
-    Follows the ARIA combobox + aria-activedescendant pattern: focus stays on
-    the trigger and all keyboard handling lives there, so the options are
-    intentionally mouse-only (keyboard reaches them via the trigger).
+    Bits UI Select works in string values, so we map our typed (string | number)
+    values to/from strings at the boundary.
 -->
 <script lang="ts" module>
     export interface SelectItem<T extends string | number = string | number> {
@@ -17,18 +19,18 @@
         label: string
         icon?: string | null
     }
-
-    let uid = 0
 </script>
 
 <script lang="ts" generics="T extends string | number">
-    import { tick } from 'svelte'
-    import type { HTMLButtonAttributes } from 'svelte/elements'
+    import { Select } from 'bits-ui'
 
-    interface Props extends Omit<HTMLButtonAttributes, 'value' | 'onchange'> {
+    interface Props {
         items: SelectItem<T>[]
         value?: T
         onchange?: (value: T) => void
+        class?: string
+        id?: string
+        disabled?: boolean
     }
 
     let {
@@ -36,302 +38,77 @@
         value = $bindable<T>(),
         class: className = '',
         onchange,
-        ...restProps
+        id,
+        disabled,
     }: Props = $props()
 
-    const listboxId = `select-listbox-${uid++}`
+    let selected = $state(value === undefined ? '' : String(value))
 
-    let open = $state(false)
-    let highlightedIndex = $state(-1)
-    let triggerEl: HTMLButtonElement | undefined = $state()
-    let listboxEl: HTMLDivElement | undefined = $state()
-    let menuStyle = $state('')
-    let typeahead = ''
-    let typeaheadTimer: ReturnType<typeof setTimeout> | undefined
-
-    const selectedItem = $derived(items.find((item) => item.value === value))
-    const selectedIndex = $derived(items.findIndex((item) => item.value === value))
-
-    function positionMenu() {
-        if (!triggerEl) {
-            return
-        }
-        const rect = triggerEl.getBoundingClientRect()
-        const spaceBelow = window.innerHeight - rect.bottom - 8
-        const maxHeight = Math.max(Math.min(spaceBelow, 280), 120)
-        menuStyle =
-            `position: fixed; top: ${rect.bottom + 4}px; left: ${rect.left}px; ` +
-            `min-width: ${rect.width}px; max-height: ${maxHeight}px;`
-    }
-
-    function scrollHighlightedIntoView() {
-        const optionEl = listboxEl?.children[highlightedIndex] as
-            | HTMLElement
-            | undefined
-        optionEl?.scrollIntoView({ block: 'nearest' })
-    }
-
-    async function openMenu() {
-        if (restProps.disabled || open) {
-            return
-        }
-        open = true
-        highlightedIndex = selectedIndex >= 0 ? selectedIndex : 0
-        positionMenu()
-        await tick()
-        scrollHighlightedIntoView()
-    }
-
-    function closeMenu(refocus = true) {
-        if (!open) {
-            return
-        }
-        open = false
-        highlightedIndex = -1
-        if (refocus) {
-            triggerEl?.focus()
-        }
-    }
-
-    function selectItem(item: SelectItem<T>) {
-        value = item.value
-        onchange?.(item.value)
-        closeMenu()
-    }
-
-    function moveHighlight(delta: number) {
-        if (items.length === 0) {
-            return
-        }
-        highlightedIndex = (highlightedIndex + delta + items.length) % items.length
-        scrollHighlightedIntoView()
-    }
-
-    function applyTypeahead(char: string) {
-        clearTimeout(typeaheadTimer)
-        typeahead += char.toLowerCase()
-        typeaheadTimer = setTimeout(() => {
-            typeahead = ''
-        }, 500)
-        const match = items.findIndex((item) =>
-            item.label.toLowerCase().startsWith(typeahead),
-        )
-        if (match >= 0) {
-            highlightedIndex = match
-            scrollHighlightedIntoView()
-        }
-    }
-
-    function handleKeydown(event: KeyboardEvent) {
-        switch (event.key) {
-            case 'ArrowDown':
-                event.preventDefault()
-                open ? moveHighlight(1) : openMenu()
-                break
-            case 'ArrowUp':
-                event.preventDefault()
-                open ? moveHighlight(-1) : openMenu()
-                break
-            case 'Enter':
-            case ' ':
-                event.preventDefault()
-                if (!open) {
-                    openMenu()
-                } else {
-                    const item = items[highlightedIndex]
-                    if (item) {
-                        selectItem(item)
-                    }
-                }
-                break
-            case 'Escape':
-                if (open) {
-                    event.preventDefault()
-                    closeMenu()
-                }
-                break
-            case 'Tab':
-                closeMenu(false)
-                break
-            case 'Home':
-                if (open) {
-                    event.preventDefault()
-                    highlightedIndex = 0
-                    scrollHighlightedIntoView()
-                }
-                break
-            case 'End':
-                if (open) {
-                    event.preventDefault()
-                    highlightedIndex = items.length - 1
-                    scrollHighlightedIntoView()
-                }
-                break
-            default:
-                if (event.key.length === 1 && !event.metaKey && !event.ctrlKey) {
-                    applyTypeahead(event.key)
-                }
-        }
-    }
-
-    function handlePointerDown(event: PointerEvent) {
-        const target = event.target as Node
-        if (open && !triggerEl?.contains(target) && !listboxEl?.contains(target)) {
-            closeMenu(false)
-        }
-    }
-
+    // Keep the internal string in sync when the parent changes `value`.
     $effect(() => {
-        if (!open) {
-            return
-        }
-        window.addEventListener('pointerdown', handlePointerDown, true)
-        window.addEventListener('resize', positionMenu)
-        window.addEventListener('scroll', positionMenu, true)
-        return () => {
-            window.removeEventListener('pointerdown', handlePointerDown, true)
-            window.removeEventListener('resize', positionMenu)
-            window.removeEventListener('scroll', positionMenu, true)
-        }
+        selected = value === undefined ? '' : String(value)
     })
+
+    const selectedItem = $derived(items.find((item) => String(item.value) === selected))
+
+    function handleValueChange(next: string) {
+        const match = items.find((item) => String(item.value) === next)
+        if (match) {
+            onchange?.(match.value)
+        }
+    }
 </script>
 
-<button
-    bind:this={triggerEl}
-    type="button"
-    class="select-base {className}"
-    role="combobox"
-    aria-haspopup="listbox"
-    aria-expanded={open}
-    aria-controls={listboxId}
-    aria-activedescendant={open && highlightedIndex >= 0
-        ? `${listboxId}-opt-${highlightedIndex}`
-        : undefined}
-    onclick={() => (open ? closeMenu() : openMenu())}
-    onkeydown={handleKeydown}
-    {...restProps}
+<Select.Root
+    type="single"
+    bind:value={selected}
+    onValueChange={handleValueChange}
+    {disabled}
 >
-    <span class="trigger-content">
-        {#if selectedItem?.icon}
-            <span class="option-icon" aria-hidden="true">{selectedItem.icon}</span>
-        {/if}
-        <span class="trigger-label">{selectedItem?.label ?? ''}</span>
-    </span>
-    <span class="chevron" class:open aria-hidden="true">›</span>
-</button>
-
-{#if open}
-    <div
-        bind:this={listboxEl}
-        id={listboxId}
-        class="menu"
-        role="listbox"
-        style={menuStyle}
+    <Select.Trigger
+        {id}
+        class="select-base group inline-flex max-w-full cursor-pointer items-center gap-[0.4rem] text-left data-disabled:cursor-not-allowed data-disabled:opacity-60 {className}"
     >
-        {#each items as item, index (item.value)}
-            <button
-                id="{listboxId}-opt-{index}"
-                type="button"
-                class="option"
-                class:highlighted={index === highlightedIndex}
-                role="option"
-                tabindex={-1}
-                aria-selected={item.value === value}
-                onclick={() => selectItem(item)}
-                onpointermove={() => (highlightedIndex = index)}
-            >
-                {#if item.icon}
-                    <span class="option-icon" aria-hidden="true">{item.icon}</span>
-                {/if}
-                <span class="option-label">{item.label}</span>
-            </button>
-        {/each}
-    </div>
-{/if}
-
-<style>
-    .select-base {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        width: fit-content;
-        max-width: 100%;
-        cursor: pointer;
-        font: inherit;
-        text-align: left;
-    }
-
-    .select-base:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    .trigger-content {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        min-width: 0;
-        flex: 1;
-    }
-
-    .trigger-label {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .chevron {
-        flex-shrink: 0;
-        color: var(--color-ink-400);
-        transition: transform 0.15s ease;
-    }
-
-    .chevron.open {
-        transform: rotate(90deg);
-    }
-
-    .menu {
-        margin: 0;
-        padding: 0.25rem;
-        background: var(--color-ink-900);
-        border: 1px solid var(--color-ink-600);
-        border-radius: 8px;
-        overflow-y: auto;
-        z-index: 60;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-    }
-
-    .option {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.4rem;
-        width: 100%;
-        padding: 0.4rem 0.6rem;
-        border: 0;
-        border-radius: 0.35rem;
-        background: transparent;
-        color: var(--color-ink-100);
-        font: inherit;
-        text-align: left;
-        cursor: pointer;
-    }
-
-    .option.highlighted {
-        background: var(--color-bark-800);
-    }
-
-    .option[aria-selected='true'] {
-        background: var(--color-accent-900);
-    }
-
-    .option-icon {
-        font-size: 1rem;
-        line-height: 1.4;
-        flex-shrink: 0;
-    }
-
-    .option-label {
-        min-width: 0;
-    }
-</style>
+        <span class="inline-flex min-w-0 flex-1 items-center gap-[0.35rem]">
+            {#if selectedItem?.icon}
+                <span class="shrink-0 text-base leading-[1.4]" aria-hidden="true">
+                    {selectedItem.icon}
+                </span>
+            {/if}
+            <span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                {selectedItem?.label ?? ''}
+            </span>
+        </span>
+        <span
+            class="shrink-0 text-ink-400 transition-transform duration-150 group-data-[state=open]:rotate-90"
+            aria-hidden="true"
+        >
+            ›
+        </span>
+    </Select.Trigger>
+    <Select.Portal>
+        <Select.Content
+            class="z-[10000] max-h-[280px] min-w-[var(--bits-select-anchor-width)] overflow-y-auto rounded-lg border border-ink-600 bg-ink-900 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
+        >
+            <Select.Viewport>
+                {#each items as item (item.value)}
+                    <Select.Item
+                        class="flex cursor-pointer items-start gap-[0.4rem] rounded-[0.35rem] px-[0.6rem] py-[0.4rem] text-ink-100 outline-none data-[highlighted]:bg-bark-800 data-[selected]:bg-accent-900"
+                        value={String(item.value)}
+                        label={item.label}
+                    >
+                        {#if item.icon}
+                            <span
+                                class="shrink-0 text-base leading-[1.4]"
+                                aria-hidden="true"
+                            >
+                                {item.icon}
+                            </span>
+                        {/if}
+                        <span class="min-w-0">{item.label}</span>
+                    </Select.Item>
+                {/each}
+            </Select.Viewport>
+        </Select.Content>
+    </Select.Portal>
+</Select.Root>

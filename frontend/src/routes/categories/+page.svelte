@@ -347,15 +347,20 @@
     }
 
     let confirmingDelete: Category | null = $state(null)
+    let deleteError = $state('')
+
+    function closeDeleteConfirm() {
+        confirmingDelete = null
+        deleteError = ''
+    }
 
     async function confirmDelete() {
         if (!confirmingDelete) {
             return
         }
         const cat = confirmingDelete
-        confirmingDelete = null
         deletingId = cat.id
-        error = ''
+        deleteError = ''
         try {
             await api.categories.delete(cat.id)
             categories = categories.filter((c) => c.id !== cat.id)
@@ -369,9 +374,14 @@
                 newCategoryParentId =
                     navStack.length > 0 ? navStack[navStack.length - 1].id : null
             }
+            closeDeleteConfirm()
         } catch (e) {
+            // Keep the modal open and surface the reason where the user acted
+            // (e.g. "category still in use") instead of at the top of the page.
             const detail = e instanceof ApiError ? e.detail : String(e)
-            error = get(_)('category.failedToDelete', { values: { error: detail } })
+            deleteError = get(_)('category.failedToDelete', {
+                values: { error: detail },
+            })
         } finally {
             deletingId = null
         }
@@ -626,7 +636,10 @@
                                         type="button"
                                         class="delete"
                                         disabled={deletingId === cat.id}
-                                        onclick={() => (confirmingDelete = cat)}
+                                        onclick={() => {
+                                            deleteError = ''
+                                            confirmingDelete = cat
+                                        }}
                                     >
                                         {$_('category.deleteButton')}
                                     </button>
@@ -655,23 +668,38 @@
     title={$_('category.deleteConfirm', {
         values: { name: confirmingDelete?.name ?? '' },
     })}
-    onclose={() => (confirmingDelete = null)}
+    onclose={closeDeleteConfirm}
 >
+    {#if deleteError}
+        <p class="delete-error" role="alert">{deleteError}</p>
+    {/if}
     <div class="confirm-actions">
         <button
             type="button"
             class="confirm-cancel"
-            onclick={() => (confirmingDelete = null)}
+            disabled={deletingId !== null}
+            onclick={closeDeleteConfirm}
         >
             {$_('common.cancel')}
         </button>
-        <button type="button" class="confirm-delete" onclick={confirmDelete}>
+        <button
+            type="button"
+            class="confirm-delete"
+            disabled={deletingId !== null}
+            onclick={confirmDelete}
+        >
             {$_('category.deleteButton')}
         </button>
     </div>
 </Modal>
 
 <style>
+    .delete-error {
+        margin: 0 0 0.75rem;
+        color: var(--color-danger-300);
+        font-size: 0.9rem;
+    }
+
     .confirm-actions {
         display: flex;
         justify-content: flex-end;

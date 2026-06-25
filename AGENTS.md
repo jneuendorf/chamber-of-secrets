@@ -88,6 +88,13 @@ Bullet list ok. No co-author trailer unless asked.
   `text-ink-100`); in scoped `<style>` use `var(--color-…)`. Chart series
   colours live in `src/lib/theme.ts` (`CHART_PALETTE` + `themeColor()`), since
   canvas needs raw strings. App is dark-only for now (WL-3.3).
+- **Headless UI**: [Bits UI](https://bits-ui.com) provides accessible
+  primitives (`Select`, `Modal`→Dialog so far; Checkbox/Tabs/Tooltip/Date
+  Picker as features need them). Style them with **Tailwind utility classes**
+  (our `@theme` tokens) passed via `class` — *not* scoped `<style>`: classes
+  handed to a library component don't get Svelte's scope hash, so scoped
+  selectors silently don't apply (Svelte flags them "unused"). Wrap new
+  primitives behind a thin local component with a small typed API.
 - **i18n**: svelte-i18n v4 (EN + DE). Keys: `nav.*`, `dashboard.*`,
   etc. Both locale files must stay in sync.
 - Scoped `<style>` blocks coexist with Tailwind.

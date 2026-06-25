@@ -204,14 +204,15 @@ dev S · user med · 🟡
   - [ ] Add theme toggle component (system / light / dark)
   - [ ] Persist preference in `localStorage`
 
-- [ ] **WL-3.4: Adopt a Headless Component Library** ⬜
+- [ ] **WL-3.4: Adopt a Headless Component Library** 🚧
 
 dev M · user low · 🟡
 
-  - [ ] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) for shared primitives
-  - [ ] Migrate the hand-rolled `Select` to Bits UI's `Select` (custom one built because `appearance: base-select` has no iOS Safari support — see component header)
-  - [ ] Standardise other interactive primitives (dropdowns, dialogs, tooltips) on the library for consistency and a11y
-  - [ ] Keep bundle impact in check — only pull in components actually used
+  - [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
+  - [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
+  - [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
+  - [ ] Standardise other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
+  - [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
 
 - [ ] **WL-3.5: UX Polish (round 2)** 🚧
 

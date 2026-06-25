@@ -1,4 +1,12 @@
+<!--
+    Thin wrapper over Bits UI's Dialog (focus trap, scroll lock, Esc/overlay
+    close, ARIA — all handled upstream). Same `open` / `title` / `onclose` /
+    `width` API as before. Styling is plain Tailwind utilities (our @theme
+    tokens), since classes passed to Bits UI components don't get Svelte's
+    scope hash.
+-->
 <script lang="ts">
+    import { Dialog } from 'bits-ui'
     import type { Snippet } from 'svelte'
 
     interface Props {
@@ -9,107 +17,40 @@
         children: Snippet
     }
 
-    let { open, title, onclose, width = 'min(480px, 100%)', children }: Props = $props()
+    let {
+        open = $bindable(),
+        title,
+        onclose,
+        width = 'min(480px, 100%)',
+        children,
+    }: Props = $props()
 
-    let backdrop: HTMLDivElement | undefined = $state()
-
-    $effect(() => {
-        if (open) {
-            backdrop?.focus()
-        }
-    })
-
-    function handleBackdrop(e: MouseEvent) {
-        if (e.target === backdrop) {
-            onclose()
-        }
-    }
-
-    function handleKeydown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
+    function handleOpenChange(next: boolean) {
+        if (!next) {
             onclose()
         }
     }
 </script>
 
-{#if open}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-        class="modal-backdrop"
-        bind:this={backdrop}
-        onclick={handleBackdrop}
-        onkeydown={handleKeydown}
-        role="dialog"
-        aria-modal="true"
-        tabindex="-1"
-    >
-        <div class="modal-panel" style:max-width={width}>
-            {#if title}
-                <div class="modal-header">
-                    <h2>{title}</h2>
-                    <button
-                        type="button"
-                        class="modal-close"
-                        onclick={onclose}
-                        aria-label="Close"
-                    >
-                        ✕
-                    </button>
-                </div>
-            {/if}
+<Dialog.Root bind:open onOpenChange={handleOpenChange}>
+    <Dialog.Portal>
+        <Dialog.Overlay class="fixed inset-0 z-9998 bg-black/45" />
+        <Dialog.Content
+            class="fixed left-1/2 top-1/2 z-9999 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-[0.9rem] border border-bark-600 bg-bark-800 p-4 text-ink-200"
+            style="max-width: {width}"
+        >
+            <div class="mb-3 flex items-center justify-between">
+                <Dialog.Title class="m-0 text-[1.1rem] text-ink-100">
+                    {title ?? ''}
+                </Dialog.Title>
+                <Dialog.Close
+                    class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-[0.45rem] border border-bark-600 bg-bark-850 text-ink-100 hover:bg-bark-730"
+                    aria-label="Close"
+                >
+                    ✕
+                </Dialog.Close>
+            </div>
             {@render children()}
-        </div>
-    </div>
-{/if}
-
-<style>
-    .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 9998;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .modal-panel {
-        width: 100%;
-        max-height: calc(100vh - 2rem);
-        overflow: auto;
-        background: var(--color-bark-800);
-        border: 1px solid var(--color-bark-600);
-        border-radius: 0.9rem;
-        padding: 1rem;
-        color: var(--color-ink-200);
-    }
-
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.75rem;
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: var(--color-ink-100);
-    }
-
-    .modal-close {
-        border: 1px solid var(--color-bark-600);
-        background: var(--color-bark-850);
-        color: var(--color-ink-100);
-        width: 2rem;
-        height: 2rem;
-        border-radius: 0.45rem;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-
-    .modal-close:hover {
-        background: var(--color-bark-730);
-    }
-</style>
+        </Dialog.Content>
+    </Dialog.Portal>
+</Dialog.Root>
