@@ -50,6 +50,8 @@
     "barcodePlaceholder": "EAN / Barcode eingeben",
     "lookUp": "Suchen",
     "cameraError": "Kamera-Zugriff verweigert: {error}",
+    "insecureContext": "Die Kamera benötigt eine sichere Verbindung. Öffne die App über HTTPS (nicht HTTP), um zu scannen.",
+    "cameraUnavailable": "Kamera ist in diesem Browser nicht verfügbar. Versuche Chrome oder Edge oder gib den Barcode manuell ein.",
     "unsupported": "BarcodeDetector-API wird nicht unterstützt. Manuelle Eingabe oder Chrome/Edge verwenden.",
     "preparing": "Barcode-Scanner wird vorbereitet…"
   },

@@ -210,7 +210,7 @@ dev M · user low · 🟡
   - [ ] Standardise other interactive primitives (dropdowns, dialogs, tooltips) on the library for consistency and a11y
   - [ ] Keep bundle impact in check — only pull in components actually used
 
-- [ ] **WL-3.5: UX Polish (round 2)** ⬜
+- [ ] **WL-3.5: UX Polish (round 2)** 🚧
 
 dev S · user med · 🟡
 
@@ -218,11 +218,17 @@ dev S · user med · 🟡
         Escape should close only the dropdown (not the modal); Escape closes the
         modal only when the dropdown is already closed. Coordinate Esc handling
         between `Select` and `Modal`.
-  - [ ] Scan on mobile: handle missing `navigator.mediaDevices` /
-        `getUserMedia` gracefully (TypeError on some mobile browsers / insecure
-        contexts) — show a clear "camera unavailable" message and fall back to
-        manual entry instead of throwing. `getUserMedia` requires a secure
-        context (HTTPS); verify the LAN/Pi deployment serves HTTPS to mobile.
+  - [x] Scan on mobile: guard against missing `navigator.mediaDevices` /
+        `getUserMedia` (undefined outside a secure context, which threw a bare
+        TypeError). `BarcodeScanner` now shows an actionable message —
+        `scanner.insecureContext` over HTTP ("open over HTTPS"),
+        `scanner.cameraUnavailable` over HTTPS — instead of opening an empty
+        modal. (The compose stack already serves HTTPS via nginx + mkcert with
+        an openssl fallback in `40-setup-certs.sh`; the error only appeared via
+        the Vite dev server's plain-HTTP LAN origin.)
+  - [ ] Optionally enable HTTPS for the Vite dev server (e.g.
+        `@vitejs/plugin-basic-ssl` or reuse the mkcert certs) so camera scanning
+        works on-device against `just dev`.
 
 ---
 

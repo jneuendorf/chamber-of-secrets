@@ -30,12 +30,39 @@ def upgrade() -> None:
             sa.Column("name", sa.String(100), nullable=False),
             sa.Column("parent_id", sa.Integer(), sa.ForeignKey("categories.id"), nullable=True),
             sa.Column("icon", sa.Text(), nullable=True),
+            sa.Column("restock_target", sa.Float(), nullable=True),
+            sa.Column("restock_min", sa.Float(), nullable=True),
+            sa.Column("restock_inherit", sa.Boolean(), nullable=False),
             sa.PrimaryKeyConstraint("id"),
         )
     else:
         cols = {c["name"] for c in inspector.get_columns("categories")}
         if "icon" not in cols:
             op.add_column("categories", sa.Column("icon", sa.Text(), nullable=True))
+        if "restock_target" not in cols:
+            op.add_column("categories", sa.Column("restock_target", sa.Float(), nullable=True))
+        if "restock_min" not in cols:
+            op.add_column("categories", sa.Column("restock_min", sa.Float(), nullable=True))
+        if "restock_inherit" not in cols:
+            # Add NOT NULL with a temporary server default to backfill existing
+            # rows, then drop it (model uses a Python-side default only). SQLite
+            # has no ALTER COLUMN, so the drop runs via a batch table rebuild.
+            op.add_column(
+                "categories",
+                sa.Column(
+                    "restock_inherit",
+                    sa.Boolean(),
+                    nullable=False,
+                    server_default=sa.true(),
+                ),
+            )
+            with op.batch_alter_table("categories") as batch_op:
+                batch_op.alter_column(
+                    "restock_inherit",
+                    existing_type=sa.Boolean(),
+                    existing_nullable=False,
+                    server_default=None,
+                )
 
     if "products" not in existing:
         op.create_table(

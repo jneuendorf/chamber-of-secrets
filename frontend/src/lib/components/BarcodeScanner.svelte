@@ -69,6 +69,19 @@
 
     async function startCamera() {
         error = ''
+
+        // `navigator.mediaDevices` is undefined outside a secure context.
+        // Accessing getUserMedia would throw a bare TypeError, so guard
+        // first and give an actionable message based on the protocol.
+        if (!navigator.mediaDevices?.getUserMedia) {
+            error = get(_)(
+                window.location.protocol === 'https:'
+                    ? 'scanner.cameraUnavailable'
+                    : 'scanner.insecureContext',
+            )
+            return
+        }
+
         modalOpen = true
         await tick()
 

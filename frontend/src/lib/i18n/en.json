@@ -49,6 +49,8 @@
     "barcodePlaceholder": "Enter EAN / barcode",
     "lookUp": "Look up",
     "cameraError": "Camera access denied: {error}",
+    "insecureContext": "The camera needs a secure connection. Open this app over HTTPS (not HTTP) to scan.",
+    "cameraUnavailable": "Camera is unavailable in this browser. Try Chrome or Edge, or enter the barcode manually.",
     "unsupported": "BarcodeDetector API not supported. Use manual entry or try Chrome/Edge.",
     "showManual": "Enter barcode manually",
     "hideManual": "Hide manual entry"

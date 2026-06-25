@@ -1,7 +1,7 @@
 set dotenv-load
 
 host := "0.0.0.0"
-container_engine := env('CONTAINER_ENGINE', 'podman')
+container_engine := env('CONTAINER_ENGINE', 'docker')
 
 # list available recipes
 default:

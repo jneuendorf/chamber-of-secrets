@@ -59,6 +59,13 @@ Bullet list ok. No co-author trailer unless asked.
 
 - **Package manager**: Bun (never npm/yarn/pnpm).
 - **Backend tooling**: uv + ruff (lint + format).
+- **Migrations (SQLite)**: SQLite has no `ALTER COLUMN` and only limited
+  `DROP COLUMN`. Wrap such changes in `with op.batch_alter_table(...)`
+  (table rebuild) — standalone `op.alter_column(... server_default=...)`
+  or `op.drop_column(...)` fail at runtime even though `render_as_batch=True`
+  makes autogenerate *look* fine (that flag only affects rendering, not
+  execution). `tests/test_migrations.py` runs `upgrade head` on a fresh DB
+  to catch this.
 - **Frontend tooling**: Biome v2 (lint + format) for JS/TS/JSON/CSS.
   4-space indent app code, 2-space configs/JSON/HTML/YAML, line width 88,
   single quotes, semicolons asNeeded, trailing commas all. Markdown
