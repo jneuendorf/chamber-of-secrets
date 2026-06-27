@@ -20,35 +20,35 @@ Goal: FastAPI backend, SQLAlchemy models, Alembic migrations, EAN lookup.
 
 dev S · user — · ⚪
 
-  - [x] FastAPI app with lifespan, CORS, auto-migrate on startup
-  - [x] SQLAlchemy 2 models (Product, InventoryTransaction, ProductRevision, Category)
-  - [x] Alembic migrations with batch mode for SQLite
-  - [x] Pydantic settings (`APP_*` env vars)
+- [x] FastAPI app with lifespan, CORS, auto-migrate on startup
+- [x] SQLAlchemy 2 models (Product, InventoryTransaction, ProductRevision, Category)
+- [x] Alembic migrations with batch mode for SQLite
+- [x] Pydantic settings (`APP_*` env vars)
 
 - [x] **WL-0.2: EAN Lookup Service** ✅
 
 dev S · user high · 🟢
 
-  - [x] Open Food Facts API integration (cache-first)
-  - [x] Auto-create product on first scan
-  - [x] Product refresh with immutable revision snapshot
+- [x] Open Food Facts API integration (cache-first)
+- [x] Auto-create product on first scan
+- [x] Product refresh with immutable revision snapshot
 
 - [x] **WL-0.3: CRUD Routers** ✅
 
 dev S · user high · 🟢
 
-  - [x] Products router (list, lookup, refresh)
-  - [x] Transactions router (list, create)
-  - [x] Categories router (list, create, update, delete)
-  - [x] Analytics router (spending by category with date range)
+- [x] Products router (list, lookup, refresh)
+- [x] Transactions router (list, create)
+- [x] Categories router (list, create, update, delete)
+- [x] Analytics router (spending by category with date range)
 
 - [x] **WL-0.4: Test Fixtures & Seed Data** ✅
 
 dev XS · user — · ⚪
 
-  - [x] Food catalog JSON fixture
-  - [x] Seed script with confirmation prompt
-  - [x] Backend unit tests
+- [x] Food catalog JSON fixture
+- [x] Seed script with confirmation prompt
+- [x] Backend unit tests
 
 ---
 
@@ -60,57 +60,57 @@ Goal: SvelteKit app with scanning, inventory, analytics, i18n.
 
 dev M · user high · 🟢
 
-  - [x] SvelteKit 2 + Svelte 5 + TypeScript + Tailwind CSS 4
-  - [x] Typed API client (`lib/api/client.ts`)
-  - [x] Mobile-friendly nav bar
-  - [x] Dark colour scheme (proper theming deferred to WL-3.3)
-  - [x] Docker + nginx with TLS (mkcert), Podman support
+- [x] SvelteKit 2 + Svelte 5 + TypeScript + Tailwind CSS 4
+- [x] Typed API client (`lib/api/client.ts`)
+- [x] Mobile-friendly nav bar
+- [x] Dark colour scheme (proper theming deferred to WL-3.3)
+- [x] Docker + nginx with TLS (mkcert), Podman support
 
 - [x] **WL-1.2: Barcode Scanner** ✅
 
 dev M · user critical · 🟢
 
-  - [x] Camera-based barcode scanning (`@undecaf/barcode-detector-polyfill`)
-  - [x] Live video preview during scanning
-  - [x] Product lookup on scan → stock movement form
-  - [x] Stock validation and positive quantity check
+- [x] Camera-based barcode scanning (`@undecaf/barcode-detector-polyfill`)
+- [x] Live video preview during scanning
+- [x] Product lookup on scan → stock movement form
+- [x] Stock validation and positive quantity check
 
 - [x] **WL-1.3: Inventory Page** ✅
 
 dev S · user high · 🟢
 
-  - [x] Product list with computed stock levels
-  - [x] Fuzzy search (Fuse.js)
+- [x] Product list with computed stock levels
+- [x] Fuzzy search (Fuse.js)
 
 - [x] **WL-1.4: Analytics Page** ✅
 
 dev S · user med · 🟡
 
-  - [x] Spending by category (Chart.js bar + pie charts)
-  - [x] Date-range picker
-  - [x] Parent-category aggregation
+- [x] Spending by category (Chart.js bar + pie charts)
+- [x] Date-range picker
+- [x] Parent-category aggregation
 
 - [x] **WL-1.5: Categories Page** ✅
 
 dev S · user med · 🟡
 
-  - [x] Category list with emoji icons
-  - [x] Category picker component for scan page
-  - [x] Hierarchical parent/child display
+- [x] Category list with emoji icons
+- [x] Category picker component for scan page
+- [x] Hierarchical parent/child display
 
 - [x] **WL-1.6: Internationalisation** ✅
 
 dev S · user med · 🟡
 
-  - [x] svelte-i18n v4 (EN + DE)
-  - [x] Locale switcher in nav bar
-  - [x] All user-facing strings extracted to locale JSON
+- [x] svelte-i18n v4 (EN + DE)
+- [x] Locale switcher in nav bar
+- [x] All user-facing strings extracted to locale JSON
 
 - [x] **WL-1.7: Chamber Visualisation** ✅
 
 dev S · user low · 🔴
 
-  - [x] Chamber page with visual stock pile rendering
+- [x] Chamber page with visual stock pile rendering
 
 ---
 
@@ -122,49 +122,49 @@ Goal: fix rough edges, improve scanning flow, categories UX.
 
 dev S · user high · 🟢
 
-  - [x] Re-activate barcode scanner immediately after recording a transaction
-  - [x] Prompt category selection directly after scanning
-  - [x] Reset quantity field to 1 after each scan
+- [x] Re-activate barcode scanner immediately after recording a transaction
+- [x] Prompt category selection directly after scanning
+- [x] Reset quantity field to 1 after each scan
 
 - [x] **WL-2.2: Category Management** ✅
 
 dev S · user med · 🟡
 
-  - [x] Manual category creation from the management page
-  - [x] Category deletion (with `confirm()` prompt)
-  - [x] Emoji fallback: child inherits from parent if not set
+- [x] Manual category creation from the management page
+- [x] Category deletion (with `confirm()` prompt)
+- [x] Emoji fallback: child inherits from parent if not set
 
 - [x] **WL-2.3: Inventory Enhancements** ✅
 
 dev M · user med · 🟡
 
-  - [x] Manually add an image to an inventory item (camera capture)
-  - [x] Fix chamber selection behaviour (disable marking)
+- [x] Manually add an image to an inventory item (camera capture)
+- [x] Fix chamber selection behaviour (disable marking)
 
 - [x] **WL-2.4: Analytics Fixes** ✅
 
 dev S · user med · 🟡
 
-  - [x] Fix translation bug: English strings shown despite German selected
-  - [x] Improve parent/child aggregation in pie chart (avoid double-counting)
-  - [x] Replace static pie charts with interactive drill-down donut (iOS-style slide navigation)
-  - [x] Extract analytics utils into testable module with 23 tests
+- [x] Fix translation bug: English strings shown despite German selected
+- [x] Improve parent/child aggregation in pie chart (avoid double-counting)
+- [x] Replace static pie charts with interactive drill-down donut (iOS-style slide navigation)
+- [x] Extract analytics utils into testable module with 23 tests
 
 - [x] **WL-2.5: UX Polish** ✅
 
 dev XS · user med · 🟡
 
-  - [x] Replace browser `confirm()` with styled modal dialog component
-  - [x] Use for category deletion and other destructive actions
-  - [x] Image upload: standard file picker as primary, small camera shortcut via `capture="environment"` on mobile
+- [x] Replace browser `confirm()` with styled modal dialog component
+- [x] Use for category deletion and other destructive actions
+- [x] Image upload: standard file picker as primary, small camera shortcut via `capture="environment"` on mobile
 
 - [x] **WL-2.6: Category Drill-Down Navigation** ✅
 
 dev S · user med · 🟡
 
-  - [x] Replace flat two-level tree with folder-style drill-down (tap to enter subcategory, back button to go back)
-  - [x] Support arbitrary nesting depth
-  - [x] Mobile-friendly: one level visible at a time, full-width cards
+- [x] Replace flat two-level tree with folder-style drill-down (tap to enter subcategory, back button to go back)
+- [x] Support arbitrary nesting depth
+- [x] Mobile-friendly: one level visible at a time, full-width cards
 
 ---
 
@@ -176,63 +176,64 @@ Goal: code quality tooling, formatting, linting, test infrastructure.
 
 dev XS · user — · ⚪
 
-  - [x] Replace Prettier with Biome 2.x (lint + format)
-  - [x] Biome config matching project conventions (4-space indent, single quotes, semicolons asNeeded)
-  - [x] Update justfile recipes
-  - [x] VS Code extension recommendation
+- [x] Replace Prettier with Biome 2.x (lint + format)
+- [x] Biome config matching project conventions (4-space indent, single quotes, semicolons asNeeded)
+- [x] Update justfile recipes
+- [x] VS Code extension recommendation
 
 - [x] **WL-3.2: Frontend Test Infrastructure** ✅
 
 dev S · user — · ⚪
 
-  - [x] Configure `bun test` for unit tests (`@types/bun` for type-safe test authoring)
-  - [x] Add `test` / `test:coverage` scripts to `package.json`, `just test-frontend` and `just test` (all) recipes
-  - [x] Add `just check` meta-recipe (lint + typecheck + test, both layers)
-  - [x] Seed initial tests: API client (16 tests), scan utils (16 tests), i18n key sync (3 tests)
-  - [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
-  - [ ] Component-level tests (requires DOM testing library — future work)
+- [x] Configure `bun test` for unit tests (`@types/bun` for type-safe test authoring)
+- [x] Add `test` / `test:coverage` scripts to `package.json`, `just test-frontend` and `just test` (all) recipes
+- [x] Add `just check` meta-recipe (lint + typecheck + test, both layers)
+- [x] Seed initial tests: API client (16 tests), scan utils (16 tests), i18n key sync (3 tests)
+- [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
+- [ ] Component-level tests (requires DOM testing library — future work)
 
 - [ ] **WL-3.3: Tailwind Theme Tokens** 🚧
 
 dev S · user med · 🟡
 
-  - [x] Replace hardcoded hex colours (`bg-[#1a1a2e]` etc.) with `@theme`
-        tokens in `src/app.css` (`bark-*`, `ink-*`, `accent-*`, status scales);
-        chart series colours centralised in `src/lib/theme.ts`. App stays
-        dark-only for now — values unchanged.
-  - [ ] Add `dark:` variant support so light/dark both work
-  - [ ] Add theme toggle component (system / light / dark)
-  - [ ] Persist preference in `localStorage`
+- [x] Replace hardcoded hex colours (`bg-[#1a1a2e]` etc.) with `@theme`
+      tokens in `src/app.css` (`bark-*`, `ink-*`, `accent-*`, status scales);
+      chart series colours centralised in `src/lib/theme.ts`. App stays
+      dark-only for now — values unchanged.
+- [ ] Add `dark:` variant support so light/dark both work
+- [ ] Add theme toggle component (system / light / dark)
+- [ ] Persist preference in `localStorage`
 
 - [ ] **WL-3.4: Adopt a Headless Component Library** 🚧
 
 dev M · user low · 🟡
 
-  - [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
-  - [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
-  - [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
-  - [ ] Standardise other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
-  - [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
+- [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
+- [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
+- [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
+- [ ] Standardise other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
+- [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
 
-- [ ] **WL-3.5: UX Polish (round 2)** 🚧
+- [x] **WL-3.5: UX Polish (round 2)** ✅
 
 dev S · user med · 🟡
 
-  - [ ] Analytics: when the restock modal contains an open `Select`, the first
-        Escape should close only the dropdown (not the modal); Escape closes the
-        modal only when the dropdown is already closed. Coordinate Esc handling
-        between `Select` and `Modal`.
-  - [x] Scan on mobile: guard against missing `navigator.mediaDevices` /
-        `getUserMedia` (undefined outside a secure context, which threw a bare
-        TypeError). `BarcodeScanner` now shows an actionable message —
-        `scanner.insecureContext` over HTTP ("open over HTTPS"),
-        `scanner.cameraUnavailable` over HTTPS — instead of opening an empty
-        modal. (The compose stack already serves HTTPS via nginx + mkcert with
-        an openssl fallback in `40-setup-certs.sh`; the error only appeared via
-        the Vite dev server's plain-HTTP LAN origin.)
-  - [ ] Optionally enable HTTPS for the Vite dev server (e.g.
-        `@vitejs/plugin-basic-ssl` or reuse the mkcert certs) so camera scanning
-        works on-device against `just dev`.
+- [x] Analytics: when the restock modal contains an open `Select`, the first
+      Escape should close only the dropdown (not the modal); Escape closes the
+      modal only when the dropdown is already closed. Coordinate Esc handling
+      between `Select` and `Modal`.
+- [x] Scan on mobile: guard against missing `navigator.mediaDevices` /
+      `getUserMedia` (undefined outside a secure context, which threw a bare
+      TypeError). `BarcodeScanner` now shows an actionable message —
+      `scanner.insecureContext` over HTTP ("open over HTTPS"),
+      `scanner.cameraUnavailable` over HTTPS — instead of opening an empty
+      modal. (The compose stack already serves HTTPS via nginx + mkcert with
+      an openssl fallback in `40-setup-certs.sh`; the error only appeared via
+      the Vite dev server's plain-HTTP LAN origin.)
+- [x] Enable HTTPS for the Vite dev server: `just dev https` (or
+      `just frontend https`) sets `DEV_HTTPS=true`, which serves over TLS using
+      the mkcert certs in `certs/`, so camera scanning works on-device over the
+      LAN. Falls back to a clear "run `just certs`" error if certs are missing.
 
 ---
 
@@ -244,21 +245,21 @@ Goal: auto-generate a shopping list from low-stock items; check off while shoppi
 
 dev M · user high · 🟢
 
-  - [ ] Auto-populate from existing restock data: category-level `restock_target`/`restock_min` with inheritance already drives `/api/analytics/restock-overview` — shopping list consumes that endpoint
-  - [ ] Optional per-product threshold override (extends, not replaces, category-level thresholds)
-  - [ ] Manual additions for one-off items (free-text, not tied to a product)
-  - [ ] Check-off items during a shopping trip → auto-record `in` transaction with quantity
-  - [ ] Shareable list (household members see the same list in real time)
-  - [ ] Clear completed items / archive past trips
+- [ ] Auto-populate from existing restock data: category-level `restock_target`/`restock_min` with inheritance already drives `/api/analytics/restock-overview` — shopping list consumes that endpoint
+- [ ] Optional per-product threshold override (extends, not replaces, category-level thresholds)
+- [ ] Manual additions for one-off items (free-text, not tied to a product)
+- [ ] Check-off items during a shopping trip → auto-record `in` transaction with quantity
+- [ ] Shareable list (household members see the same list in real time)
+- [ ] Clear completed items / archive past trips
 
 - [ ] **WL-4.2: Expiry Date Tracking** ⬜
 
 dev M · user high · 🟢
 
-  - [ ] Optional expiry date field on stock-in transactions
-  - [ ] "Expiring soon" badge on inventory items
-  - [ ] Sort/filter inventory by expiry
-  - [ ] Push notification (PWA) for items expiring within N days
+- [ ] Optional expiry date field on stock-in transactions
+- [ ] "Expiring soon" badge on inventory items
+- [ ] Sort/filter inventory by expiry
+- [ ] Push notification (PWA) for items expiring within N days
 
 ---
 
@@ -270,30 +271,30 @@ Goal: match current stock against a personal recipe database; answer "what can I
 
 dev M · user high · 🟢
 
-  - [ ] [Cooklang](https://cooklang.org/) format for recipes (plain-text, git-friendly, ingredient-aware)
-  - [ ] Import/manage `.cook` files via the UI
-  - [ ] Parse Cooklang → structured ingredient list with quantities and units
-  - [ ] Recipe browser with search and category/tag filters
+- [ ] [Cooklang](https://cooklang.org/) format for recipes (plain-text, git-friendly, ingredient-aware)
+- [ ] Import/manage `.cook` files via the UI
+- [ ] Parse Cooklang → structured ingredient list with quantities and units
+- [ ] Recipe browser with search and category/tag filters
 
 - [ ] **WL-5.2: Stock-Aware Recipe Matching** ⬜
 
 dev M · user critical · 🟢
 Depends: WL-5.1
 
-  - [ ] Match recipe ingredients against current inventory (fuzzy name matching + unit normalisation)
-  - [ ] Three tiers: "ready to cook" (all ingredients in stock), "almost ready" (1–2 items missing), "need shopping"
-  - [ ] Missing-ingredient delta → one-tap add to shopping list (WL-4.1)
-  - [ ] "Cook this" action → bulk-deduct ingredients from inventory
+- [ ] Match recipe ingredients against current inventory (fuzzy name matching + unit normalisation)
+- [ ] Three tiers: "ready to cook" (all ingredients in stock), "almost ready" (1–2 items missing), "need shopping"
+- [ ] Missing-ingredient delta → one-tap add to shopping list (WL-4.1)
+- [ ] "Cook this" action → bulk-deduct ingredients from inventory
 
 - [ ] **WL-5.3: AI Recipe Suggestions** ⬜
 
 dev M · user high · 🟡
 
-  - [ ] On-device or local-network LLM (e.g. Ollama) suggests meals from available ingredients
-  - [ ] Substitution suggestions for missing ingredients
-  - [ ] Generate new Cooklang recipes inspired by the user's cooking history and current stock
-  - [ ] Privacy-first: no data leaves the home network
-  - [ ] Graceful fallback when no LLM is available (feature simply hidden)
+- [ ] On-device or local-network LLM (e.g. Ollama) suggests meals from available ingredients
+- [ ] Substitution suggestions for missing ingredients
+- [ ] Generate new Cooklang recipes inspired by the user's cooking history and current stock
+- [ ] Privacy-first: no data leaves the home network
+- [ ] Graceful fallback when no LLM is available (feature simply hidden)
 
 ---
 
@@ -303,21 +304,21 @@ dev M · user high · 🟡
 
 dev L · user med · 🟡
 
-  - [ ] OCR receipt scanning to auto-record multiple items
-  - [ ] Price extraction and category inference
+- [ ] OCR receipt scanning to auto-record multiple items
+- [ ] Price extraction and category inference
 
 - [ ] **WL-6.2: Multi-User / Household** ⬜
 
 dev L · user med · 🟡
 
-  - [ ] User accounts and lightweight authentication (PIN or household code)
-  - [ ] Shared household inventory
-  - [ ] Per-user transaction attribution and personal shopping lists
+- [ ] User accounts and lightweight authentication (PIN or household code)
+- [ ] Shared household inventory
+- [ ] Per-user transaction attribution and personal shopping lists
 
 - [ ] **WL-6.3: Gamification** ⬜
 
 dev S · user high · 🟢
 
-  - [ ] Scan streaks, badges, leaderboard for household members
-  - [ ] "Scan of the week" highlights
-  - [ ] Makes the app fun for kids — core principle compliance
+- [ ] Scan streaks, badges, leaderboard for household members
+- [ ] "Scan of the week" highlights
+- [ ] Makes the app fun for kids — core principle compliance

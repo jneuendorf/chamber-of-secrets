@@ -111,6 +111,7 @@ Bullet list ok. No co-author trailer unless asked.
 
 ```bash
 just dev                      # backend + frontend in parallel
+just dev https                # same, but frontend over TLS (mkcert certs) for on-device camera
 just check                    # biome check + typecheck + test (all layers)
 just check-all                # same as check, but all files (not staged)
 just check-frontend           # biome check + typecheck + test (frontend)

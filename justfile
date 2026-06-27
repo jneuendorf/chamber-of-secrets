@@ -13,13 +13,13 @@ default:
 backend:
     cd backend && uv run uvicorn app.main:app --reload --host {{ host }}
 
-# start the SvelteKit dev server
-frontend:
-    cd frontend && bun run dev --host {{ host }}
+# start the SvelteKit dev server (pass "https" to serve over TLS via mkcert certs)
+frontend *MODE="":
+    cd frontend && {{ if MODE == "https" { "DEV_HTTPS=true" } else { "" } }} bun run dev --host {{ host }}
 
-# start both backend and frontend
-dev:
-    just backend & just frontend & wait
+# start both backend and frontend (pass "https" to serve the frontend over TLS)
+dev *MODE="":
+    just backend & just frontend {{ MODE }} & wait
 
 # build the frontend for production
 build-frontend:
