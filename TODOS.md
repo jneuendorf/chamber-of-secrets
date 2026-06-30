@@ -9,22 +9,6 @@ Larger consistency work is also tracked as ROADMAP WL-4.5.
 
 ---
 
-## Semantic correctness
-
-- **Inventory "low stock" ignores category thresholds.**
-  [`inventory/+page.svelte`](frontend/src/routes/inventory/+page.svelte)
-  flags low/out with a hardcoded `stock <= 1` / `<= 0`, but categories carry
-  `restock_min`/`restock_target` (with inheritance) that drive
-  `/api/analytics/restock-overview`. Two competing notions of "low". Use the
-  effective (inherited) category thresholds for the badge so the inventory
-  list and the restock overview agree.
-
-- **Chamber "Required" stat is mislabeled.**
-  [`chamber/+page.svelte`](frontend/src/routes/chamber/+page.svelte) labels
-  the *depleted* count (stock ≤ 0) as "required". Either relabel it
-  "Depleted", or compute the real count of items below their restock
-  threshold (preferred — ties into the unified low-stock definition above).
-
 ## Visual consistency
 
 - **Three modal implementations.** WL-3.4 standardised categories/analytics

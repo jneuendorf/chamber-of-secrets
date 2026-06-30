@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n'
 
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
-    import { resolveIcon } from '$lib/utils/category'
+    import { resolveIcon, resolveRestockPolicy, stockStatus } from '$lib/utils/category'
 
     // const BG_ASPECT_RATIO = 1536 / 1024;
 
@@ -408,7 +408,18 @@
     )
 
     let available = $derived(products.filter((p) => p.stock > 0).length)
-    let depleted = $derived(products.filter((p) => p.stock <= 0).length)
+    let needsRestock = $derived(
+        products.filter((product) => {
+            const cat =
+                allCategories.find((category) => category.id === product.category_id) ??
+                product.category ??
+                null
+            return (
+                stockStatus(product.stock, resolveRestockPolicy(cat, allCategories)) !==
+                'ok'
+            )
+        }).length,
+    )
     let totalItems = $derived(products.reduce((s, p) => s + Math.max(0, p.stock), 0))
 
     function isUrl(s: string) {
@@ -494,8 +505,8 @@
                     </tr>
                     <tr>
                         <td>{$_('chamber.required')}</td>
-                        <td class="stat-val" class:stat-depleted={depleted > 0}
-                            >{depleted}</td
+                        <td class="stat-val" class:stat-depleted={needsRestock > 0}
+                            >{needsRestock}</td
                         >
                     </tr>
                     <tr>

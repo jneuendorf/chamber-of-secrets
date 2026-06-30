@@ -5,6 +5,11 @@
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
     import CategoryPicker from '$lib/components/CategoryPicker.svelte'
     import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+    import {
+        resolveRestockPolicy,
+        type StockStatus,
+        stockStatus,
+    } from '$lib/utils/category'
 
     let products: Product[] = $state([])
     let categories: Category[] = $state([])
@@ -16,6 +21,14 @@
     let cameraInput: HTMLInputElement | undefined = $state(undefined)
     let galleryInput: HTMLInputElement | undefined = $state(undefined)
     let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0))
+
+    function statusFor(product: Product): StockStatus {
+        const cat =
+            categories.find((category) => category.id === product.category_id) ??
+            product.category ??
+            null
+        return stockStatus(product.stock, resolveRestockPolicy(cat, categories))
+    }
 
     function selectProductFromSearch(item: unknown) {
         const product = item as Product
@@ -178,6 +191,7 @@
 
     <div class="flex flex-col gap-3">
         {#each products as product (product.id)}
+            {@const stockState = statusFor(product)}
             <div
                 class="bg-bark-800 border border-bark-600 rounded-xl p-4 shadow-sm"
                 data-product-id={product.id}
@@ -249,8 +263,8 @@
                     </div>
                     <div
                         class="stock"
-                        class:low={product.stock <= 1}
-                        class:out={product.stock <= 0}
+                        class:low={stockState === 'low'}
+                        class:out={stockState === 'out'}
                     >
                         {product.stock}
                     </div>
