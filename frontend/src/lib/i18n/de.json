@@ -14,8 +14,7 @@
     "required": "Nachbestellen",
     "totalStock": "Gesamtmenge",
     "empty": "Die Kammer ist leer.",
-    "scanCta": "Etwas hinzufügen!",
-    "close": "Schließen"
+    "scanCta": "Etwas hinzufügen!"
   },
   "dashboard": {
     "title": "Dashboard",

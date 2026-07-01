@@ -3,6 +3,7 @@
     import { get } from 'svelte/store'
     import { _ } from 'svelte-i18n'
 
+    import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
 
     let {
@@ -47,17 +48,39 @@
     }
 
     async function openStream() {
+        // Stop the current camera before acquiring the next so only one is
+        // ever live; the last-writer stop below also covers interleaved switches.
         stream?.getTracks().forEach((t) => {
             t.stop()
         })
-        stream = null
         scanning = false
 
         const videoConstraints: MediaTrackConstraints = selectedDeviceId
             ? { deviceId: { exact: selectedDeviceId } }
             : { facingMode: 'environment' }
 
-        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints })
+        const acquired = await navigator.mediaDevices.getUserMedia({
+            video: videoConstraints,
+        })
+
+        // The modal can be closed while getUserMedia is resolving; without
+        // this guard the freshly-acquired stream is orphaned and the camera
+        // stays on (macOS green light) since stopCamera already ran.
+        if (!modalOpen) {
+            acquired.getTracks().forEach((t) => {
+                t.stop()
+            })
+            return
+        }
+
+        // Rapid camera switches interleave two getUserMedia awaits; the
+        // last writer stops whatever's live before replacing it so an
+        // earlier-resolving stream isn't orphaned.
+        // ponytail: last-writer stops the previous stream; no per-switch cancellation token
+        stream?.getTracks().forEach((t) => {
+            t.stop()
+        })
+        stream = acquired
 
         if (videoEl) {
             videoEl.srcObject = stream
@@ -94,6 +117,11 @@
                 t.stop()
             })
 
+            // Closed during the permission prompt — don't acquire again.
+            if (!modalOpen) {
+                return
+            }
+
             await enumerateCameras()
             await openStream()
         } catch (e) {
@@ -117,6 +145,9 @@
             t.stop()
         })
         stream = null
+        if (videoEl) {
+            videoEl.srcObject = null
+        }
         modalOpen = false
     }
 
@@ -191,12 +222,6 @@
         }
     }
 
-    function handleKeydown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
-            stopCamera()
-        }
-    }
-
     function toggleManual() {
         manualVisible = !manualVisible
     }
@@ -215,8 +240,6 @@
         }
     })
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <div class="flex flex-col items-center gap-4">
     <div class="w-full max-w-100 flex items-stretch gap-2">
@@ -279,123 +302,76 @@
     {/if}
 </div>
 
-{#if modalOpen}
-    <!-- Backdrop -->
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div
-        class="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4"
-        role="button"
-        tabindex="0"
-        aria-label={$_('common.close')}
-        onclick={(e) => {
-            if (e.target === e.currentTarget) {
-                stopCamera()
-            }
-        }}
-        onkeydown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                stopCamera()
-            }
-        }}
-    >
-        <!-- Modal -->
-        <div
-            class="bg-bark-800 border border-bark-600 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden z-50 flex flex-col"
-        >
-            <!-- Header -->
+<Modal open={modalOpen} title={$_('scanner.scanBarcode')} onclose={stopCamera}>
+    <div class="flex flex-col gap-3">
+        <!-- Video feed -->
+        <div class="relative bg-black aspect-video overflow-hidden rounded-lg">
+            <!-- svelte-ignore element_invalid_self_closing_tag -->
+            <video
+                bind:this={videoEl}
+                playsinline
+                class="w-full h-full object-cover block"
+            />
+            <!-- Scan overlay -->
             <div
-                class="flex items-center justify-between px-4 py-3 border-b border-bark-600"
+                class="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
-                <span class="font-semibold text-gray-100"
-                    >{$_('scanner.scanBarcode')}</span
+                <div
+                    class="w-4/5 h-1/3 border-2 border-white/60 rounded-lg flex items-center justify-center"
                 >
-                <button
-                    type="button"
-                    onclick={stopCamera}
-                    class="text-gray-300 hover:text-gray-100 text-2xl leading-none border-0 bg-transparent cursor-pointer"
-                    aria-label={$_('scanner.stop')}
-                >
-                    &times;
-                </button>
+                    {#if scanning}
+                        <div class="scan-line"></div>
+                    {/if}
+                </div>
             </div>
 
-            <!-- Video feed -->
-            <div class="relative bg-black aspect-video">
-                <!-- svelte-ignore element_invalid_self_closing_tag -->
-                <video
-                    bind:this={videoEl}
-                    playsinline
-                    class="w-full h-full object-cover block"
-                />
-                <!-- Scan overlay -->
+            {#if detectorLoading}
                 <div
-                    class="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    class="absolute inset-0 bg-black/55 flex items-center justify-center z-10"
                 >
-                    <div
-                        class="w-4/5 h-1/3 border-2 border-white/60 rounded-lg flex items-center justify-center"
-                    >
-                        {#if scanning}
-                            <div class="scan-line"></div>
-                        {/if}
+                    <div class="flex flex-col items-center gap-2 text-white text-sm">
+                        <div class="loader" aria-hidden="true"></div>
+                        <span>{$_('common.loading')}</span>
+                        <span class="text-xs text-ink-200"
+                            >{$_('scanner.preparing')}</span
+                        >
                     </div>
                 </div>
-
-                {#if detectorLoading}
-                    <div
-                        class="absolute inset-0 bg-black/55 flex items-center justify-center z-10"
-                    >
-                        <div
-                            class="flex flex-col items-center gap-2 text-white text-sm"
-                        >
-                            <div class="loader" aria-hidden="true"></div>
-                            <span>{$_('common.loading')}</span>
-                            <span class="text-xs text-gray-200"
-                                >{$_('scanner.preparing')}</span
-                            >
-                        </div>
-                    </div>
-                {/if}
-            </div>
-
-            <!-- Camera selector + error -->
-            <div class="px-4 py-3 flex flex-col gap-2">
-                {#if error}
-                    <p class="text-danger-500 text-sm text-center">{error}</p>
-                {/if}
-
-                {#if cameras.length > 1}
-                    <div class="flex items-center gap-2">
-                        <label
-                            for="camera-select"
-                            class="text-sm text-gray-300 shrink-0"
-                        >
-                            {$_('scanner.camera')}
-                        </label>
-                        <Select
-                            id="camera-select"
-                            class="flex-1 px-2 py-1.5 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-sm"
-                            value={selectedDeviceId}
-                            onchange={switchCamera}
-                            items={cameras.map((cam, i) => ({
-                                value: cam.deviceId,
-                                label: cam.label || `${$_('scanner.camera')} ${i + 1}`,
-                            }))}
-                        />
-                    </div>
-                {/if}
-
-                <button
-                    type="button"
-                    onclick={stopCamera}
-                    class="w-full py-2 bg-bark-850 hover:bg-bark-880 text-gray-100 border border-bark-600 rounded-lg text-sm cursor-pointer"
-                >
-                    {$_('scanner.stop')}
-                </button>
-            </div>
+            {/if}
         </div>
+
+        <!-- Camera selector + error -->
+        {#if error}
+            <p class="text-danger-500 text-sm text-center">{error}</p>
+        {/if}
+
+        {#if cameras.length > 1}
+            <div class="flex items-center gap-2">
+                <label for="camera-select" class="text-sm text-ink-250 shrink-0">
+                    {$_('scanner.camera')}
+                </label>
+                <Select
+                    id="camera-select"
+                    class="flex-1 px-2 py-1.5 border border-bark-600 bg-bark-850 text-ink-100 rounded-md text-sm"
+                    value={selectedDeviceId}
+                    onchange={switchCamera}
+                    items={cameras.map((cam, i) => ({
+                        value: cam.deviceId,
+                        label: cam.label || `${$_('scanner.camera')} ${i + 1}`,
+                    }))}
+                />
+            </div>
+        {/if}
+
+        <button
+            type="button"
+            onclick={stopCamera}
+            class="w-full py-2 bg-bark-850 hover:bg-bark-880 text-ink-100 border border-bark-600 rounded-lg text-sm cursor-pointer"
+        >
+            {$_('scanner.stop')}
+        </button>
     </div>
-{/if}
+</Modal>
 
 <style>
     .scan-line {

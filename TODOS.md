@@ -11,13 +11,6 @@ Larger consistency work is also tracked as ROADMAP WL-4.5.
 
 ## Visual consistency
 
-- **Three modal implementations.** WL-3.4 standardised categories/analytics
-  on the Bits UI `Modal`, but
-  [`BarcodeScanner.svelte`](frontend/src/lib/components/BarcodeScanner.svelte)
-  (camera modal) and [`chamber/+page.svelte`](frontend/src/routes/chamber/+page.svelte)
-  (stats modal) still hand-roll their own backdrops. Migrate both to the
-  `Modal` component (or document why a given one can't).
-
 - **Colour-token drift** (violates the WL-3.3 "never hardcode" rule):
   - [`scan/+page.svelte`](frontend/src/routes/scan/+page.svelte) uses Tailwind
     defaults `text-gray-100/200/300/400` instead of `ink-*` tokens.

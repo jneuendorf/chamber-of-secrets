@@ -281,7 +281,7 @@ dev S · user med · 🟡
 See `TODOS.md` for the concrete code deltas.
 
 - [x] Unify "low stock" on the category restock thresholds (drop the hardcoded `stock <= 1` in inventory; chamber "Required" now counts items needing restock)
-- [ ] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
+- [x] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
 - [ ] Colour-token cleanup (scan `gray-*` → `ink-*`; tokenise chamber gold) and i18n the leaked scan strings
 
 ---

@@ -14,8 +14,7 @@
     "required": "Need Restocking",
     "totalStock": "Total Quantity",
     "empty": "The chamber is empty.",
-    "scanCta": "Add something!",
-    "close": "Close"
+    "scanCta": "Add something!"
   },
   "dashboard": {
     "title": "Dashboard",

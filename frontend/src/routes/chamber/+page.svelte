@@ -2,6 +2,7 @@
     import { _ } from 'svelte-i18n'
 
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
+    import Modal from '$lib/components/Modal.svelte'
     import { resolveIcon, resolveRestockPolicy, stockStatus } from '$lib/utils/category'
 
     // const BG_ASPECT_RATIO = 1536 / 1024;
@@ -477,51 +478,31 @@
 {/if}
 
 <!-- Stats modal -->
-{#if statsOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-    <div
-        class="modal-backdrop"
-        role="button"
-        tabindex="0"
-        aria-label="Close"
-        onclick={(e) => {
-            if (e.target === e.currentTarget) {
-                statsOpen = false
-            }
-        }}
-        onkeydown={(e) => {
-            if (e.key === 'Escape') {
-                statsOpen = false
-            }
-        }}
-    >
-        <div class="modal-card">
-            <h2 class="modal-title">📜 {$_('chamber.statsTitle')}</h2>
-            <table class="stats-table">
-                <tbody>
-                    <tr>
-                        <td>{$_('chamber.available')}</td>
-                        <td class="stat-val">{available}</td>
-                    </tr>
-                    <tr>
-                        <td>{$_('chamber.required')}</td>
-                        <td class="stat-val" class:stat-depleted={needsRestock > 0}
-                            >{needsRestock}</td
-                        >
-                    </tr>
-                    <tr>
-                        <td>{$_('chamber.totalStock')}</td>
-                        <td class="stat-val">{totalItems}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <button type="button" class="close-btn" onclick={() => (statsOpen = false)}>
-                {$_('chamber.close')}
-            </button>
-        </div>
-    </div>
-{/if}
+<Modal
+    open={statsOpen}
+    title="📜 {$_('chamber.statsTitle')}"
+    onclose={() => (statsOpen = false)}
+    width="min(340px, 100%)"
+>
+    <table class="stats-table">
+        <tbody>
+            <tr>
+                <td>{$_('chamber.available')}</td>
+                <td class="stat-val">{available}</td>
+            </tr>
+            <tr>
+                <td>{$_('chamber.required')}</td>
+                <td class="stat-val" class:stat-depleted={needsRestock > 0}
+                    >{needsRestock}</td
+                >
+            </tr>
+            <tr>
+                <td>{$_('chamber.totalStock')}</td>
+                <td class="stat-val">{totalItems}</td>
+            </tr>
+        </tbody>
+    </table>
+</Modal>
 
 <style>
     /* ---- Root: full viewport canvas ---- */
@@ -671,38 +652,6 @@
     }
 
     /* ---- Stats modal ---- */
-    .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.72);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-
-    .modal-card {
-        background: var(--color-bark-950);
-        border: 1px solid rgba(255, 215, 0, 0.4);
-        border-radius: 12px;
-        padding: 1.5rem;
-        min-width: 240px;
-        max-width: 340px;
-        width: 100%;
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
-    }
-
-    .modal-title {
-        margin: 0 0 1rem;
-        font-size: 0.78rem;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--color-warning-400);
-        text-align: center;
-        font-weight: 700;
-    }
-
     .stats-table {
         width: 100%;
         border-collapse: collapse;
@@ -722,23 +671,5 @@
 
     .stat-depleted {
         color: var(--color-danger-300);
-    }
-
-    .close-btn {
-        margin-top: 1.1rem;
-        width: 100%;
-        padding: 0.5rem;
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid rgba(255, 215, 0, 0.3);
-        border-radius: 6px;
-        color: var(--color-warning-400);
-        font-size: 0.75rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        cursor: pointer;
-    }
-
-    .close-btn:hover {
-        background: rgba(255, 215, 0, 0.2);
     }
 </style>
