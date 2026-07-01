@@ -40,6 +40,9 @@
     --color-accent-500: #6366f1;
     --color-accent-100: #e0e0ff;
 
+    /* Gold — chamber treasure accents (used with color-mix for alpha) */
+    --color-gold: #ffd700;
+
     /* Status — danger */
     --color-danger-900: #7f1d1d;
     --color-danger-800: #991b1b;

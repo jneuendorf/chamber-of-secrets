@@ -313,12 +313,12 @@
 
     {#if lookupResult}
         <div
-            class="bg-bark-800 border border-bark-600 rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-gray-100"
+            class="bg-bark-800 border border-bark-600 rounded-xl p-4 sm:p-6 mt-6 shadow-sm relative text-ink-100"
         >
             <button
                 type="button"
                 onclick={dismissScannedItem}
-                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-bark-850 text-gray-300 hover:bg-bark-900 hover:text-gray-100 border border-bark-650 inline-flex items-center justify-center"
+                class="absolute top-2 right-2 h-6 w-6 rounded-full bg-bark-850 text-ink-250 hover:bg-bark-900 hover:text-ink-100 border border-bark-650 inline-flex items-center justify-center"
                 aria-label={$_('scan.dismissScanned')}
                 title={$_('scan.dismissScanned')}
             >
@@ -335,31 +335,31 @@
             <div>
                 <h2 class="mt-0 mb-1">{lookupResult.name ?? $_('common.unknown')}</h2>
                 {#if lookupResult.brand}
-                    <p class="text-gray-300 m-0">{lookupResult.brand}</p>
+                    <p class="text-ink-250 m-0">{lookupResult.brand}</p>
                 {/if}
-                <p class="font-mono text-gray-400 text-[0.65rem]">
+                <p class="font-mono text-ink-400 text-[0.65rem]">
                     EAN: {lookupResult.ean}
                 </p>
 
                 {#if categorySuggestionName}
                     <div
-                        class="m-0 mt-1 text-xs text-gray-300 flex items-center gap-2 flex-wrap"
+                        class="m-0 mt-1 text-xs text-ink-250 flex items-center gap-2 flex-wrap"
                     >
                         <span>
-                            Category:
+                            {$_('scan.suggestedCategory')}
                             <strong>
                                 {matchedCategory
                                     ? matchedCategory.name
                                     : categorySuggestionName}
                             </strong>
                             {#if !matchedCategory}
-                                <span>(new)</span>
+                                <span>{$_('scan.categoryNew')}</span>
                             {/if}
                         </span>
                         <button
                             type="button"
                             onclick={dismissCategorySuggestion}
-                            class="h-5 w-5 rounded-full bg-bark-850 text-gray-300 hover:bg-bark-900 hover:text-gray-100 border border-bark-650 inline-flex items-center justify-center"
+                            class="h-5 w-5 rounded-full bg-bark-850 text-ink-250 hover:bg-bark-900 hover:text-ink-100 border border-bark-650 inline-flex items-center justify-center"
                             aria-label={$_('scan.dismissCategory')}
                             title={$_('scan.dismissCategory')}
                         >
@@ -372,7 +372,7 @@
             <div class="flex flex-col gap-4 mt-4 clear-both">
                 <!-- Category picker (prominent, first action after scan) -->
                 <div class="flex flex-col gap-1.5">
-                    <span class="text-sm text-gray-200">
+                    <span class="text-sm text-ink-200">
                         {$_('scan.categoryLabel')}
                         {#if !selectedCategory && !categorySuggestionName}
                             <span class="category-prompt">
@@ -389,7 +389,7 @@
                 </div>
 
                 <!-- Mobile-friendly quantity stepper -->
-                <label class="flex flex-col gap-2 text-sm text-gray-200">
+                <label class="flex flex-col gap-2 text-sm text-ink-200">
                     <span>{$_('scan.quantity')}</span>
 
                     <div class="flex items-center gap-2">
@@ -412,7 +412,7 @@
                                 updateQuantityFromInput(
                                     (e.currentTarget as HTMLInputElement).value,
                                 )}
-                            class="h-11 flex-1 text-center px-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-base"
+                            class="h-11 flex-1 text-center px-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-md text-base"
                         />
 
                         <button
@@ -427,7 +427,7 @@
                 </label>
 
                 <!-- Optional unit price, prefills from last txn -->
-                <label class="flex flex-col gap-1 text-sm text-gray-200">
+                <label class="flex flex-col gap-1 text-sm text-ink-200">
                     {$_('scan.unitPrice')}
                     <input
                         type="number"
@@ -436,7 +436,7 @@
                         step="0.01"
                         inputmode="decimal"
                         placeholder={$_('scan.pricePlaceholder')}
-                        class="px-2 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-md text-base"
+                        class="px-2 py-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-md text-base"
                     />
                 </label>
 

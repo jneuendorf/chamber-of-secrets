@@ -74,6 +74,8 @@
     "dismissScanned": "Dismiss scanned item",
     "dismissCategory": "Dismiss category suggestion",
     "categoryLabel": "Category",
+    "suggestedCategory": "Category:",
+    "categoryNew": "(new)",
     "categoryPrompt": "pick one!",
     "categoryNone": "None"
   },

@@ -604,7 +604,7 @@
         background: rgba(0, 0, 0, 0.6);
         padding: 2.5rem 2rem;
         border-radius: 12px;
-        border: 1px solid rgba(255, 215, 0, 0.2);
+        border: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent);
     }
 
     .empty-icon {
@@ -619,8 +619,8 @@
     .cta-link {
         display: inline-block;
         padding: 0.4rem 1.1rem;
-        background: rgba(255, 215, 0, 0.12);
-        border: 1px solid rgba(255, 215, 0, 0.35);
+        background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent);
         border-radius: 6px;
         color: var(--color-warning-400);
         text-decoration: none;
@@ -636,7 +636,7 @@
         height: 3rem;
         font-size: 1.4rem;
         background: rgba(6, 4, 14, 0.88);
-        border: 1px solid rgba(255, 215, 0, 0.45);
+        border: 1px solid color-mix(in srgb, var(--color-gold) 45%, transparent);
         border-radius: 50%;
         cursor: pointer;
         z-index: 20;
@@ -648,7 +648,7 @@
 
     .stats-btn:hover {
         background: rgba(20, 12, 40, 0.95);
-        border-color: rgba(255, 215, 0, 0.75);
+        border-color: color-mix(in srgb, var(--color-gold) 75%, transparent);
     }
 
     /* ---- Stats modal ---- */

@@ -275,14 +275,14 @@ dev XS · user med · 🟡
 
 - [ ] Filter by category and by low-stock, combined with the existing fuzzy search
 
-- [ ] **WL-4.5: Consistency Cleanup** 🚧
+- [x] **WL-4.5: Consistency Cleanup** ✅
 
 dev S · user med · 🟡
 See `TODOS.md` for the concrete code deltas.
 
 - [x] Unify "low stock" on the category restock thresholds (drop the hardcoded `stock <= 1` in inventory; chamber "Required" now counts items needing restock)
 - [x] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
-- [ ] Colour-token cleanup (scan `gray-*` → `ink-*`; tokenise chamber gold) and i18n the leaked scan strings
+- [x] Colour-token cleanup (scan `gray-*` → `ink-*`; tokenise chamber gold) and i18n the leaked scan strings
 
 ---
 
