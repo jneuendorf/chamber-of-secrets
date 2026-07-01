@@ -52,7 +52,10 @@
     }
 
     const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    // Rolling 30-day window rather than start-of-month, which collapses to a
+    // single day on the 1st (and shows almost nothing early in each month).
+    const windowStart = new Date(now)
+    windowStart.setDate(windowStart.getDate() - 30)
 
     let spending: SpendingByCategory[] = $state([])
     let timeseries: TimeseriesPoint[] = $state([])
@@ -64,7 +67,7 @@
 
     let loading = $state(true)
     let error = $state('')
-    let since = $state(toISODate(monthStart))
+    let since = $state(toISODate(windowStart))
     let until = $state(toISODate(now))
 
     async function load() {
