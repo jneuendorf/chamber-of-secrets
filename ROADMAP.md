@@ -243,14 +243,14 @@ Goal: the everyday heart of the app — make adding, consuming, and correcting
 stock effortless and mistake-proof. **Higher priority than the shopping list**:
 using/filling/tracking is the product; the rest is add-ons.
 
-- [ ] **WL-4.1: Manual Product Entry** ⬜
+- [x] **WL-4.1: Manual Product Entry** ✅
 
 dev S · user critical · 🟢
 
-- [ ] When Open Food Facts has no match, offer a "create it yourself" path instead of a dead end (store brands, bakery, loose produce)
-- [ ] Manual name + optional brand / category / image; with or without an EAN
-- [ ] Reuse the existing `POST /api/products` (no OFF data required) — this is mostly a frontend flow on the scan page
-- [ ] Result is a normal trackable product (stock movements, chamber, analytics)
+- [x] When Open Food Facts has no match, offer a "create it yourself" path instead of a dead end (store brands, bakery, loose produce)
+- [x] Manual name + optional brand / category / image; with or without an EAN
+- [x] Reuse the existing `POST /api/products` (no OFF data required) — this is mostly a frontend flow on the scan page
+- [x] Result is a normal trackable product (stock movements, chamber, analytics)
 
 - [ ] **WL-4.2: Mistake Recovery** ⬜
 

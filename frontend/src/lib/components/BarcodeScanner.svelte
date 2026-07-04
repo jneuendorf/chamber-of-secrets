@@ -222,8 +222,14 @@
         }
     }
 
-    function toggleManual() {
+    let manualInputEl: HTMLInputElement | undefined = $state()
+
+    async function toggleManual() {
         manualVisible = !manualVisible
+        if (manualVisible) {
+            await tick()
+            manualInputEl?.focus()
+        }
     }
 
     let lastRestartSignal = $state(0)
@@ -241,11 +247,30 @@
     })
 </script>
 
-<div class="flex flex-col items-center gap-4">
-    <div class="w-full max-w-100 flex items-stretch gap-2">
+{#snippet toggleButton()}
+    <button
+        type="button"
+        onclick={toggleManual}
+        class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-bark-820 border border-bark-600 rounded-lg"
+        aria-expanded={manualVisible ? 'true' : 'false'}
+        aria-label={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
+        title={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
+    >
         {#if manualVisible}
+            ✖️
+        {:else}
+            𝄃𝄃𝄂𝄂𝄀
+        {/if}
+    </button>
+{/snippet}
+
+<div class="flex flex-col items-center gap-4">
+    {#if manualVisible}
+        <!-- Two equal columns: the input matches the width of the "+ Add"
+             mode-toggle button; look-up + close share the second column. -->
+        <div class="w-full grid grid-cols-2 items-stretch gap-2">
             <form
-                class="flex-1 flex gap-2"
+                class="flex"
                 onsubmit={(e) => {
                     e.preventDefault()
                     submitManual()
@@ -253,14 +278,18 @@
             >
                 <input
                     type="text"
+                    bind:this={manualInputEl}
                     bind:value={manualCode}
                     placeholder={$_('scanner.barcodePlaceholder')}
                     inputmode="numeric"
                     pattern="[0-9]*"
-                    class="flex-1 h-12 px-2.5 border border-gray-300 rounded-md text-base"
+                    class="w-full h-12 px-2.5 border border-gray-300 rounded-md text-base"
                 />
+            </form>
+            <div class="flex gap-2">
                 <button
-                    type="submit"
+                    type="button"
+                    onclick={submitManual}
                     class="flex-1 h-12 px-3 sm:px-4 bg-bark-750 text-white border border-bark-600 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
                     aria-label={$_('scanner.lookUp')}
                     title={$_('scanner.lookUp')}
@@ -268,8 +297,11 @@
                     <span aria-hidden="true">⌕</span>
                     <span class="hidden sm:inline">{$_('scanner.lookUp')}</span>
                 </button>
-            </form>
-        {:else}
+                {@render toggleButton()}
+            </div>
+        </div>
+    {:else}
+        <div class="w-full flex items-stretch gap-2">
             <button
                 type="button"
                 onclick={startCamera}
@@ -277,25 +309,9 @@
             >
                 {$_('scanner.startCamera')}
             </button>
-        {/if}
-
-        <button
-            type="button"
-            onclick={toggleManual}
-            class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-bark-820 border border-bark-600 rounded-lg"
-            aria-expanded={manualVisible ? 'true' : 'false'}
-            aria-label={manualVisible
-                ? $_('scanner.hideManual')
-                : $_('scanner.showManual')}
-            title={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
-        >
-            {#if manualVisible}
-                ✖️
-            {:else}
-                𝄃𝄃𝄂𝄂𝄀
-            {/if}
-        </button>
-    </div>
+            {@render toggleButton()}
+        </div>
+    {/if}
 
     {#if error && !modalOpen}
         <p class="text-danger-500 text-sm">{error}</p>

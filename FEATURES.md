@@ -52,6 +52,11 @@ emerges from knowing what's in stock:
   previous data as an immutable revision.
 - Record a stock movement (`in` or `out`) with quantity and optional
   unit price directly from the scan page.
+- **Manual entry**: when Open Food Facts has no match — or for products
+  without a barcode (bakery, loose produce, store brands) — create the
+  product yourself from the scan page (name required; brand, category,
+  image URL, and EAN optional). The result is a normal trackable product.
+  Product images can also be added later from the inventory view.
 
 ### 2.2 Inventory
 

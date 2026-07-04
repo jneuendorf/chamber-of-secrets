@@ -77,7 +77,14 @@
     "suggestedCategory": "Kategorie:",
     "categoryNew": "(neu)",
     "categoryPrompt": "wähle eine!",
-    "categoryNone": "Keine"
+    "categoryNone": "Keine",
+    "createManually": "Selbst anlegen",
+    "addManually": "Produkt manuell anlegen",
+    "manualTitle": "Neues Produkt",
+    "manualNamePlaceholder": "Produktname",
+    "manualBrandPlaceholder": "Marke (optional)",
+    "manualImagePlaceholder": "Bild-URL (optional)",
+    "manualEanPlaceholder": "Barcode / EAN (optional)"
   },
   "category": {
     "none": "Keine",
