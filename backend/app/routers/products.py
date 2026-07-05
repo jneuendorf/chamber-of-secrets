@@ -1,15 +1,17 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile
+from sqlalchemy import delete, update
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import PRODUCT_IMAGE_DIR
 from app.database import get_db
-from app.models import Product, ProductRevision
+from app.models import InventoryTransaction, Product, ProductRevision
 from app.schemas import (
     CategoryRead,
     EANLookupResult,
     ProductCreate,
+    ProductMerge,
     ProductRead,
     ProductRevisionRead,
     ProductUpdate,
@@ -94,6 +96,41 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> Produc
     db.commit()
     db.refresh(product)
     return product  # type: ignore[return-value]
+
+
+@router.post("/merge", response_model=ProductWithStock)
+def merge_products(data: ProductMerge, db: Session = Depends(get_db)) -> ProductWithStock:
+    """Merge duplicates: move the source's transactions onto the target, then
+    delete the source (and its revisions/image). Stock is recomputed."""
+    source = db.get(Product, data.source_id)
+    target = db.get(Product, data.target_id)
+    if not source or not target:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.execute(
+        update(InventoryTransaction)
+        .where(InventoryTransaction.product_id == source.id)
+        .values(product_id=target.id),
+    )
+    _remove_old_upload(source.image_url)
+    db.execute(delete(ProductRevision).where(ProductRevision.product_id == source.id))
+    db.execute(delete(Product).where(Product.id == source.id))
+    db.commit()
+    return _serialize(_get_or_404(target.id, db))
+
+
+@router.delete("/{product_id}", status_code=204)
+def delete_product(product_id: int, db: Session = Depends(get_db)) -> None:
+    """Delete a product and cascade its transactions, revisions, and local image."""
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    _remove_old_upload(product.image_url)
+    db.execute(delete(InventoryTransaction).where(InventoryTransaction.product_id == product_id))
+    db.execute(delete(ProductRevision).where(ProductRevision.product_id == product_id))
+    db.execute(delete(Product).where(Product.id == product_id))
+    db.commit()
 
 
 @router.patch("/{product_id}", response_model=ProductRead)

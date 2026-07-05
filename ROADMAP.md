@@ -237,7 +237,7 @@ dev S · user med · 🟡
 
 ---
 
-## Milestone 4 — Core Loop: Use · Fill · Track ⬜
+## Milestone 4 — Core Loop: Use · Fill · Track 🚧
 
 Goal: the everyday heart of the app — make adding, consuming, and correcting
 stock effortless and mistake-proof. **Higher priority than the shopping list**:
@@ -252,15 +252,15 @@ dev S · user critical · 🟢
 - [x] Reuse the existing `POST /api/products` (no OFF data required) — this is mostly a frontend flow on the scan page
 - [x] Result is a normal trackable product (stock movements, chamber, analytics)
 
-- [ ] **WL-4.2: Mistake Recovery** ⬜
+- [x] **WL-4.2: Mistake Recovery** ✅
 
 dev M · user high · 🟢
 
-- [ ] Undo last transaction — one tap from the scan success toast and from an activity view
-- [ ] Activity / history view: recent `in`/`out` movements (global and per product)
-- [ ] Edit / delete a transaction: `DELETE` + `PATCH /api/transactions/{id}`, stock recomputed
-- [ ] Product delete (`DELETE /api/products/{id}`; block-with-reassign or cascade) + duplicate merge
-- [ ] Unblocks the category-delete dead end (can't delete category while a product uses it, but products can't be deleted today)
+- [x] Undo last transaction — one tap from the scan success toast (5s window); also editable/deletable from the activity view
+- [x] Activity / history view: recent `in`/`out` movements (global and per product via a product filter)
+- [x] Edit / delete a transaction: `DELETE` + `PATCH /api/transactions/{id}`, stock recomputed (derived at query time)
+- [x] Product delete (`DELETE /api/products/{id}`, cascade transactions + revisions + image) + duplicate merge (`POST /api/products/merge` repoints transactions onto the survivor)
+- [x] Unblocks the category-delete dead end (products can now be deleted, freeing their category)
 
 - [ ] **WL-4.3: Quick Stock Adjust** ⬜
 

@@ -104,6 +104,17 @@ class ProductWithStock(ProductRead):
     category: CategoryRead | None = None
 
 
+class ProductMerge(BaseModel):
+    source_id: int
+    target_id: int
+
+    @model_validator(mode="after")
+    def validate_distinct(self) -> ProductMerge:
+        if self.source_id == self.target_id:
+            raise ValueError("source_id and target_id must differ")
+        return self
+
+
 class ProductRevisionRead(BaseModel):
     id: int
     product_id: int
@@ -129,6 +140,20 @@ class TransactionCreate(BaseModel):
     @classmethod
     def validate_positive_quantity(cls, value: float) -> float:
         if value <= 0:
+            raise ValueError("quantity must be > 0")
+        return value
+
+
+class TransactionUpdate(BaseModel):
+    type: Literal["in", "out"] | None = None
+    quantity: float | None = None
+    unit_price: float | None = None
+    notes: str | None = None
+
+    @field_validator("quantity")
+    @classmethod
+    def validate_positive_quantity(cls, value: float | None) -> float | None:
+        if value is not None and value <= 0:
             raise ValueError("quantity must be > 0")
         return value
 

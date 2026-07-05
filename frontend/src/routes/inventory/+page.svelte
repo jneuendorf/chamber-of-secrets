@@ -5,7 +5,10 @@
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
     import CategoryPicker from '$lib/components/CategoryPicker.svelte'
     import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
+    import Modal from '$lib/components/Modal.svelte'
+    import Select from '$lib/components/Select.svelte'
     import {
+        resolveIcon,
         resolveRestockPolicy,
         type StockStatus,
         stockStatus,
@@ -118,6 +121,63 @@
                 values: {
                     error: e instanceof ApiError ? (e as ApiError).detail : String(e),
                 },
+            })
+        }
+    }
+
+    // --- Delete / merge (WL-4.2) ---
+    let deletingProduct: Product | null = $state(null)
+    let mergingProduct: Product | null = $state(null)
+    let mergeTargetId: number | 'none' = $state('none')
+
+    let mergeTargets = $derived(
+        mergingProduct
+            ? products
+                  .filter((p) => p.id !== mergingProduct!.id)
+                  .map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                      icon: resolveIcon(p.category, categories),
+                  }))
+            : [],
+    )
+
+    async function confirmDeleteProduct() {
+        const target = deletingProduct
+        if (!target) {
+            return
+        }
+        deletingProduct = null
+        try {
+            await api.products.delete(target.id)
+            products = products.filter((p) => p.id !== target.id)
+        } catch (e) {
+            error = get(_)('inventory.deleteFailed', {
+                values: { error: e instanceof ApiError ? e.detail : String(e) },
+            })
+        }
+    }
+
+    function closeMerge() {
+        mergingProduct = null
+        mergeTargetId = 'none'
+    }
+
+    async function confirmMerge() {
+        const source = mergingProduct
+        if (!source || mergeTargetId === 'none') {
+            return
+        }
+        const targetId = mergeTargetId
+        closeMerge()
+        try {
+            const merged = await api.products.merge(source.id, targetId)
+            products = products
+                .filter((p) => p.id !== source.id)
+                .map((p) => (p.id === merged.id ? { ...p, stock: merged.stock } : p))
+        } catch (e) {
+            error = get(_)('inventory.mergeFailed', {
+                values: { error: e instanceof ApiError ? e.detail : String(e) },
             })
         }
     }
@@ -279,12 +339,101 @@
                             onCreateAndSelect={(name) => createAndAssign(product, name)}
                             onUpdateIcon={handleUpdateIcon}
                         />
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onclick={() => {
+                                    mergeTargetId = 'none'
+                                    mergingProduct = product
+                                }}
+                                class="px-2.5 py-1.5 text-xs rounded-lg border border-bark-600 bg-bark-850 text-ink-200 hover:text-ink-100 hover:border-bark-500"
+                            >
+                                {$_('inventory.merge')}
+                            </button>
+                            <button
+                                type="button"
+                                onclick={() => (deletingProduct = product)}
+                                class="px-2.5 py-1.5 text-xs rounded-lg border border-danger-900 bg-ink-900 text-danger-200 hover:text-danger-100 hover:border-danger-500"
+                            >
+                                {$_('inventory.deleteProduct')}
+                            </button>
+                        </div>
                     </div>
                 {/if}
             </div>
         {/each}
     </div>
 {/if}
+
+<Modal
+    open={deletingProduct !== null}
+    title={$_('inventory.deleteProduct')}
+    onclose={() => (deletingProduct = null)}
+>
+    {#if deletingProduct}
+        <p class="mt-0 text-ink-200">
+            {$_('inventory.deleteConfirm', {
+                values: { name: deletingProduct.name },
+            })}
+        </p>
+        <div class="mt-4 flex justify-end gap-2">
+            <button
+                type="button"
+                onclick={() => (deletingProduct = null)}
+                class="px-3 py-2 text-sm rounded-lg border border-bark-600 bg-bark-850 text-ink-200"
+            >
+                {$_('common.cancel')}
+            </button>
+            <button
+                type="button"
+                onclick={confirmDeleteProduct}
+                class="px-3 py-2 text-sm rounded-lg border-0 bg-danger-500 text-white"
+            >
+                {$_('inventory.deleteProduct')}
+            </button>
+        </div>
+    {/if}
+</Modal>
+
+<Modal
+    open={mergingProduct !== null}
+    title={mergingProduct
+        ? $_('inventory.mergeTitle', { values: { name: mergingProduct.name } })
+        : ''}
+    onclose={closeMerge}
+>
+    {#if mergingProduct}
+        <p class="mt-0 text-ink-250 text-sm">
+            {$_('inventory.mergeHint', { values: { name: mergingProduct.name } })}
+        </p>
+        <label class="mt-3 flex flex-col gap-1.5 text-sm text-ink-200">
+            {$_('inventory.mergeTargetLabel')}
+            <Select
+                items={mergeTargets}
+                value={mergeTargetId === 'none' ? undefined : mergeTargetId}
+                onchange={(value) => (mergeTargetId = value)}
+                class="rounded-lg border border-bark-600 bg-bark-850 px-3 py-2 text-ink-100"
+            />
+        </label>
+        <div class="mt-4 flex justify-end gap-2">
+            <button
+                type="button"
+                onclick={closeMerge}
+                class="px-3 py-2 text-sm rounded-lg border border-bark-600 bg-bark-850 text-ink-200"
+            >
+                {$_('common.cancel')}
+            </button>
+            <button
+                type="button"
+                onclick={confirmMerge}
+                disabled={mergeTargetId === 'none'}
+                class="px-3 py-2 text-sm rounded-lg border-0 bg-accent-900 text-white disabled:opacity-50"
+            >
+                {$_('inventory.mergeConfirm')}
+            </button>
+        </div>
+    {/if}
+</Modal>
 
 <style>
     .heading-row {

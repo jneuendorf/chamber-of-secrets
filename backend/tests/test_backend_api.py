@@ -440,6 +440,108 @@ class BackendAPITestCase(unittest.TestCase):
         )
         self.assertEqual(updated_child["parent_id"], grandparent["id"])
 
+    # ---------- Transaction edit / delete (WL-4.2) ----------
+
+    def _add_transaction(self, product_id: int, **extra: object) -> dict:
+        payload = {"product_id": product_id, "type": "in", "quantity": 1, **extra}
+        res = self.client.post("/api/transactions/", json=payload)
+        self.assertEqual(res.status_code, 201, res.text)
+        return res.json()
+
+    def test_delete_transaction_recomputes_stock(self) -> None:
+        product = self._create_product("Beans")
+        first = self._add_transaction(product["id"], quantity=5)
+        self._add_transaction(product["id"], quantity=3)
+
+        res = self.client.delete(f"/api/transactions/{first['id']}")
+        self.assertEqual(res.status_code, 204)
+
+        fetched = self.client.get(f"/api/products/{product['id']}")
+        self.assertEqual(fetched.json()["stock"], 3.0)
+
+    def test_delete_transaction_not_found(self) -> None:
+        res = self.client.delete("/api/transactions/999999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_patch_transaction_updates_fields_and_stock(self) -> None:
+        product = self._create_product("Corn")
+        txn = self._add_transaction(product["id"], quantity=2)
+
+        res = self.client.patch(
+            f"/api/transactions/{txn['id']}",
+            json={"quantity": 8, "type": "in", "unit_price": 1.5},
+        )
+        self.assertEqual(res.status_code, 200, res.text)
+        self.assertEqual(res.json()["quantity"], 8.0)
+
+        fetched = self.client.get(f"/api/products/{product['id']}")
+        self.assertEqual(fetched.json()["stock"], 8.0)
+
+    def test_patch_transaction_rejects_non_positive_quantity(self) -> None:
+        product = self._create_product("Oats")
+        txn = self._add_transaction(product["id"])
+        res = self.client.patch(f"/api/transactions/{txn['id']}", json={"quantity": 0})
+        self.assertEqual(res.status_code, 422)
+
+    # ---------- Product delete + merge (WL-4.2) ----------
+
+    def test_delete_product_cascades_transactions(self) -> None:
+        product = self._create_product("Sugar")
+        self._add_transaction(product["id"], quantity=4)
+
+        res = self.client.delete(f"/api/products/{product['id']}")
+        self.assertEqual(res.status_code, 204)
+
+        self.assertEqual(self.client.get(f"/api/products/{product['id']}").status_code, 404)
+        listing = self.client.get(f"/api/transactions/?product_id={product['id']}").json()
+        self.assertEqual(listing, [])
+
+    def test_delete_product_not_found(self) -> None:
+        res = self.client.delete("/api/products/999999")
+        self.assertEqual(res.status_code, 404)
+
+    def test_delete_product_frees_category(self) -> None:
+        # The category-delete dead end (WL-4.2): once its only product is gone,
+        # the category can be deleted.
+        cat = self._create_category("Snacks")
+        product = self._create_product("Chips", category_id=cat["id"])
+        self.assertEqual(self.client.delete(f"/api/categories/{cat['id']}").status_code, 409)
+
+        self.client.delete(f"/api/products/{product['id']}")
+        self.assertEqual(self.client.delete(f"/api/categories/{cat['id']}").status_code, 204)
+
+    def test_merge_products_repoints_transactions(self) -> None:
+        keep = self._create_product("Milk 1L")
+        dupe = self._create_product("Milk one litre")
+        self._add_transaction(keep["id"], quantity=2)
+        self._add_transaction(dupe["id"], quantity=5)
+
+        res = self.client.post(
+            "/api/products/merge",
+            json={"source_id": dupe["id"], "target_id": keep["id"]},
+        )
+        self.assertEqual(res.status_code, 200, res.text)
+        self.assertEqual(res.json()["id"], keep["id"])
+        self.assertEqual(res.json()["stock"], 7.0)
+
+        self.assertEqual(self.client.get(f"/api/products/{dupe['id']}").status_code, 404)
+
+    def test_merge_products_rejects_same_id(self) -> None:
+        product = self._create_product("Water")
+        res = self.client.post(
+            "/api/products/merge",
+            json={"source_id": product["id"], "target_id": product["id"]},
+        )
+        self.assertEqual(res.status_code, 422)
+
+    def test_merge_products_missing_returns_404(self) -> None:
+        product = self._create_product("Juice")
+        res = self.client.post(
+            "/api/products/merge",
+            json={"source_id": 999999, "target_id": product["id"]},
+        )
+        self.assertEqual(res.status_code, 404)
+
     def test_delete_root_category_reparents_children_to_null(self) -> None:
         root = self._create_category("Root")
         child = self._create_category("Child", parent_id=root["id"])

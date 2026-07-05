@@ -52,6 +52,15 @@
                     </li>
                     <li>
                         <a
+                            href="/activity"
+                            aria-current={page.url.pathname === '/activity'
+                                ? 'page'
+                                : false}
+                            class="nav-link">{$_('nav.activity')}</a
+                        >
+                    </li>
+                    <li>
+                        <a
                             href="/categories"
                             aria-current={page.url.pathname === '/categories'
                                 ? 'page'

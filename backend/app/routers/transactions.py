@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import InventoryTransaction, Product
-from app.schemas import TransactionCreate, TransactionRead
+from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -46,3 +46,35 @@ def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)) -
     db.commit()
     db.refresh(transaction)
     return transaction  # type: ignore[return-value]
+
+
+def _get_transaction_or_404(transaction_id: int, db: Session) -> InventoryTransaction:
+    transaction = db.get(InventoryTransaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return transaction
+
+
+@router.patch("/{transaction_id}", response_model=TransactionRead)
+def update_transaction(
+    transaction_id: int,
+    data: TransactionUpdate,
+    db: Session = Depends(get_db),
+) -> TransactionRead:
+    # Mistake-recovery edit. Stock is derived from transactions at query time,
+    # so no separate recompute is needed. No stock guard — this is a correction
+    # tool and may legitimately fix an over-recorded movement.
+    transaction = _get_transaction_or_404(transaction_id, db)
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(transaction, key, value)
+    db.commit()
+    db.refresh(transaction)
+    return transaction  # type: ignore[return-value]
+
+
+@router.delete("/{transaction_id}", status_code=204)
+def delete_transaction(transaction_id: int, db: Session = Depends(get_db)) -> None:
+    # Powers "undo last movement". Stock recomputes automatically.
+    transaction = _get_transaction_or_404(transaction_id, db)
+    db.delete(transaction)
+    db.commit()

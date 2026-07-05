@@ -183,6 +183,12 @@ export const api = {
         deleteImage: (id: number) =>
             request<void>(`/products/${id}/image`, { method: 'DELETE' }),
         lookupEAN: (ean: string) => request<EANLookupResult>(`/products/lookup/${ean}`),
+        delete: (id: number) => request<void>(`/products/${id}`, { method: 'DELETE' }),
+        merge: (sourceId: number, targetId: number) =>
+            request<Product>('/products/merge', {
+                method: 'POST',
+                body: JSON.stringify({ source_id: sourceId, target_id: targetId }),
+            }),
     },
     transactions: {
         list: (productId?: number) =>
@@ -200,6 +206,21 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),
+        update: (
+            id: number,
+            data: {
+                type?: 'in' | 'out'
+                quantity?: number
+                unit_price?: number | null
+                notes?: string | null
+            },
+        ) =>
+            request<Transaction>(`/transactions/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+            }),
+        delete: (id: number) =>
+            request<void>(`/transactions/${id}`, { method: 'DELETE' }),
     },
     categories: {
         list: () => request<Category[]>('/categories/'),

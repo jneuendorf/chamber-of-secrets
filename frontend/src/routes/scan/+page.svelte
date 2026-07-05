@@ -25,16 +25,39 @@
     let lookupError = $state('')
     let loading = $state(false)
 
-    // Brief success toast after saving (auto-clears)
+    // Brief success toast after saving (auto-clears). When a transaction was
+    // just recorded, undoTxnId enables one-tap undo (WL-4.2).
     let successToast = $state('')
+    let undoTxnId = $state<number | null>(null)
     let toastTimer: ReturnType<typeof setTimeout> | undefined
 
-    function showSuccessToast(message: string) {
+    function showSuccessToast(message: string, txnId: number | null = null) {
         successToast = message
+        undoTxnId = txnId
         clearTimeout(toastTimer)
-        toastTimer = setTimeout(() => {
-            successToast = ''
-        }, 2500)
+        toastTimer = setTimeout(
+            () => {
+                successToast = ''
+                undoTxnId = null
+            },
+            txnId ? 5000 : 2500,
+        )
+    }
+
+    async function undoLastTransaction() {
+        if (undoTxnId === null) {
+            return
+        }
+        const id = undoTxnId
+        undoTxnId = null
+        try {
+            await api.transactions.delete(id)
+            showSuccessToast(get(_)('scan.undone'))
+        } catch (e) {
+            lookupError = get(_)('scan.failedToAdd', {
+                values: { error: e instanceof ApiError ? e.detail : String(e) },
+            })
+        }
     }
 
     // First interactive element: add/remove mode toggle
@@ -270,7 +293,7 @@
                 })
             }
 
-            await api.transactions.create({
+            const created = await api.transactions.create({
                 product_id: product.id,
                 type: transactionType,
                 quantity,
@@ -283,6 +306,7 @@
                         ? 'scan.addedSuccess'
                         : 'scan.removedSuccess',
                 ),
+                created.id,
             )
             scannerRestartSignal += 1
             scanNext()
@@ -313,7 +337,14 @@
 
 <div class="scan-root">
     {#if successToast}
-        <div class="success-toast">{successToast}</div>
+        <div class="success-toast">
+            <span>{successToast}</span>
+            {#if undoTxnId !== null}
+                <button type="button" class="toast-undo" onclick={undoLastTransaction}>
+                    {$_('scan.undo')}
+                </button>
+            {/if}
+        </div>
     {/if}
 
     <!-- 1) First interactive element: mode toggle -->
@@ -576,6 +607,10 @@
     .success-toast {
         background: var(--color-success-800);
         color: var(--color-success-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
         text-align: center;
         padding: 0.5rem 1rem;
         border-radius: 0.75rem;
@@ -583,6 +618,18 @@
         font-weight: 600;
         margin-bottom: 0.75rem;
         animation: toast-in 0.3s ease-out;
+    }
+
+    .toast-undo {
+        flex: 0 0 auto;
+        background: var(--color-success-100);
+        color: var(--color-success-900);
+        border: 0;
+        border-radius: 0.5rem;
+        padding: 0.25rem 0.7rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
     }
 
     @keyframes toast-in {

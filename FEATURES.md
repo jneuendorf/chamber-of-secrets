@@ -102,19 +102,33 @@ emerges from knowing what's in stock:
   an immutable snapshot of the previous product data.
 - Full transaction history with timestamps, quantities, and prices.
 
-### 2.6 Internationalisation
+### 2.6 Mistake Recovery
+
+- **Undo** the last recorded movement with one tap from the scan success
+  toast (5-second window).
+- **Activity view**: reverse-chronological list of stock movements, globally
+  or filtered to a single product. Each movement can be edited (type,
+  quantity, unit price) or deleted; stock is derived from transactions at
+  query time, so it always reflects the current set.
+- **Delete a product** from the inventory view — cascades its transactions,
+  revisions, and uploaded image. This frees a category that was previously
+  undeletable because a product still referenced it.
+- **Merge duplicates**: pick a survivor for a duplicate product; its
+  movements are repointed onto the survivor and the duplicate is removed.
+
+### 2.7 Internationalisation
 
 - UI available in English (EN) and German (DE).
 - Language switcher in the navigation bar.
 - All user-facing strings are in locale JSON files (`en.json`, `de.json`).
 
-### 2.7 Visual Style
+### 2.8 Visual Style
 
 - Dark colour scheme throughout (driven by imagery and backgrounds).
 - Proper theming (light/dark toggle, CSS variables) is a future feature
   (see `ROADMAP.md` WL-3.3).
 
-### 2.8 Deployment
+### 2.9 Deployment
 
 - Docker / Podman Compose stack (backend + nginx frontend).
 - TLS via mkcert for local HTTPS (trusted on mobile after CA install).
@@ -142,12 +156,20 @@ current stock is computed at query time.
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/products/` | List products with computed stock |
+| GET | `/api/products/{id}` | Get one product with computed stock |
+| GET | `/api/products/{id}/revisions` | List a product's revision history |
 | GET | `/api/products/lookup/{ean}` | EAN lookup (cache → Open Food Facts) |
+| POST | `/api/products/` | Create a product (manual entry) |
+| PATCH | `/api/products/{id}` | Update product (category, image URL) |
 | POST | `/api/products/{id}/refresh` | Re-fetch from API, snapshot old data |
 | POST | `/api/products/{id}/image` | Upload product image (multipart) |
 | DELETE | `/api/products/{id}/image` | Remove product image |
-| GET | `/api/transactions/` | List transactions |
+| DELETE | `/api/products/{id}` | Delete product (cascades movements/revisions/image) |
+| POST | `/api/products/merge` | Merge a duplicate into another product |
+| GET | `/api/transactions/` | List transactions (optional `product_id`) |
 | POST | `/api/transactions/` | Record a stock movement |
+| PATCH | `/api/transactions/{id}` | Edit a movement |
+| DELETE | `/api/transactions/{id}` | Delete a movement (powers undo) |
 | GET | `/api/categories/` | List categories |
 | POST | `/api/categories/` | Create category |
 | PATCH | `/api/categories/{id}` | Update category |

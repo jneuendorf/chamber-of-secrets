@@ -106,6 +106,27 @@ describe('api.products', () => {
             },
             new Response(null, { status: 204 }),
         ))
+
+    test('delete(id) calls DELETE /products/:id', () =>
+        withMockedApi(
+            async ({ api, fetch }) => {
+                await api.products.delete(4)
+                expect(lastCall(fetch).url).toEndWith('/products/4')
+                expect(lastCall(fetch).options?.method).toBe('DELETE')
+            },
+            new Response(null, { status: 204 }),
+        ))
+
+    test('merge(source, target) POSTs /products/merge', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            await api.products.merge(2, 7)
+            expect(lastCall(fetch).url).toEndWith('/products/merge')
+            expect(lastCall(fetch).options?.method).toBe('POST')
+            expect(JSON.parse(lastCall(fetch).options!.body as string)).toEqual({
+                source_id: 2,
+                target_id: 7,
+            })
+        }))
 })
 
 describe('api.transactions', () => {
@@ -129,6 +150,27 @@ describe('api.transactions', () => {
             expect(lastCall(fetch).options?.method).toBe('POST')
             expect(JSON.parse(lastCall(fetch).options!.body as string)).toEqual(data)
         }))
+
+    test('update(id, data) calls PATCH /transactions/:id', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            await api.transactions.update(8, { quantity: 4, type: 'out' })
+            expect(lastCall(fetch).url).toEndWith('/transactions/8')
+            expect(lastCall(fetch).options?.method).toBe('PATCH')
+            expect(JSON.parse(lastCall(fetch).options!.body as string)).toEqual({
+                quantity: 4,
+                type: 'out',
+            })
+        }))
+
+    test('delete(id) calls DELETE /transactions/:id', () =>
+        withMockedApi(
+            async ({ api, fetch }) => {
+                await api.transactions.delete(6)
+                expect(lastCall(fetch).url).toEndWith('/transactions/6')
+                expect(lastCall(fetch).options?.method).toBe('DELETE')
+            },
+            new Response(null, { status: 204 }),
+        ))
 })
 
 describe('api.categories', () => {
