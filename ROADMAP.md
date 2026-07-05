@@ -262,12 +262,12 @@ dev M · user high · 🟢
 - [x] Product delete (`DELETE /api/products/{id}`, cascade transactions + revisions + image) + duplicate merge (`POST /api/products/merge` repoints transactions onto the survivor)
 - [x] Unblocks the category-delete dead end (products can now be deleted, freeing their category)
 
-- [ ] **WL-4.3: Quick Stock Adjust** ⬜
+- [x] **WL-4.3: Quick Stock Adjust** ✅
 
 dev S · user high · 🟢
 
-- [ ] `+`/`−` steppers on inventory rows → record `in`/`out` without re-scanning
-- [ ] "Consume one" fast path ("I ate an apple" = one tap)
+- [x] `+`/`−` steppers on inventory rows → record `in`/`out` without re-scanning
+- [x] "Consume one" fast path ("I ate an apple" = one tap)
 
 - [ ] **WL-4.4: Inventory Filtering** ⬜
 

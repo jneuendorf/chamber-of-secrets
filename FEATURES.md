@@ -63,6 +63,9 @@ emerges from knowing what's in stock:
 - View current stock levels derived from all recorded transactions
   (`sum(in) - sum(out)`).
 - Each product shows name, image, brand, current quantity, and category.
+- **Quick stock adjust**: `+`/`−` steppers on each row record an `in`/`out`
+  movement (quantity 1) without re-scanning — the one-tap "I ate an apple"
+  path. `−` is disabled at zero stock.
 - Tap the product image (or placeholder) to open the standard file
   picker. On mobile (touch devices), a small 📷 button opens the rear
   camera directly via `capture="environment"`. Replaces any previous

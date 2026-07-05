@@ -60,6 +60,27 @@
         load()
     })
 
+    // WL-4.3: quick stock adjust — record in/out without re-scanning.
+    // Optimistic; revert on failure. Backend defaults quantity to 1.
+    async function adjustStock(product: Product, delta: 1 | -1) {
+        products = products.map((p) =>
+            p.id === product.id ? { ...p, stock: p.stock + delta } : p,
+        )
+        try {
+            await api.transactions.create({
+                product_id: product.id,
+                type: delta > 0 ? 'in' : 'out',
+            })
+        } catch (e) {
+            products = products.map((p) =>
+                p.id === product.id ? { ...p, stock: p.stock - delta } : p,
+            )
+            error = get(_)('inventory.adjustFailed', {
+                values: { error: e instanceof ApiError ? e.detail : String(e) },
+            })
+        }
+    }
+
     async function assignCategory(product: Product, cat: Category | null) {
         editingId = null
         try {
@@ -321,12 +342,33 @@
                             >
                         </button>
                     </div>
-                    <div
-                        class="stock"
-                        class:low={stockState === 'low'}
-                        class:out={stockState === 'out'}
-                    >
-                        {product.stock}
+                    <div class="stepper-group">
+                        <button
+                            type="button"
+                            class="stepper"
+                            onclick={() => adjustStock(product, -1)}
+                            disabled={product.stock <= 0}
+                            title={$_('inventory.consumeOne')}
+                            aria-label={$_('inventory.consumeOne')}
+                        >
+                            −
+                        </button>
+                        <div
+                            class="stock"
+                            class:low={stockState === 'low'}
+                            class:out={stockState === 'out'}
+                        >
+                            {product.stock}
+                        </div>
+                        <button
+                            type="button"
+                            class="stepper"
+                            onclick={() => adjustStock(product, 1)}
+                            title={$_('inventory.addOne')}
+                            aria-label={$_('inventory.addOne')}
+                        >
+                            +
+                        </button>
                     </div>
                 </div>
 
@@ -507,11 +549,44 @@
         }
     }
 
+    .stepper-group {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .stepper {
+        width: 2rem;
+        height: 2rem;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 1px solid var(--color-bark-600);
+        background: var(--color-bark-850);
+        color: var(--color-ink-100);
+        font-size: 1.25rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stepper:hover:not(:disabled) {
+        border-color: var(--color-bark-500);
+        background: var(--color-bark-800);
+    }
+
+    .stepper:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
     .stock {
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--color-success-600);
-        min-width: 3rem;
+        min-width: 2.25rem;
         text-align: center;
     }
 

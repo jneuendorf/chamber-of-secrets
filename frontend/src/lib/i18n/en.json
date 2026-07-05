@@ -151,7 +151,10 @@
     "mergeTargetLabel": "Keep this product",
     "mergeTargetPlaceholder": "Choose a product…",
     "mergeConfirm": "Merge",
-    "mergeFailed": "Could not merge products: {error}"
+    "mergeFailed": "Could not merge products: {error}",
+    "addOne": "Add one",
+    "consumeOne": "Consume one",
+    "adjustFailed": "Could not update stock: {error}"
   },
   "activity": {
     "title": "Activity",
