@@ -13,15 +13,18 @@ def list_transactions(
     product_id: int | None = Query(None),
     limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
-) -> list[TransactionRead]:
+) -> list[InventoryTransaction]:
     query = db.query(InventoryTransaction).order_by(InventoryTransaction.transacted_at.desc())
     if product_id is not None:
         query = query.filter(InventoryTransaction.product_id == product_id)
-    return query.limit(limit).all()  # type: ignore[return-value]
+    return query.limit(limit).all()
 
 
 @router.post("/", response_model=TransactionRead, status_code=201)
-def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)) -> TransactionRead:
+def create_transaction(
+    data: TransactionCreate,
+    db: Session = Depends(get_db),
+) -> InventoryTransaction:
     product = (
         db.query(Product)
         .options(joinedload(Product.transactions))
@@ -45,7 +48,7 @@ def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)) -
     db.add(transaction)
     db.commit()
     db.refresh(transaction)
-    return transaction  # type: ignore[return-value]
+    return transaction
 
 
 def _get_transaction_or_404(transaction_id: int, db: Session) -> InventoryTransaction:
@@ -60,7 +63,7 @@ def update_transaction(
     transaction_id: int,
     data: TransactionUpdate,
     db: Session = Depends(get_db),
-) -> TransactionRead:
+) -> InventoryTransaction:
     # Mistake-recovery edit. Stock is derived from transactions at query time,
     # so no separate recompute is needed. No stock guard — this is a correction
     # tool and may legitimately fix an over-recorded movement.
@@ -69,7 +72,7 @@ def update_transaction(
         setattr(transaction, key, value)
     db.commit()
     db.refresh(transaction)
-    return transaction  # type: ignore[return-value]
+    return transaction
 
 
 @router.delete("/{transaction_id}", status_code=204)

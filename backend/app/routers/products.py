@@ -90,12 +90,12 @@ def get_product(product_id: int, db: Session = Depends(get_db)) -> ProductWithSt
 
 
 @router.post("/", response_model=ProductRead, status_code=201)
-def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> ProductRead:
+def create_product(data: ProductCreate, db: Session = Depends(get_db)) -> Product:
     product = Product(**data.model_dump())
     db.add(product)
     db.commit()
     db.refresh(product)
-    return product  # type: ignore[return-value]
+    return product
 
 
 @router.post("/merge", response_model=ProductWithStock)
@@ -138,7 +138,7 @@ def update_product(
     product_id: int,
     data: ProductUpdate,
     db: Session = Depends(get_db),
-) -> ProductRead:
+) -> Product:
     product = db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -146,7 +146,7 @@ def update_product(
         setattr(product, key, value)
     db.commit()
     db.refresh(product)
-    return ProductRead.model_validate(product, from_attributes=True)
+    return product
 
 
 def _remove_old_upload(image_url: str | None) -> None:
@@ -161,7 +161,7 @@ async def upload_product_image(
     product_id: int,
     file: UploadFile,
     db: Session = Depends(get_db),
-) -> ProductRead:
+) -> Product:
     product = db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -182,7 +182,7 @@ async def upload_product_image(
     product.image_url = f"/api/uploads/products/{filename}"
     db.commit()
     db.refresh(product)
-    return ProductRead.model_validate(product, from_attributes=True)
+    return product
 
 
 @router.delete("/{product_id}/image", status_code=204)
@@ -223,7 +223,7 @@ async def lookup_product_by_ean(
 
 
 @router.post("/{product_id}/refresh", response_model=ProductRead)
-async def refresh_product(product_id: int, db: Session = Depends(get_db)) -> ProductRead:
+async def refresh_product(product_id: int, db: Session = Depends(get_db)) -> Product:
     """Re-fetch product data from the EAN API. Snapshots current data to revision history first."""
     product = _get_or_404(product_id, db)
 
@@ -250,11 +250,11 @@ async def refresh_product(product_id: int, db: Session = Depends(get_db)) -> Pro
 
     db.commit()
     db.refresh(product)
-    return product  # type: ignore[return-value]
+    return product
 
 
 @router.get("/{product_id}/revisions", response_model=list[ProductRevisionRead])
-def list_revisions(product_id: int, db: Session = Depends(get_db)) -> list[ProductRevisionRead]:
+def list_revisions(product_id: int, db: Session = Depends(get_db)) -> list[ProductRevision]:
     """Return the revision history for a product, newest first."""
     if not db.get(Product, product_id):
         raise HTTPException(status_code=404, detail="Product not found")
@@ -264,4 +264,4 @@ def list_revisions(product_id: int, db: Session = Depends(get_db)) -> list[Produ
         .order_by(ProductRevision.superseded_at.desc())
         .all()
     )
-    return revisions  # type: ignore[return-value]
+    return revisions
