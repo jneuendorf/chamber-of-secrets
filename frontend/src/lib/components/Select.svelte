@@ -88,12 +88,12 @@
     </Select.Trigger>
     <Select.Portal>
         <Select.Content
-            class="z-[10000] max-h-[280px] min-w-[var(--bits-select-anchor-width)] overflow-y-auto rounded-lg border border-ink-600 bg-ink-900 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
+            class="z-10000 max-h-70 min-w-(--bits-select-anchor-width) overflow-y-auto rounded-lg border border-ink-600 bg-ink-900 p-1 shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
         >
             <Select.Viewport>
                 {#each items as item (item.value)}
                     <Select.Item
-                        class="flex cursor-pointer items-start gap-[0.4rem] rounded-[0.35rem] px-[0.6rem] py-[0.4rem] text-ink-100 outline-none data-[highlighted]:bg-bark-800 data-[selected]:bg-accent-900"
+                        class="flex cursor-pointer items-start gap-[0.4rem] rounded-[0.35rem] px-[0.6rem] py-[0.4rem] text-ink-100 outline-none data-highlighted:bg-bark-800 data-selected:bg-accent-900"
                         value={String(item.value)}
                         label={item.label}
                     >
