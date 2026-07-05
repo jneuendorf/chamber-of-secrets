@@ -45,10 +45,10 @@ chamber-of-secrets/
 │   └── alembic/              # Database migrations
 ├── frontend/
 │   └── src/
-│       ├── routes/           # +page.svelte per route (/, /scan, /inventory, /analytics, /docs)
+│       ├── routes/           # / (→ /chamber), /scan, /inventory, /activity, /categories, /analytics, /chamber, /docs
 │       ├── lib/
 │       │   ├── api/client.ts # Typed API client
-│       │   ├── components/   # BarcodeScanner, LocaleSwitcher
+│       │   ├── components/   # BarcodeScanner, CategoryPicker, DrillDownDonut, FuzzySearchOverlay, LocaleSwitcher, Modal, Select
 │       │   └── i18n/         # en.json, de.json, init
 │       └── app.css           # Tailwind entry point + global base styles
 ├── scripts/
@@ -79,12 +79,27 @@ chamber-of-secrets/
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/products/` | List products with computed stock |
+| GET | `/api/products/{id}` | Get one product with computed stock |
+| GET | `/api/products/{id}/revisions` | List a product's revision history |
 | GET | `/api/products/lookup/{ean}` | EAN lookup (DB cache → Open Food Facts) |
+| POST | `/api/products/` | Create a product (manual entry) |
+| PATCH | `/api/products/{id}` | Update product (category, image URL) |
 | POST | `/api/products/{id}/refresh` | Re-fetch from EAN API, snapshot old data |
-| GET | `/api/transactions/` | List transactions |
+| POST | `/api/products/{id}/image` | Upload product image (multipart) |
+| DELETE | `/api/products/{id}/image` | Remove product image |
+| DELETE | `/api/products/{id}` | Delete product (cascades movements/revisions/image) |
+| POST | `/api/products/merge` | Merge a duplicate into another product |
+| GET | `/api/transactions/` | List transactions (optional `product_id`) |
 | POST | `/api/transactions/` | Record a stock movement |
+| PATCH | `/api/transactions/{id}` | Edit a movement |
+| DELETE | `/api/transactions/{id}` | Delete a movement (powers undo) |
 | GET | `/api/categories/` | List categories |
+| POST | `/api/categories/` | Create category |
+| PATCH | `/api/categories/{id}` | Update category |
+| DELETE | `/api/categories/{id}` | Delete category (409 if products assigned) |
 | GET | `/api/analytics/spending` | Spending by category (optional `since`/`until`) |
+| GET | `/api/analytics/timeseries` | Spending over time |
+| GET | `/api/analytics/restock-overview` | Products needing restock by category |
 | GET | `/api/health` | Health check |
 
 Interactive docs are available at `/api/docs` (Swagger UI).
