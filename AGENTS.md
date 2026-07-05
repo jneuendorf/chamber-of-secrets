@@ -82,6 +82,16 @@ Bullet list ok. No co-author trailer unless asked.
   `.zed/settings.json` (needs the community Biome extension).
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no config file).
   Entry point: `src/app.css`.
+- **Canonical classes**: prefer v4's shorthand over an arbitrary bracket value
+  when an exact equivalent exists:
+  - bare numeric scale — `z-10000` not `z-[10000]`, `max-h-70` not
+    `max-h-[280px]` (spacing is 0.25rem/unit, so `70` = 17.5rem = 280px)
+  - CSS variables — `min-w-(--anchor-width)` not `min-w-[var(--anchor-width)]`
+  - boolean `data-*` variants — `data-selected:` not `data-[selected]:`
+    (values still need brackets: `data-[state=open]:`)
+
+  Reserve `[…]` for values with no scale equivalent: one-off shadows,
+  unitless line-heights, off-grid spacing.
 - **Colors**: use the `@theme` tokens in `src/app.css`
   (`bark-*` surfaces, `ink-*` neutrals, `accent-*`, `danger/success/warning/info`)
   — never hardcode hex. In markup use the utilities (`bg-bark-850`,
