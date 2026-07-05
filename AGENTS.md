@@ -59,7 +59,8 @@ Bullet list ok. No co-author trailer unless asked.
 ## Conventions
 
 - **Package manager**: Bun (never npm/yarn/pnpm).
-- **Backend tooling**: uv + ruff (lint + format).
+- **Backend tooling**: uv + ruff (lint + format) + ty (type check,
+  matches the editor's language server).
 - **Migrations (SQLite)**: SQLite has no `ALTER COLUMN` and only limited
   `DROP COLUMN`. Wrap such changes in `with op.batch_alter_table(...)`
   (table rebuild) — standalone `op.alter_column(... server_default=...)`
@@ -125,7 +126,7 @@ just dev https                # same, but frontend over TLS (mkcert certs) for o
 just check                    # biome check + typecheck + test (all layers)
 just check-all                # same as check, but all files (not staged)
 just check-frontend           # biome check + typecheck + test (frontend)
-just check-backend            # lint + test (backend, needs uv)
+just check-backend            # lint + typecheck + test (backend, needs uv)
 just test                     # all tests
 just test-frontend            # bun test
 just test-backend             # backend unit tests
@@ -137,6 +138,7 @@ just format-frontend          # biome format (staged by default)
 just format-backend           # ruff format
 just format-check             # check without writing (staged by default)
 just typecheck-frontend       # svelte-check only
+just typecheck-backend        # ty type check
 just seed                     # seed DB with sample data
 just up                       # containerized prod stack
 ```

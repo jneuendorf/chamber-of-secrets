@@ -195,5 +195,6 @@ just lint           # ruff lint (backend)
 just lint-frontend  # biome lint (frontend)
 just format         # ruff format (backend) + biome format (frontend)
 just format-check   # check formatting without writing
+just check-backend  # ruff + ty type check + tests (backend)
 just check-frontend # svelte-check + TypeScript
 ```

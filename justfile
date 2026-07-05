@@ -38,6 +38,10 @@ lint-frontend *SCOPE="--staged":
 lint-backend:
     cd backend && uv run ruff check app/
 
+# typecheck backend with ty
+typecheck-backend:
+    cd backend && uv run ty check app/
+
 # --- Quality: format ---
 
 # format all. Biome defaults to --staged; pass "" for all files
@@ -118,8 +122,8 @@ biome-check-frontend *SCOPE="--staged":
 # check frontend: biome check + prettier (svelte) + typecheck + test (--staged applies to biome/prettier)
 check-frontend *SCOPE="--staged": (biome-check-frontend SCOPE) (prettier-svelte "--check" SCOPE) typecheck-frontend test-frontend
 
-# check backend: lint + test
-check-backend: lint-backend test-backend
+# check backend: lint + typecheck + test
+check-backend: lint-backend typecheck-backend test-backend
 
 # --- Database ---
 
