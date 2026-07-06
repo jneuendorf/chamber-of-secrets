@@ -71,6 +71,9 @@ emerges from knowing what's in stock:
   camera directly via `capture="environment"`. Replaces any previous
   image.
 - Fuzzy search across all products.
+- **Filters**: narrow the list by category and/or a low-stock toggle (items
+  needing restock). Filters apply to the fuzzy search too, so search and
+  filters combine.
 
 ### 2.3 Categories
 

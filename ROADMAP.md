@@ -269,11 +269,11 @@ dev S · user high · 🟢
 - [x] `+`/`−` steppers on inventory rows → record `in`/`out` without re-scanning
 - [x] "Consume one" fast path ("I ate an apple" = one tap)
 
-- [ ] **WL-4.4: Inventory Filtering** ⬜
+- [x] **WL-4.4: Inventory Filtering** ✅
 
 dev XS · user med · 🟡
 
-- [ ] Filter by category and by low-stock, combined with the existing fuzzy search
+- [x] Filter by category and by low-stock, combined with the existing fuzzy search
 
 - [x] **WL-4.5: Consistency Cleanup** ✅
 

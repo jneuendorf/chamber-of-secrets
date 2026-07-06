@@ -154,7 +154,10 @@
     "mergeFailed": "Could not merge products: {error}",
     "addOne": "Add one",
     "consumeOne": "Consume one",
-    "adjustFailed": "Could not update stock: {error}"
+    "adjustFailed": "Could not update stock: {error}",
+    "filterAllCategories": "All categories",
+    "filterLowStock": "Low stock",
+    "filterNoMatches": "No products match the current filters."
   },
   "activity": {
     "title": "Activity",

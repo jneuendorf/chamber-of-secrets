@@ -156,7 +156,10 @@
     "mergeFailed": "Produkte konnten nicht zusammengeführt werden: {error}",
     "addOne": "Eins hinzufügen",
     "consumeOne": "Eins verbrauchen",
-    "adjustFailed": "Bestand konnte nicht aktualisiert werden: {error}"
+    "adjustFailed": "Bestand konnte nicht aktualisiert werden: {error}",
+    "filterAllCategories": "Alle Kategorien",
+    "filterLowStock": "Niedriger Bestand",
+    "filterNoMatches": "Keine Produkte entsprechen den aktuellen Filtern."
   },
   "activity": {
     "title": "Verlauf",

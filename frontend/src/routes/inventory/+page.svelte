@@ -25,6 +25,31 @@
     let galleryInput: HTMLInputElement | undefined = $state(undefined)
     let totalItems = $derived(products.reduce((sum, p) => sum + p.stock, 0))
 
+    // WL-4.4: filters — category + low-stock, combined with fuzzy search.
+    let categoryFilter: number | 'all' = $state('all')
+    let lowStockOnly = $state(false)
+
+    let categoryFilterItems = $derived([
+        { value: 'all' as number | 'all', label: $_('inventory.filterAllCategories') },
+        ...categories.map((cat) => ({
+            value: cat.id as number | 'all',
+            label: cat.name,
+            icon: resolveIcon(cat, categories),
+        })),
+    ])
+
+    let visibleProducts = $derived(
+        products.filter((product) => {
+            if (categoryFilter !== 'all' && product.category_id !== categoryFilter) {
+                return false
+            }
+            if (lowStockOnly && statusFor(product) === 'ok') {
+                return false
+            }
+            return true
+        }),
+    )
+
     function statusFor(product: Product): StockStatus {
         const cat =
             categories.find((category) => category.id === product.category_id) ??
@@ -254,7 +279,7 @@
     </p>
 {:else}
     <FuzzySearchOverlay
-        items={products}
+        items={visibleProducts}
         keys={['name', 'brand', 'ean', 'category.name']}
         getId={(item) => (item as Product).id}
         getLabel={(item) => (item as Product).name}
@@ -270,8 +295,32 @@
         bind:open={searchOpen}
     />
 
+    <div class="filter-bar">
+        <Select
+            items={categoryFilterItems}
+            value={categoryFilter}
+            onchange={(value) => (categoryFilter = value)}
+            class="rounded-lg border border-bark-600 bg-bark-850 px-3 py-2 text-ink-100"
+        />
+        <button
+            type="button"
+            class="filter-chip"
+            class:active={lowStockOnly}
+            aria-pressed={lowStockOnly}
+            onclick={() => (lowStockOnly = !lowStockOnly)}
+        >
+            {$_('inventory.filterLowStock')}
+        </button>
+    </div>
+
+    {#if visibleProducts.length === 0}
+        <p class="text-center text-gray-500 my-12">
+            {$_('inventory.filterNoMatches')}
+        </p>
+    {/if}
+
     <div class="flex flex-col gap-3">
-        {#each products as product (product.id)}
+        {#each visibleProducts as product (product.id)}
             {@const stockState = statusFor(product)}
             <div
                 class="bg-bark-800 border border-bark-600 rounded-xl p-4 shadow-sm"
@@ -509,6 +558,36 @@
     .search-indicator-icon {
         font-size: 0.85rem;
         line-height: 1;
+    }
+
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+    }
+
+    .filter-chip {
+        font-size: 0.8rem;
+        color: var(--color-ink-250);
+        background: var(--color-bark-850);
+        border: 1px solid var(--color-bark-600);
+        border-radius: 999px;
+        padding: 0.4rem 0.8rem;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .filter-chip:hover {
+        border-color: var(--color-bark-500);
+        color: var(--color-ink-100);
+    }
+
+    .filter-chip.active {
+        background: var(--color-warning-550);
+        border-color: var(--color-warning-550);
+        color: var(--color-ink-900);
     }
 
     .image-group {
