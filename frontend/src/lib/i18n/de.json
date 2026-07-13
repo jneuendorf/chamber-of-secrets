@@ -87,7 +87,9 @@
     "manualNamePlaceholder": "Produktname",
     "manualBrandPlaceholder": "Marke (optional)",
     "manualImagePlaceholder": "Bild-URL (optional)",
-    "manualEanPlaceholder": "Barcode / EAN (optional)"
+    "manualEanPlaceholder": "Barcode / EAN (optional)",
+    "contributeOff": "Dieses Produkt auch zu Open Food Facts hinzufügen",
+    "contributeOffHint": "Als offene Daten (ODbL) geteilt, damit andere es beim Scannen finden."
   },
   "category": {
     "none": "Keine",

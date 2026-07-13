@@ -1,10 +1,11 @@
 import uuid
+from pathlib import PurePosixPath
 
 from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile
 from sqlalchemy import delete, update
 from sqlalchemy.orm import Session, joinedload
 
-from app.config import PRODUCT_IMAGE_DIR
+from app.config import PRODUCT_IMAGE_DIR, settings
 from app.database import get_db
 from app.models import InventoryTransaction, Product, ProductRevision
 from app.schemas import (
@@ -18,6 +19,7 @@ from app.schemas import (
     ProductWithStock,
 )
 from app.services.ean_lookup import lookup_ean
+from app.services.off_contribute import contribute_image, contribute_product
 
 ALLOWED_IMAGE_TYPES: dict[str, str] = {
     "image/jpeg": "jpg",
@@ -32,6 +34,7 @@ MAGIC_BYTES: dict[str, list[bytes]] = {
     "gif": [b"GIF87a", b"GIF89a"],
 }
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
+EXT_TO_CONTENT_TYPE: dict[str, str] = {ext: ct for ct, ext in ALLOWED_IMAGE_TYPES.items()}
 
 
 def _detect_ext(data: bytes) -> str | None:
@@ -156,6 +159,24 @@ def _remove_old_upload(image_url: str | None) -> None:
         old.unlink(missing_ok=True)
 
 
+def _read_local_upload(image_url: str | None) -> tuple[bytes, str, str] | None:
+    """Return (bytes, filename, content_type) for a locally-stored product image,
+    or None if there is no usable local file. Powers the OFF image contribution;
+    external image URLs have no local bytes to send."""
+    if not image_url or not image_url.startswith("/api/uploads/products/"):
+        return None
+
+    path = PRODUCT_IMAGE_DIR / PurePosixPath(image_url).name
+    if not path.is_file():
+        return None
+
+    content_type = EXT_TO_CONTENT_TYPE.get(path.suffix.lstrip(".").lower())
+    if not content_type:
+        return None
+
+    return path.read_bytes(), path.name, content_type
+
+
 @router.post("/{product_id}/image", response_model=ProductRead)
 async def upload_product_image(
     product_id: int,
@@ -220,6 +241,39 @@ async def lookup_product_by_ean(
     if not result:
         raise HTTPException(status_code=404, detail="Product not found in EAN database")
     return result
+
+
+@router.post("/{product_id}/contribute")
+async def contribute_product_to_off(
+    product_id: int,
+    db: Session = Depends(get_db),
+) -> dict[str, bool]:
+    """Opt-in: submit a manually-created product back to Open Food Facts (WL-4.6).
+
+    Barcode-only — OFF is EAN-keyed, so non-EAN products cannot be shared.
+    """
+    product = _get_or_404(product_id, db)
+    if not product.ean:
+        raise HTTPException(status_code=400, detail="Product has no barcode — cannot contribute")
+
+    ok = await contribute_product(
+        code=product.ean,
+        name=product.name,
+        brand=product.brand,
+        category=product.category.name if product.category else None,
+    )
+    if not ok:
+        raise HTTPException(status_code=502, detail="Open Food Facts rejected the submission")
+
+    # Front-image upload: dormant until off_contribute_images is enabled. Best
+    # effort — the text fields are already saved, so a failed image is non-fatal.
+    if settings.off_contribute_images:
+        image = _read_local_upload(product.image_url)
+        if image:
+            image_bytes, filename, content_type = image
+            await contribute_image(product.ean, image_bytes, filename, content_type)
+
+    return {"ok": True}
 
 
 @router.post("/{product_id}/refresh", response_model=ProductRead)

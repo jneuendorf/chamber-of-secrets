@@ -80,6 +80,13 @@
     let lastScannedCode = $state('')
     let manualNameEl: HTMLInputElement | undefined = $state()
 
+    // WL-4.6: opt-in contribute-back to Open Food Facts. Offered only when a
+    // real (barcode-keyed) EAN missed OFF. Default off — never auto-submit.
+    let contributeToOff = $state(false)
+    let canContribute = $derived(
+        manualMode && isPlausibleBarcode((lookupResult?.ean ?? '').trim()),
+    )
+
     // Category suggestion + user override
     let categorySuggestionName = $state<string | null>(null)
     let matchedCategory: Category | null = $state(null)
@@ -101,6 +108,7 @@
         lookupError = ''
         lookupResult = { ean, name: '', brand: null, image_url: null, category: null }
         manualMode = true
+        contributeToOff = false
         quantity = 1
         unitPrice = undefined
         categorySuggestionName = null
@@ -217,6 +225,7 @@
         lookupError = ''
         lookupResult = null
         manualMode = false
+        contributeToOff = false
         lastScannedCode = code
         quantity = 1
         unitPrice = undefined
@@ -300,6 +309,17 @@
                 unit_price: unitPrice,
             })
 
+            // WL-4.6: opt-in contribute-back — only for a freshly created,
+            // barcode-keyed manual product. Best-effort: a rejection must not
+            // fail the save the user already completed.
+            if (!existing && contributeToOff && isPlausibleBarcode(product.ean ?? '')) {
+                try {
+                    await api.products.contribute(product.id)
+                } catch {
+                    /* non-fatal: product is stored locally regardless */
+                }
+            }
+
             showSuccessToast(
                 get(_)(
                     transactionType === 'in'
@@ -322,6 +342,7 @@
         lookupResult = null
         lookupError = ''
         manualMode = false
+        contributeToOff = false
         quantity = 1
         unitPrice = undefined
         categorySuggestionName = null
@@ -463,6 +484,21 @@
                         placeholder={$_('scan.manualEanPlaceholder')}
                         class="px-2 py-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-md text-sm font-mono"
                     />
+                    {#if canContribute}
+                        <label class="flex items-start gap-2 text-sm text-ink-200 mt-1">
+                            <input
+                                type="checkbox"
+                                bind:checked={contributeToOff}
+                                class="mt-0.5 h-4 w-4 shrink-0 accent-accent-700"
+                            />
+                            <span>
+                                {$_('scan.contributeOff')}
+                                <span class="block text-xs text-ink-400">
+                                    {$_('scan.contributeOffHint')}
+                                </span>
+                            </span>
+                        </label>
+                    {/if}
                 </div>
             {:else}
                 <div>

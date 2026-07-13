@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from collections.abc import Generator
 from pathlib import Path
 
@@ -23,6 +24,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 from app.database import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Base  # noqa: E402
+from app.routers import products as products_router  # noqa: E402
 
 
 class BackendAPITestCase(unittest.TestCase):
@@ -541,6 +543,78 @@ class BackendAPITestCase(unittest.TestCase):
             json={"source_id": 999999, "target_id": product["id"]},
         )
         self.assertEqual(res.status_code, 404)
+
+    # ---------- WL-4.6: contribute back to Open Food Facts ----------
+
+    def test_contribute_without_ean_returns_400(self) -> None:
+        product = self._create_product("Loose apples")  # no EAN
+        res = self.client.post(f"/api/products/{product['id']}/contribute")
+        self.assertEqual(res.status_code, 400)
+
+    def test_contribute_missing_product_returns_404(self) -> None:
+        res = self.client.post("/api/products/999999/contribute")
+        self.assertEqual(res.status_code, 404)
+
+    def test_contribute_success(self) -> None:
+        product = self._create_product("Store bread", ean="4001234567890")
+        with unittest.mock.patch(
+            "app.routers.products.contribute_product",
+            new=unittest.mock.AsyncMock(return_value=True),
+        ) as mocked:
+            res = self.client.post(f"/api/products/{product['id']}/contribute")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"ok": True})
+        mocked.assert_awaited_once()
+
+    def test_contribute_rejected_returns_502(self) -> None:
+        product = self._create_product("Store bread", ean="4001234567890")
+        with unittest.mock.patch(
+            "app.routers.products.contribute_product",
+            new=unittest.mock.AsyncMock(return_value=False),
+        ):
+            res = self.client.post(f"/api/products/{product['id']}/contribute")
+        self.assertEqual(res.status_code, 502)
+
+    def test_contribute_uploads_local_image_when_enabled(self) -> None:
+        product = self._create_product("Store bread", ean="4001234567890")
+        self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("bread.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 100, "image/png")},
+        )
+        image_mock = unittest.mock.AsyncMock(return_value=True)
+        with (
+            unittest.mock.patch(
+                "app.routers.products.contribute_product",
+                new=unittest.mock.AsyncMock(return_value=True),
+            ),
+            unittest.mock.patch("app.routers.products.contribute_image", new=image_mock),
+            unittest.mock.patch.object(
+                products_router.settings,
+                "off_contribute_images",
+                True,
+            ),
+        ):
+            res = self.client.post(f"/api/products/{product['id']}/contribute")
+        self.assertEqual(res.status_code, 200)
+        image_mock.assert_awaited_once()
+
+    def test_contribute_skips_image_when_disabled(self) -> None:
+        product = self._create_product("Store bread", ean="4001234567890")
+        self.client.post(
+            f"/api/products/{product['id']}/image",
+            files={"file": ("bread.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 100, "image/png")},
+        )
+        image_mock = unittest.mock.AsyncMock(return_value=True)
+        with (
+            unittest.mock.patch(
+                "app.routers.products.contribute_product",
+                new=unittest.mock.AsyncMock(return_value=True),
+            ),
+            unittest.mock.patch("app.routers.products.contribute_image", new=image_mock),
+        ):
+            res = self.client.post(f"/api/products/{product['id']}/contribute")
+        self.assertEqual(res.status_code, 200)
+        image_mock.assert_not_awaited()
 
     def test_delete_root_category_reparents_children_to_null(self) -> None:
         root = self._create_category("Root")

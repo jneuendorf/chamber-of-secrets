@@ -189,6 +189,8 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ source_id: sourceId, target_id: targetId }),
             }),
+        contribute: (id: number) =>
+            request<{ ok: boolean }>(`/products/${id}/contribute`, { method: 'POST' }),
     },
     transactions: {
         list: (productId?: number) =>

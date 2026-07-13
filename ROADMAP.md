@@ -284,17 +284,18 @@ See `TODOS.md` for the concrete code deltas.
 - [x] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
 - [x] Colour-token cleanup (scan `gray-*` → `ink-*`; tokenise chamber gold) and i18n the leaked scan strings
 
-- [ ] **WL-4.6: Contribute Back to Open Food Facts** ⬜
+- [x] **WL-4.6: Contribute Back to Open Food Facts** ✅
 
 dev M · user med · 🟢
 Depends: WL-4.1 (manual entry). Achievement hook: WL-5.4.
 
-- [ ] When a real scanned EAN misses OFF and the user creates it manually, offer an opt-in "add it to Open Food Facts too" step — turns the dead end into a prosocial contribution
-- [ ] Barcode-only: OFF is barcode-keyed, so no-EAN manual products (bakery, loose produce) are excluded from submission
-- [ ] Write via the OFF product API (`POST /cgi/product_jqm2.pl` or `PATCH /api/v3/product/{barcode}`): `code`, `product_name`, `brands`, `categories`, `lc`; optional front image via `/cgi/product_image_upload.pl`
-- [ ] Single app-registered OFF account + descriptive `User-Agent`; secrets server-side (submission proxied through the backend, not the browser)
-- [ ] Guard the shared DB: minimum data bar (name + photo), explicit confirm, never auto-submit; contributions are ODbL open data
-- [ ] Dev/tests hit the staging instance (`world.openfoodfacts.net`, basic auth `off`/`off`) — never pollute prod
+- [x] When a real scanned EAN misses OFF and the user creates it manually, offer an opt-in "add it to Open Food Facts too" step — turns the dead end into a prosocial contribution
+- [x] Barcode-only: OFF is barcode-keyed, so no-EAN manual products (bakery, loose produce) are excluded from submission
+- [x] Write via the OFF product API (`POST /cgi/product_jqm2.pl`): `code`, `product_name`, `brands`, `categories`, `lc`
+- [x] Single app-registered OFF account + descriptive `User-Agent`; secrets server-side (submission proxied through the backend, not the browser)
+- [x] Guard the shared DB: name required (`ProductCreate.name`), explicit opt-in checkbox, never auto-submit; contributions are ODbL open data
+- [x] Dev/tests hit the staging instance (`world.openfoodfacts.net`, basic auth `off`/`off`) — never pollute prod (defaults in `config.py`; prod overrides via `APP_OFF_*`)
+- [~] Front image via `/cgi/product_image_upload.pl` — fully wired (`contribute_image` + local-upload reader) but dormant behind `off_contribute_images` (default off); flip the flag once the manual scan flow captures a photo
 - [ ] Unlocks the **"Explorer"** achievement — "you put a new product on the world map" (earned via WL-5.4)
 
 ---

@@ -57,6 +57,13 @@ emerges from knowing what's in stock:
   product yourself from the scan page (name required; brand, category,
   image URL, and EAN optional). The result is a normal trackable product.
   Product images can also be added later from the inventory view.
+- **Contribute back to Open Food Facts**: when a real barcode misses OFF and
+  you create the product manually, an opt-in checkbox (barcode-only, off by
+  default) shares name/brand/category back to OFF as open data (ODbL). The
+  submission is proxied through the backend with a server-side OFF account;
+  dev/tests target the OFF staging server. Currently text fields only; the
+  front-image upload path is wired but dormant behind a config flag
+  (`off_contribute_images`).
 
 ### 2.2 Inventory
 
@@ -172,6 +179,7 @@ current stock is computed at query time.
 | DELETE | `/api/products/{id}/image` | Remove product image |
 | DELETE | `/api/products/{id}` | Delete product (cascades movements/revisions/image) |
 | POST | `/api/products/merge` | Merge a duplicate into another product |
+| POST | `/api/products/{id}/contribute` | Submit a barcode product back to Open Food Facts (WL-4.6) |
 | GET | `/api/transactions/` | List transactions (optional `product_id`) |
 | POST | `/api/transactions/` | Record a stock movement |
 | PATCH | `/api/transactions/{id}` | Edit a movement |
