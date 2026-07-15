@@ -274,7 +274,7 @@
 {:else if error}
     <p class="text-danger-500">{error}</p>
 {:else if products.length === 0}
-    <p class="text-center text-gray-500 my-12">
+    <p class="text-center text-ink-500 my-12">
         {$_('inventory.empty')} <a href="/scan">{$_('inventory.scanCta')}</a>
     </p>
 {:else}
@@ -314,7 +314,7 @@
     </div>
 
     {#if visibleProducts.length === 0}
-        <p class="text-center text-gray-500 my-12">
+        <p class="text-center text-ink-500 my-12">
             {$_('inventory.filterNoMatches')}
         </p>
     {/if}
@@ -346,7 +346,7 @@
                                 />
                             {:else}
                                 <div
-                                    class="w-12 h-12 rounded-lg bg-bark-850 border border-bark-650 flex items-center justify-center text-gray-300 text-xl"
+                                    class="w-12 h-12 rounded-lg bg-bark-850 border border-bark-650 flex items-center justify-center text-ink-250 text-xl"
                                 >
                                     ?
                                 </div>
@@ -362,9 +362,9 @@
                         </button>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="m-0 text-base text-gray-100">{product.name}</h3>
+                        <h3 class="m-0 text-base text-ink-100">{product.name}</h3>
                         {#if product.brand}
-                            <p class="m-0 text-gray-300 text-[0.85rem]">
+                            <p class="m-0 text-ink-250 text-[0.85rem]">
                                 {product.brand}
                             </p>
                         {/if}
@@ -382,11 +382,11 @@
                                     {product.category.name}
                                 </span>
                             {:else}
-                                <span class="text-gray-300 text-xs"
+                                <span class="text-ink-250 text-xs"
                                     >{$_('category.none')}</span
                                 >
                             {/if}
-                            <span class="text-gray-300 text-xs"
+                            <span class="text-ink-250 text-xs"
                                 >{$_('category.change')} ›</span
                             >
                         </button>

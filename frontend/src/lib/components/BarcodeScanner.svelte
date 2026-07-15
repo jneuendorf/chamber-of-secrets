@@ -251,7 +251,7 @@
     <button
         type="button"
         onclick={toggleManual}
-        class="h-12 w-12 shrink-0 flex items-center justify-center text-gray-200 bg-bark-820 border border-bark-600 rounded-lg"
+        class="h-12 w-12 shrink-0 flex items-center justify-center text-ink-200 bg-bark-820 border border-bark-600 rounded-lg"
         aria-expanded={manualVisible ? 'true' : 'false'}
         aria-label={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
         title={manualVisible ? $_('scanner.hideManual') : $_('scanner.showManual')}
@@ -283,7 +283,7 @@
                     placeholder={$_('scanner.barcodePlaceholder')}
                     inputmode="numeric"
                     pattern="[0-9]*"
-                    class="w-full h-12 px-2.5 border border-gray-300 rounded-md text-base"
+                    class="w-full h-12 px-2.5 border border-ink-250 rounded-md text-base"
                 />
             </form>
             <div class="flex gap-2">

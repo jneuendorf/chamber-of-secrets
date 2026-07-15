@@ -404,7 +404,7 @@
         ⌕ {$_('common.searchIndicator')}
     </button>
 </div>
-<p class="text-gray-500 mt-1 mb-5">
+<p class="text-ink-500 mt-1 mb-5">
     {$_('category.managementSubtitle')}
 </p>
 
@@ -421,10 +421,10 @@
             bind:value={newCategoryName}
             placeholder={$_('category.newPlaceholder')}
             disabled={creatingCategory}
-            class="flex-1 px-3 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-lg text-sm"
+            class="flex-1 px-3 py-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-lg text-sm"
         />
         <Select
-            class="px-3 py-2 border border-bark-600 bg-bark-850 text-gray-100 rounded-lg text-sm"
+            class="px-3 py-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-lg text-sm"
             disabled={creatingCategory}
             value={newCategoryParentId ?? ROOT_PARENT}
             onchange={(val) => {
@@ -467,7 +467,7 @@
 {/if}
 
 {#if !loading && categories.length === 0}
-    <p class="text-center text-gray-500 my-10">
+    <p class="text-center text-ink-500 my-10">
         {$_('category.emptyManagement')}
     </p>
 {:else if !loading}
@@ -498,7 +498,7 @@
             class:slide-left={direction === 'back'}
         >
             {#if currentCategories.length === 0}
-                <p class="text-center text-gray-500 my-10">
+                <p class="text-center text-ink-500 my-10">
                     {$_('category.emptyLevel')}
                 </p>
             {:else}

@@ -72,7 +72,7 @@
         onclick={() => onSelect(null)}
         class="px-4 py-2 rounded-full text-sm font-medium border transition-colors {!selected
             ? 'bg-accent-900 text-white border-accent-900'
-            : 'bg-bark-800 text-gray-200 border-bark-600 active:bg-bark-850'}"
+            : 'bg-bark-800 text-ink-200 border-bark-600 active:bg-bark-850'}"
     >
         {$_('category.none')}
     </button>
@@ -84,7 +84,7 @@
             class="px-4 py-2 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5 {selected?.id ===
             cat.id
                 ? 'bg-accent-900 text-white border-accent-900'
-                : 'bg-bark-800 text-gray-200 border-bark-600 active:bg-bark-850'}"
+                : 'bg-bark-800 text-ink-200 border-bark-600 active:bg-bark-850'}"
         >
             {#if icon}
                 {#if isUrl(icon)}
@@ -118,13 +118,13 @@
         <div
             class="flex gap-2 mb-3 items-center bg-ink-900 border border-ink-700 rounded-lg px-3 py-2"
         >
-            <span class="text-sm text-gray-300 shrink-0">{editCat.name}:</span>
+            <span class="text-sm text-ink-250 shrink-0">{editCat.name}:</span>
             <input
                 type="text"
                 bind:value={editingIconValue}
                 placeholder={$_('category.iconPlaceholder')}
                 disabled={savingIcon}
-                class="flex-1 min-w-0 px-2 py-1 border border-bark-600 bg-bark-800 text-gray-100 rounded-md text-sm"
+                class="flex-1 min-w-0 px-2 py-1 border border-bark-600 bg-bark-800 text-ink-100 rounded-md text-sm"
             />
             <button
                 type="button"
@@ -137,7 +137,7 @@
             <button
                 type="button"
                 onclick={() => (editingIconId = null)}
-                class="text-gray-300 text-sm px-1">✕</button
+                class="text-ink-250 text-sm px-1">✕</button
             >
         </div>
     {/if}
@@ -155,7 +155,7 @@
         bind:value={newName}
         placeholder={$_('category.newPlaceholder')}
         disabled={creating}
-        class="flex-1 px-3 py-2 border border-bark-600 bg-bark-800 text-gray-100 rounded-lg text-sm"
+        class="flex-1 px-3 py-2 border border-bark-600 bg-bark-800 text-ink-100 rounded-lg text-sm"
     />
     <button
         type="submit"
