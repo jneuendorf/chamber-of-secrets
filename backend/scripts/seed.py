@@ -18,11 +18,19 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import Category, InventoryTransaction, Product, ProductRevision
+from app.models import Category, InventoryTransaction, Product, ProductRevision, Profile
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "food_catalog.json"
 SEED_DAYS_SPAN = 30
 SEED_STOCK_MULTIPLIER = 3
+
+# Sample household profiles; movements are attributed round-robin so per-profile
+# views have something to show. `base` is a stable part id (never a glyph) and
+# the colors match the frontend presets in `lib/profiles.ts` / `lib/theme.ts`.
+SEED_PROFILES = [
+    {"name": "Mia", "avatar_config": {"base": "fox", "color": "#e8a33d"}},
+    {"name": "Leo", "avatar_config": {"base": "bear", "color": "#3498db"}},
+]
 
 
 def main() -> None:
@@ -43,14 +51,20 @@ def main() -> None:
                 print("Aborted.")
                 sys.exit(0)
 
+            # Transactions first: they reference both products and profiles.
             session.execute(InventoryTransaction.__table__.delete())
             session.execute(ProductRevision.__table__.delete())
             session.execute(Product.__table__.delete())
             session.execute(Category.__table__.delete())
+            session.execute(Profile.__table__.delete())
             session.commit()
             print("Cleared existing data.")
 
         catalog = json.loads(FIXTURES.read_text())
+
+        profiles = [Profile(**prof_def) for prof_def in SEED_PROFILES]
+        session.add_all(profiles)
+        session.flush()
 
         # Insert categories in declaration order so parents resolve before children.
         cat_map: dict[str, int] = {}
@@ -98,18 +112,22 @@ def main() -> None:
                 session.add(
                     InventoryTransaction(
                         product_id=product.id,
+                        profile_id=profiles[idx % len(profiles)].id,
                         type="in",
                         quantity=stock,
                         transacted_at=txn_time,
                         notes=f"Initial stock (seed, -{day_offset}d)",
-                    )
+                    ),
                 )
 
         session.commit()
 
     n_seeded = len(catalog["products"])
     n_cats_seeded = len(catalog["categories"])
-    print(f"Seeded {n_cats_seeded} categories and {n_seeded} products.")
+    print(
+        f"Seeded {n_cats_seeded} categories, {n_seeded} products, "
+        f"and {len(SEED_PROFILES)} profiles."
+    )
 
 
 if __name__ == "__main__":

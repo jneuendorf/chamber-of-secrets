@@ -1,5 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
+/** localStorage key for the active profile id (WL-5.1). Shared with `$lib/profiles`. */
+export const ACTIVE_PROFILE_KEY = 'activeProfileId'
+
+function activeProfileId(): number | null {
+    if (typeof localStorage === 'undefined') {
+        return null
+    }
+    const raw = localStorage.getItem(ACTIVE_PROFILE_KEY)
+    return raw ? Number(raw) : null
+}
+
 export class ApiError extends Error {
     readonly status: number
     readonly detail: string
@@ -80,9 +91,29 @@ export interface EANLookupResult {
     category: string | null
 }
 
+export interface AvatarConfig {
+    base?: string
+    color?: string
+}
+
+export interface Profile {
+    id: number
+    name: string
+    avatar_config: AvatarConfig
+    xp: number
+    level: number
+    current_streak: number
+    longest_streak: number
+    last_active_on: string | null
+    locale: string | null
+    is_archived: boolean
+    created_at: string
+}
+
 export interface Transaction {
     id: number
     product_id: number
+    profile_id: number | null
     type: 'in' | 'out'
     quantity: number
     unit_price: number | null
@@ -204,9 +235,10 @@ export const api = {
             unit_price?: number
             notes?: string
         }) =>
+            // Attribute to the active profile (WL-5.1) without touching call sites.
             request<Transaction>('/transactions/', {
                 method: 'POST',
-                body: JSON.stringify(data),
+                body: JSON.stringify({ profile_id: activeProfileId(), ...data }),
             }),
         update: (
             id: number,
@@ -255,6 +287,34 @@ export const api = {
             }),
         delete: (id: number) =>
             request<void>(`/categories/${id}`, { method: 'DELETE' }),
+    },
+    profiles: {
+        list: (includeArchived = false) =>
+            request<Profile[]>(
+                `/profiles/${includeArchived ? '?include_archived=true' : ''}`,
+            ),
+        create: (data: {
+            name: string
+            avatar_config?: AvatarConfig
+            locale?: string
+        }) =>
+            request<Profile>('/profiles/', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+        update: (
+            id: number,
+            data: {
+                name?: string
+                avatar_config?: AvatarConfig
+                locale?: string | null
+                is_archived?: boolean
+            },
+        ) =>
+            request<Profile>(`/profiles/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+            }),
     },
     analytics: {
         spending: (since?: string, until?: string) =>

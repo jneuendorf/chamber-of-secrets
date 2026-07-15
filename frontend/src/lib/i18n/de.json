@@ -9,6 +9,14 @@
     "analytics": "Analytik",
     "docs": "API"
   },
+  "profile": {
+    "pick": "Profil wählen",
+    "none": "Kein Profil",
+    "new": "Neues Profil",
+    "namePlaceholder": "Name",
+    "create": "Erstellen",
+    "level": "Lvl {level}"
+  },
   "chamber": {
     "statsTitle": "Kammerregister",
     "available": "Vorrätig",

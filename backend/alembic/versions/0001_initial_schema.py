@@ -5,11 +5,13 @@ Revises:
 Create Date: 2026-03-09
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy import inspect as sa_inspect
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "0001_initial_schema"
@@ -92,11 +94,34 @@ def upgrade() -> None:
             sa.PrimaryKeyConstraint("id"),
         )
 
+    # Profiles must exist before inventory_transactions references them.
+    if "profiles" not in existing:
+        op.create_table(
+            "profiles",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("name", sa.String(50), nullable=False),
+            sa.Column("avatar_config", sa.JSON(), nullable=False),
+            sa.Column("xp", sa.Integer(), nullable=False, server_default="0"),
+            sa.Column("current_streak", sa.Integer(), nullable=False, server_default="0"),
+            sa.Column("longest_streak", sa.Integer(), nullable=False, server_default="0"),
+            sa.Column("last_active_on", sa.Date(), nullable=True),
+            sa.Column("locale", sa.String(5), nullable=True),
+            sa.Column("is_archived", sa.Boolean(), nullable=False, server_default=sa.false()),
+            sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+        )
+
     if "inventory_transactions" not in existing:
         op.create_table(
             "inventory_transactions",
             sa.Column("id", sa.Integer(), nullable=False),
             sa.Column("product_id", sa.Integer(), sa.ForeignKey("products.id"), nullable=False),
+            sa.Column(
+                "profile_id",
+                sa.Integer(),
+                sa.ForeignKey("profiles.id"),
+                nullable=True,
+            ),
             sa.Column("type", sa.String(3), nullable=False),
             sa.Column("quantity", sa.Float(), nullable=False),
             sa.Column("unit_price", sa.Float(), nullable=True),
@@ -104,10 +129,17 @@ def upgrade() -> None:
             sa.Column("notes", sa.Text(), nullable=True),
             sa.PrimaryKeyConstraint("id"),
         )
+        op.create_index(
+            "ix_inventory_transactions_profile_id",
+            "inventory_transactions",
+            ["profile_id"],
+        )
 
 
 def downgrade() -> None:
+    op.drop_index("ix_inventory_transactions_profile_id", table_name="inventory_transactions")
     op.drop_table("inventory_transactions")
+    op.drop_table("profiles")
     op.drop_table("product_revisions")
     op.drop_index("ix_products_ean", table_name="products")
     op.drop_table("products")

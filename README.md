@@ -1,6 +1,6 @@
 # Chamber of Secrets
 
-A personal grocery inventory tracker. Scan product barcodes, record stock movements, and analyse spending by category. Designed to run on a Raspberry Pi and be accessible from mobile devices over HTTPS.
+A personal grocery inventory tracker. Scan product barcodes, record stock movements, and analyze spending by category. Designed to run on a Raspberry Pi and be accessible from mobile devices over HTTPS.
 
 ---
 

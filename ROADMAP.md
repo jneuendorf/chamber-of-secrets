@@ -63,7 +63,7 @@ dev M · user high · 🟢
 - [x] SvelteKit 2 + Svelte 5 + TypeScript + Tailwind CSS 4
 - [x] Typed API client (`lib/api/client.ts`)
 - [x] Mobile-friendly nav bar
-- [x] Dark colour scheme (proper theming deferred to WL-3.3)
+- [x] Dark color scheme (proper theming deferred to WL-3.3)
 - [x] Docker + nginx with TLS (mkcert), Podman support
 
 - [x] **WL-1.2: Barcode Scanner** ✅
@@ -98,7 +98,7 @@ dev S · user med · 🟡
 - [x] Category picker component for scan page
 - [x] Hierarchical parent/child display
 
-- [x] **WL-1.6: Internationalisation** ✅
+- [x] **WL-1.6: Internationalization** ✅
 
 dev S · user med · 🟡
 
@@ -106,7 +106,7 @@ dev S · user med · 🟡
 - [x] Locale switcher in nav bar
 - [x] All user-facing strings extracted to locale JSON
 
-- [x] **WL-1.7: Chamber Visualisation** ✅
+- [x] **WL-1.7: Chamber Visualization** ✅
 
 dev S · user low · 🔴
 
@@ -139,7 +139,7 @@ dev S · user med · 🟡
 dev M · user med · 🟡
 
 - [x] Manually add an image to an inventory item (camera capture)
-- [x] Fix chamber selection behaviour (disable marking)
+- [x] Fix chamber selection behavior (disable marking)
 
 - [x] **WL-2.4: Analytics Fixes** ✅
 
@@ -196,9 +196,9 @@ dev S · user — · ⚪
 
 dev S · user med · 🟡
 
-- [x] Replace hardcoded hex colours (`bg-[#1a1a2e]` etc.) with `@theme`
+- [x] Replace hardcoded hex colors (`bg-[#1a1a2e]` etc.) with `@theme`
       tokens in `src/app.css` (`bark-*`, `ink-*`, `accent-*`, status scales);
-      chart series colours centralised in `src/lib/theme.ts`. App stays
+      chart series colors centralized in `src/lib/theme.ts`. App stays
       dark-only for now — values unchanged.
 - [ ] Add `dark:` variant support so light/dark both work
 - [ ] Add theme toggle component (system / light / dark)
@@ -211,7 +211,7 @@ dev M · user low · 🟡
 - [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
 - [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
 - [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
-- [ ] Standardise other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
+- [ ] Standardize other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
 - [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
 
 - [x] **WL-3.5: UX Polish (round 2)** ✅
@@ -282,7 +282,7 @@ See `TODOS.md` for the concrete code deltas.
 
 - [x] Unify "low stock" on the category restock thresholds (drop the hardcoded `stock <= 1` in inventory; chamber "Required" now counts items needing restock)
 - [x] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
-- [x] Colour-token cleanup (scan `gray-*` → `ink-*`; tokenise chamber gold) and i18n the leaked scan strings
+- [x] Color-token cleanup (scan `gray-*` → `ink-*`; tokenize chamber gold) and i18n the leaked scan strings
 
 - [x] **WL-4.6: Contribute Back to Open Food Facts** ✅
 
@@ -300,36 +300,41 @@ Depends: WL-4.1 (manual entry). Achievement hook: WL-5.4.
 
 ---
 
-## Milestone 5 — Playful Chamber & Gamification ⬜
+## Milestone 5 — Playful Chamber & Gamification 🚧
 
 Goal: turn tracking into play — the chamber reacts, items animate, kids earn
 progress and real rewards. _Would a 10-year-old keep scanning for fun?_
 Animations use [Lottie](https://lottiefiles.com/) (`lottie-web`) plus
 AI-generated SVG/art driven by the design concept below.
 
-- [ ] **WL-5.1: Profiles & Attribution** ⬜
+- [x] **WL-5.1: Profiles & Attribution** ✅
 
 dev S · user high · 🟢
 
-- [ ] Lightweight profiles — *not* logins: pick a profile before scanning, like a Netflix/Switch user picker. The app stays fully usable with none selected.
-- [ ] Profile switcher in the nav (next to `LocaleSwitcher`); active profile persisted in `localStorage` and sent with mutations — no server session
-- [ ] Preset avatars to start (pick a character + colour), stored as a layered-SVG config so a buildable avatar + unlockable equipment can grow on top later (WL-5.4)
-- [ ] Level derived from XP (don't store level separately)
-- [ ] Foundation for all per-profile gamification (XP, streaks, leaderboard) and the later co-op/PvP modes (WL-9.2)
+- [x] Lightweight profiles — *not* logins: pick a profile before scanning, like a Netflix/Switch user picker. The app stays fully usable with none selected.
+- [x] Profile switcher in the nav (next to `LocaleSwitcher`); active profile persisted in `localStorage` and sent with mutations — no server session
+- [x] Preset avatars to start (pick a character + color), stored as a layered-SVG config so a buildable avatar + unlockable equipment can grow on top later (WL-5.4). `avatar_config.base` holds a **stable part id** (`"fox"`), never a glyph or SVG markup — the id decouples data from art, so parts can be redrawn or swapped from emoji to SVG without touching stored profiles. The emoji are a stand-in renderer; the SVG parts, the `layers` key, and the compositor land with WL-5.4 (additive on a JSON column — no migration)
+- [x] Level derived from XP (`level_for_xp`, don't store level separately)
+- [x] Foundation for all per-profile gamification (XP, streaks, leaderboard) and the later co-op/PvP modes (WL-9.2)
 
-Data model:
+Data model (as built): `Profile` table + nullable indexed
+`InventoryTransaction.profile_id`. The `ProfileAchievement` / `ProfileUnlock`
+tables below are **deferred to WL-5.4**, where the first code reads them —
+creating empty tables now would be dead scaffolding.
 
 ```
 Profile
-  id, name, avatar_config (JSON: layered SVG part ids),
+  id, name, avatar_config (JSON: layered SVG part ids — {base, color} today;
+                           `layers: [{slot, part}]` added by WL-5.4),
   xp (int, source of truth — level = f(xp)),
   current_streak, longest_streak, last_active_on (date | null),
   locale (str | null), is_archived (bool), created_at
 
+InventoryTransaction.profile_id   FK -> Profile, nullable, indexed     # NULL = no profile selected / legacy
+
+# Deferred to WL-5.4:
 ProfileAchievement   id, profile_id FK, achievement_key, earned_at    # unique(profile_id, key)
 ProfileUnlock        id, profile_id FK, item_key, acquired_at         # owned cosmetics/equipment; unique(profile_id, item_key)
-
-InventoryTransaction.profile_id   FK -> Profile, nullable, indexed     # NULL = no profile selected / legacy
 ```
 
 - [ ] **WL-5.2: Tap-to-Consume Chamber Interaction** ⬜
@@ -375,8 +380,8 @@ dev M · user med · 🟡
 Art direction: warm, storybook flat-vector; earthy browns with gold accents
 (matches the `bark-*` / `ink-*` / gold tokens); dark-friendly; simple shapes
 that export cleanly to SVG; transparent backgrounds for sprites; no text in
-images. Feed these as prompts to an image/Lottie generator, then tokenise
-colours to the theme.
+images. Feed these as prompts to an image/Lottie generator, then tokenize
+colors to the theme.
 
 - **Chamber scene (background, per level).** "A cozy underground stone pantry
   and treasure chamber, warm torchlight, wooden shelves along the walls, stone
@@ -490,7 +495,7 @@ dev M · user high · 🟢
 dev M · user critical · 🟢
 Depends: WL-8.1
 
-- [ ] Match recipe ingredients against current inventory (fuzzy name matching + unit normalisation)
+- [ ] Match recipe ingredients against current inventory (fuzzy name matching + unit normalization)
 - [ ] Three tiers: "ready to cook" (all ingredients in stock), "almost ready" (1–2 items missing), "need shopping"
 - [ ] Missing-ingredient delta → one-tap add to shopping list (WL-7.1)
 - [ ] "Cook this" action → bulk-deduct ingredients from inventory

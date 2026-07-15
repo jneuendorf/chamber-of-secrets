@@ -9,6 +9,14 @@
     "analytics": "Analytics",
     "docs": "API"
   },
+  "profile": {
+    "pick": "Choose profile",
+    "none": "No profile",
+    "new": "New profile",
+    "namePlaceholder": "Name",
+    "create": "Create",
+    "level": "Lvl {level}"
+  },
   "chamber": {
     "statsTitle": "Chamber Ledger",
     "available": "In Stock",

@@ -3,6 +3,7 @@
 
     import { page } from '$app/state'
     import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
+    import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte'
     import '../app.css'
 
     let { children } = $props()
@@ -90,7 +91,10 @@
                     {/if}
                 </ul>
             </div>
-            <LocaleSwitcher />
+            <div class="nav-actions">
+                <ProfileSwitcher />
+                <LocaleSwitcher />
+            </div>
         </div>
     </nav>
 
@@ -184,7 +188,7 @@
             grid-area: brand;
         }
 
-        .nav-main :global(.flex.gap-1) {
+        .nav-actions {
             grid-area: locale;
             justify-self: end;
         }
@@ -200,10 +204,16 @@
     }
 
     @media (min-width: 761px) {
-        .nav-main :global(.flex.gap-1) {
+        .nav-actions {
             margin-left: auto;
             flex: 0 0 auto;
         }
+    }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .content-root {

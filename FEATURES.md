@@ -129,7 +129,7 @@ emerges from knowing what's in stock:
 - **Merge duplicates**: pick a survivor for a duplicate product; its
   movements are repointed onto the survivor and the duplicate is removed.
 
-### 2.7 Internationalisation
+### 2.7 Internationalization
 
 - UI available in English (EN) and German (DE).
 - Language switcher in the navigation bar.
@@ -137,11 +137,29 @@ emerges from knowing what's in stock:
 
 ### 2.8 Visual Style
 
-- Dark colour scheme throughout (driven by imagery and backgrounds).
+- Dark color scheme throughout (driven by imagery and backgrounds).
 - Proper theming (light/dark toggle, CSS variables) is a future feature
   (see `ROADMAP.md` WL-3.3).
 
-### 2.9 Deployment
+### 2.9 Profiles & Attribution
+
+- Lightweight, login-less profiles — a Netflix/Switch-style picker in the
+  nav, next to the language switcher. The app stays fully usable with none
+  selected.
+- The active profile is persisted in `localStorage` and sent with every stock
+  movement (`InventoryTransaction.profile_id`); there is no server session.
+  `NULL` attribution means no profile was selected (or a legacy movement).
+- Preset avatars: pick a character + color. `avatar_config` is a layered-SVG
+  config stored as JSON — `base` is a **stable part id** (`"fox"`), never a
+  glyph or SVG markup. Art lives in the frontend bundle and is referenced by id,
+  so parts can be redrawn (or swapped from today's emoji stand-in to real SVG)
+  without touching stored profiles. WL-5.4 adds a `layers: [{slot, part}]` key
+  for unlockable equipment — additive on a JSON column, so no migration.
+- Each profile carries `xp` as the source of truth; **level is derived**
+  (`level_for_xp`), never stored. XP accrual, streaks, achievements, and
+  unlocks land in WL-5.3/5.4 — this is their foundation.
+
+### 2.10 Deployment
 
 - Docker / Podman Compose stack (backend + nginx frontend).
 - TLS via mkcert for local HTTPS (trusted on mobile after CA install).
@@ -160,7 +178,12 @@ restock thresholds (`restock_target`, `restock_min`, `restock_inherit`).
 **ProductRevisions** — immutable snapshot created on each product refresh.
 
 **InventoryTransactions** — `type: in | out` with quantity and unit price;
-current stock is computed at query time.
+current stock is computed at query time. Optional `profile_id` attributes the
+movement to a profile (nullable).
+
+**Profiles** — login-less identity: `name`, `avatar_config` (JSON: layered-SVG
+part ids), `xp` (source of truth; level derived), streak fields, `locale`,
+`is_archived`. Achievement/unlock tables arrive with WL-5.4.
 
 ---
 
@@ -191,4 +214,7 @@ current stock is computed at query time.
 | GET | `/api/analytics/spending` | Spending by category (date range) |
 | GET | `/api/analytics/timeseries` | Spending over time |
 | GET | `/api/analytics/restock-overview` | Products needing restock by category |
+| GET | `/api/profiles/` | List profiles (optional `include_archived`) |
+| POST | `/api/profiles/` | Create a profile |
+| PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
 | GET | `/api/health` | Health check |

@@ -628,6 +628,81 @@ class BackendAPITestCase(unittest.TestCase):
         )
         self.assertIsNone(updated_child["parent_id"])
 
+    # ---------- WL-5.1: profiles & attribution ----------
+
+    def test_create_profile_defaults_and_derived_level(self) -> None:
+        res = self.client.post(
+            "/api/profiles/",
+            json={"name": "  Mia  ", "avatar_config": {"base": "fox", "color": "#e8a33d"}},
+        )
+        self.assertEqual(res.status_code, 201, res.text)
+        body = res.json()
+        self.assertEqual(body["name"], "Mia")  # trimmed
+        self.assertEqual(body["xp"], 0)
+        self.assertEqual(body["level"], 1)  # derived from xp, never stored
+        self.assertFalse(body["is_archived"])
+        self.assertEqual(body["avatar_config"], {"base": "fox", "color": "#e8a33d"})
+
+    def test_create_profile_rejects_blank_name(self) -> None:
+        res = self.client.post("/api/profiles/", json={"name": "   "})
+        self.assertEqual(res.status_code, 422)
+
+    def test_list_profiles_excludes_archived_by_default(self) -> None:
+        keep = self.client.post("/api/profiles/", json={"name": "Keep"}).json()
+        gone = self.client.post("/api/profiles/", json={"name": "Gone"}).json()
+        self.client.patch(f"/api/profiles/{gone['id']}", json={"is_archived": True})
+
+        ids = {p["id"] for p in self.client.get("/api/profiles/").json()}
+        self.assertIn(keep["id"], ids)
+        self.assertNotIn(gone["id"], ids)
+
+        all_ids = {p["id"] for p in self.client.get("/api/profiles/?include_archived=true").json()}
+        self.assertIn(gone["id"], all_ids)
+
+    def test_patch_profile_not_found(self) -> None:
+        res = self.client.patch("/api/profiles/999999", json={"name": "Nope"})
+        self.assertEqual(res.status_code, 404)
+
+    def test_transaction_records_profile_attribution(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Leo"}).json()
+        product = self._create_product("Milk")
+        res = self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+        )
+        self.assertEqual(res.status_code, 201, res.text)
+        self.assertEqual(res.json()["profile_id"], profile["id"])
+
+    def test_transaction_with_unknown_profile_returns_404(self) -> None:
+        product = self._create_product("Butter")
+        res = self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "profile_id": 999999, "type": "in"},
+        )
+        self.assertEqual(res.status_code, 404)
+
+    def test_transaction_allows_archived_profile(self) -> None:
+        # A device may hold a stale selection until its next reload; the row still
+        # exists, so attribution stays valid rather than failing mid-scan.
+        profile = self.client.post("/api/profiles/", json={"name": "Ada"}).json()
+        self.client.patch(f"/api/profiles/{profile['id']}", json={"is_archived": True})
+        product = self._create_product("Yoghurt")
+        res = self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+        )
+        self.assertEqual(res.status_code, 201, res.text)
+        self.assertEqual(res.json()["profile_id"], profile["id"])
+
+    def test_transaction_without_profile_is_null(self) -> None:
+        product = self._create_product("Eggs")
+        res = self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "type": "in"},
+        )
+        self.assertEqual(res.status_code, 201, res.text)
+        self.assertIsNone(res.json()["profile_id"])
+
 
 if __name__ == "__main__":
     unittest.main()

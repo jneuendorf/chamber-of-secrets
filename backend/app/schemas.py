@@ -1,7 +1,9 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, computed_field, field_validator, model_validator
+
+from app.models import level_for_xp
 
 # --- Categories ---
 
@@ -131,6 +133,7 @@ class ProductRevisionRead(BaseModel):
 
 class TransactionCreate(BaseModel):
     product_id: int
+    profile_id: int | None = None
     type: Literal["in", "out"]
     quantity: float = 1.0
     unit_price: float | None = None
@@ -161,6 +164,7 @@ class TransactionUpdate(BaseModel):
 class TransactionRead(BaseModel):
     id: int
     product_id: int
+    profile_id: int | None
     type: str
     quantity: float
     unit_price: float | None
@@ -168,6 +172,60 @@ class TransactionRead(BaseModel):
     notes: str | None
 
     model_config = {"from_attributes": True}
+
+
+# --- Profiles ---
+
+
+class ProfileCreate(BaseModel):
+    name: str
+    avatar_config: dict = {}
+    locale: str | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("name must not be empty")
+        return value
+
+
+class ProfileUpdate(BaseModel):
+    name: str | None = None
+    avatar_config: dict | None = None
+    locale: str | None = None
+    is_archived: bool | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("name must not be empty")
+        return value
+
+
+class ProfileRead(BaseModel):
+    id: int
+    name: str
+    avatar_config: dict
+    xp: int
+    current_streak: int
+    longest_streak: int
+    last_active_on: date | None
+    locale: str | None
+    is_archived: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def level(self) -> int:
+        return level_for_xp(self.xp)
 
 
 # --- EAN Lookup ---

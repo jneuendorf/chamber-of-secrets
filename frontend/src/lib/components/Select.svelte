@@ -3,7 +3,7 @@
     positioned, portaled — so it works on iOS Safari and escapes
     `overflow: hidden` ancestors like modals). We keep the project's dark
     styling and a simple `items` / `value` / `onchange` API; Bits UI owns the
-    keyboard / focus / ARIA / positioning behaviour.
+    keyboard / focus / ARIA / positioning behavior.
 
     Styling is plain Tailwind utilities (our @theme tokens) rather than a scoped
     <style> block: classes passed to Bits UI components don't receive Svelte's

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models import InventoryTransaction, Product
+from app.models import InventoryTransaction, Product, Profile
 from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
@@ -33,6 +33,12 @@ def create_transaction(
     )
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    # SQLite doesn't enforce the FK (pragma off), so attribution is checked here.
+    # Existence only — an archived profile is still a valid target, since a device
+    # may hold a stale selection until its next reload.
+    if data.profile_id is not None and not db.get(Profile, data.profile_id):
+        raise HTTPException(status_code=404, detail="Profile not found")
 
     if data.type == "out":
         current_stock = sum(

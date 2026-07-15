@@ -97,7 +97,7 @@ Bullet list ok. No co-author trailer unless asked.
   (`bark-*` surfaces, `ink-*` neutrals, `accent-*`, `danger/success/warning/info`)
   — never hardcode hex. In markup use the utilities (`bg-bark-850`,
   `text-ink-100`); in scoped `<style>` use `var(--color-…)`. Chart series
-  colours live in `src/lib/theme.ts` (`CHART_PALETTE` + `themeColor()`), since
+  colors live in `src/lib/theme.ts` (`CHART_PALETTE` + `themeColor()`), since
   canvas needs raw strings. App is dark-only for now (WL-3.3).
 - **Headless UI**: [Bits UI](https://bits-ui.com) provides accessible
   primitives (`Select`, `Modal`→Dialog so far; Checkbox/Tabs/Tooltip/Date
@@ -111,6 +111,10 @@ Bullet list ok. No co-author trailer unless asked.
 - Scoped `<style>` blocks coexist with Tailwind.
 - **Naming**: avoid single-character variable names. Use descriptive
   names even for short-lived locals (e.g. `cat` not `c`, `err` not `e`).
+- **American English** in docs, comments, and identifiers: `color` not
+  `colour`, `standardize` not `standardise`, `behavior` not `behaviour`,
+  `initialize`/`normalization`/`analyze`. This covers `.md` files, code
+  comments, and the EN locale (user-facing copy). DE locale is unaffected.
 
 ## Prohibited
 

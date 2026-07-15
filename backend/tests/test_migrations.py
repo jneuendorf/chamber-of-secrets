@@ -58,6 +58,30 @@ class MigrationsTestCase(unittest.TestCase):
         self.assertFalse(columns["restock_inherit"]["nullable"])
         self.assertIsNone(columns["restock_inherit"]["default"])
 
+    def test_profiles_are_part_of_the_initial_schema(self) -> None:
+        command.upgrade(self._config(), "head")
+
+        engine = create_engine(self._url)
+        try:
+            inspector = inspect(engine)
+            self.assertIn("profiles", inspector.get_table_names())
+
+            tx_columns = {c["name"] for c in inspector.get_columns("inventory_transactions")}
+            self.assertIn("profile_id", tx_columns)
+
+            # The FK must reach the migrated DDL, not just the one create_all
+            # builds — otherwise tests and a real deployment would disagree the
+            # moment SQLite FK enforcement is switched on.
+            profile_fks = [
+                fk
+                for fk in inspector.get_foreign_keys("inventory_transactions")
+                if fk["referred_table"] == "profiles"
+            ]
+            self.assertEqual(len(profile_fks), 1)
+            self.assertEqual(profile_fks[0]["constrained_columns"], ["profile_id"])
+        finally:
+            engine.dispose()
+
     def test_full_downgrade_and_re_upgrade(self) -> None:
         config = self._config()
         command.upgrade(config, "head")

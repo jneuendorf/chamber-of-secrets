@@ -142,13 +142,33 @@ describe('api.transactions', () => {
             expect(lastCall(fetch).url).toEndWith('/transactions/?product_id=5')
         }))
 
-    test('create(data) calls POST /transactions/', () =>
+    test('create(data) calls POST /transactions/ with null attribution by default', () =>
         withMockedApi(async ({ api, fetch }) => {
             const data = { product_id: 1, type: 'in' as const, quantity: 3 }
             await api.transactions.create(data)
             expect(lastCall(fetch).url).toEndWith('/transactions/')
             expect(lastCall(fetch).options?.method).toBe('POST')
-            expect(JSON.parse(lastCall(fetch).options!.body as string)).toEqual(data)
+            expect(JSON.parse(lastCall(fetch).options!.body as string)).toEqual({
+                ...data,
+                profile_id: null,
+            })
+        }))
+
+    test('create(data) attributes to the active profile from localStorage', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            // bun test has no DOM; stub the minimal localStorage the client reads.
+            ;(globalThis as { localStorage?: Storage }).localStorage = {
+                getItem: (key: string) => (key === 'activeProfileId' ? '7' : null),
+            } as Storage
+            try {
+                await api.transactions.create({ product_id: 1, type: 'out' as const })
+                expect(
+                    JSON.parse(lastCall(fetch).options!.body as string).profile_id,
+                ).toBe(7)
+            } finally {
+                ;(globalThis as { localStorage?: Storage }).localStorage =
+                    undefined as unknown as Storage
+            }
         }))
 
     test('update(id, data) calls PATCH /transactions/:id', () =>
