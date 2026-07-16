@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 # Ensure app settings pick up a test DB before importing app modules.
@@ -23,7 +24,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 
 from app.database import get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import Base  # noqa: E402
+from app.models import Base, InventoryTransaction  # noqa: E402
 from app.routers import products as products_router  # noqa: E402
 
 
@@ -680,6 +681,19 @@ class BackendAPITestCase(unittest.TestCase):
             json={"product_id": product["id"], "profile_id": 999999, "type": "in"},
         )
         self.assertEqual(res.status_code, 404)
+
+    def test_db_rejects_orphan_transaction(self) -> None:
+        # Backstop behind the router guards: a direct write with a dangling
+        # product_id must be refused by SQLite itself (PRAGMA foreign_keys=ON),
+        # proving the constraint is enforced, not just documented.
+        db = self._SessionLocal()
+        try:
+            db.add(InventoryTransaction(product_id=999999, type="in", quantity=1))
+            with self.assertRaises(IntegrityError):
+                db.flush()
+        finally:
+            db.rollback()
+            db.close()
 
     def test_transaction_allows_archived_profile(self) -> None:
         # A device may hold a stale selection until its next reload; the row still
