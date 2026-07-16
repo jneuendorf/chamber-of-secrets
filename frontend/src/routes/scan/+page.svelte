@@ -106,7 +106,14 @@
 
     async function enterManualMode(ean: string) {
         lookupError = ''
-        lookupResult = { ean, name: '', brand: null, image_url: null, category: null }
+        lookupResult = {
+            ean,
+            name: '',
+            brand: null,
+            image_url: null,
+            category: null,
+            from_cache: false,
+        }
         manualMode = true
         contributeToOff = false
         quantity = 1

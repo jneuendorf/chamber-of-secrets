@@ -89,10 +89,20 @@ prettier-svelte MODE *SCOPE="--staged":
 format-check-backend:
     cd backend && uv run ruff format --check app/
 
+# --- API types (generated from the backend's OpenAPI schema) ---
+
+# regenerate the frontend's API types (single source of truth: the Pydantic schemas).
+# Not committed: derived data, and `typecheck-frontend` depends on this, so it can't
+# go stale. Only svelte-check reads the output — a .d.ts has no runtime form, so
+# tests, dev, and the production build don't need it and shouldn't depend on this.
+types:
+    cd backend && uv run python scripts/dump_openapi.py | ../frontend/node_modules/.bin/openapi-typescript -o ../frontend/src/lib/api/schema.d.ts
+
 # --- Quality: typecheck ---
 
-# typecheck frontend (svelte-check)
-typecheck-frontend:
+# typecheck frontend (svelte-check). Regenerates types first: checking against a
+# stale schema.d.ts is a check that passes for the wrong reason. Needs uv.
+typecheck-frontend: types
     cd frontend && bun run check
 
 # --- Quality: test ---

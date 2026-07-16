@@ -281,7 +281,7 @@ dev S · user med · 🟡
 See `TODOS.md` for the concrete code deltas.
 
 - [x] Unify "low stock" on the category restock thresholds (drop the hardcoded `stock <= 1` in inventory; chamber "Required" now counts items needing restock)
-- [x] Finish modal standardisation — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
+- [x] Finish modal standardization — migrate the BarcodeScanner and chamber modals to the Bits UI `Modal`
 - [x] Color-token cleanup (scan `gray-*` → `ink-*`; tokenize chamber gold) and i18n the leaked scan strings
 
 - [x] **WL-4.6: Contribute Back to Open Food Facts** ✅
@@ -311,7 +311,7 @@ AI-generated SVG/art driven by the design concept below.
 
 dev S · user high · 🟢
 
-- [x] Lightweight profiles — *not* logins: pick a profile before scanning, like a Netflix/Switch user picker. The app stays fully usable with none selected.
+- [x] Lightweight profiles — _not_ logins: pick a profile before scanning, like a Netflix/Switch user picker. The app stays fully usable with none selected.
 - [x] Profile switcher in the nav (next to `LocaleSwitcher`); active profile persisted in `localStorage` and sent with mutations — no server session
 - [x] Preset avatars to start (pick a character + color), stored as a layered-SVG config so a buildable avatar + unlockable equipment can grow on top later (WL-5.4). `avatar_config.base` holds a **stable part id** (`"fox"`), never a glyph or SVG markup — the id decouples data from art, so parts can be redrawn or swapped from emoji to SVG without touching stored profiles. The emoji are a stand-in renderer; the SVG parts, the `layers` key, and the compositor land with WL-5.4 (additive on a JSON column — no migration)
 - [x] Level derived from XP (`level_for_xp`, don't store level separately)

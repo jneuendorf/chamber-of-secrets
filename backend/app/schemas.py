@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 from app.models import level_for_xp
 
@@ -103,7 +103,9 @@ class ProductRead(BaseModel):
 
 class ProductWithStock(ProductRead):
     stock: float
-    category: CategoryRead | None = None
+    # No default: the key is always serialized (possibly null), and a default
+    # would tell the generated client it may be absent.
+    category: CategoryRead | None
 
 
 class ProductMerge(BaseModel):
@@ -165,7 +167,7 @@ class TransactionRead(BaseModel):
     id: int
     product_id: int
     profile_id: int | None
-    type: str
+    type: Literal["in", "out"]
     quantity: float
     unit_price: float | None
     transacted_at: datetime
@@ -177,9 +179,24 @@ class TransactionRead(BaseModel):
 # --- Profiles ---
 
 
+class AvatarConfig(BaseModel):
+    """Layered-SVG avatar config (WL-5.1).
+
+    `base` is a stable part id ("fox") — never a glyph or SVG markup; the art is
+    resolved client-side, so parts can be redrawn without touching stored data.
+    Extra keys are allowed so a newer client can round-trip parts this version
+    doesn't know about (WL-5.4 adds `layers: [{slot, part}]`).
+    """
+
+    base: str | None = None
+    color: str | None = None
+
+    model_config = {"extra": "allow"}
+
+
 class ProfileCreate(BaseModel):
     name: str
-    avatar_config: dict = {}
+    avatar_config: AvatarConfig = Field(default_factory=AvatarConfig)
     locale: str | None = None
 
     @field_validator("name")
@@ -193,7 +210,7 @@ class ProfileCreate(BaseModel):
 
 class ProfileUpdate(BaseModel):
     name: str | None = None
-    avatar_config: dict | None = None
+    avatar_config: AvatarConfig | None = None
     locale: str | None = None
     is_archived: bool | None = None
 
@@ -211,7 +228,7 @@ class ProfileUpdate(BaseModel):
 class ProfileRead(BaseModel):
     id: int
     name: str
-    avatar_config: dict
+    avatar_config: AvatarConfig
     xp: int
     current_streak: int
     longest_streak: int
@@ -233,10 +250,12 @@ class ProfileRead(BaseModel):
 
 class EANLookupResult(BaseModel):
     ean: str
-    name: str | None = None
-    brand: str | None = None
-    image_url: str | None = None
-    category: str | None = None
+    # No defaults: every construction site passes these explicitly and they're
+    # always serialized, so a default would misreport them as optional.
+    name: str | None
+    brand: str | None
+    image_url: str | None
+    category: str | None
     from_cache: bool = False
 
 

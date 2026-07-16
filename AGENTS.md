@@ -81,18 +81,39 @@ Bullet list ok. No co-author trailer unless asked.
   lints and organizes imports for `.svelte` (its formatter is disabled
   for them in `biome.jsonc`). Editor formatting is wired up in
   `.zed/settings.json` (needs the community Biome extension).
+- **API types are generated, never hand-written.** The Pydantic schemas in
+  `backend/app/schemas.py` are the single source of truth for the wire
+  contract: FastAPI publishes them as OpenAPI, and
+  `frontend/src/lib/api/schema.d.ts` is generated from that (`just types`).
+  `client.ts` only aliases them (`export type Profile = Schemas['ProfileRead']`)
+  so import sites stay stable. Never edit `schema.d.ts` by hand.
+    - **Not committed** — it's derived data (`.gitignore`d; Biome skips it via
+      `vcs.useIgnoreFile`). `typecheck-frontend` depends on `types`, so it
+      regenerates on demand and can't go stale.
+    - It's a `.d.ts`: declarations only, no runtime representation, impossible to
+      value-import. **`svelte-check` is its only consumer.** `bun test`, `vite dev`,
+      `vite build`, and the Docker image all erase the type-only import and run fine
+      without the file — don't add `types` as a dependency of those "for safety",
+      it just costs a second.
+    - Response models: **don't give a field a default** unless it may genuinely be
+      absent. `x: T | None = None` makes the generated client think the key is
+      optional; if it's always serialized, write `x: T | None`.
+    - SQLAlchemy models are the _DB_ schema, not the wire contract — don't try to
+      sync them to TypeScript. The chain is SQLAlchemy → Pydantic (hand-written,
+      deliberately) → OpenAPI → TS (generated).
 - **Tailwind CSS v4** via `@tailwindcss/vite` (no config file).
   Entry point: `src/app.css`.
 - **Canonical classes**: prefer v4's shorthand over an arbitrary bracket value
   when an exact equivalent exists:
-  - bare numeric scale — `z-10000` not `z-[10000]`, `max-h-70` not
-    `max-h-[280px]` (spacing is 0.25rem/unit, so `70` = 17.5rem = 280px)
-  - CSS variables — `min-w-(--anchor-width)` not `min-w-[var(--anchor-width)]`
-  - boolean `data-*` variants — `data-selected:` not `data-[selected]:`
-    (values still need brackets: `data-[state=open]:`)
+    - bare numeric scale — `z-10000` not `z-[10000]`, `max-h-70` not
+      `max-h-[280px]` (spacing is 0.25rem/unit, so `70` = 17.5rem = 280px)
+    - CSS variables — `min-w-(--anchor-width)` not `min-w-[var(--anchor-width)]`
+    - boolean `data-*` variants — `data-selected:` not `data-[selected]:`
+      (values still need brackets: `data-[state=open]:`)
 
-  Reserve `[…]` for values with no scale equivalent: one-off shadows,
-  unitless line-heights, off-grid spacing.
+    Reserve `[…]` for values with no scale equivalent: one-off shadows,
+    unitless line-heights, off-grid spacing.
+
 - **Colors**: use the `@theme` tokens in `src/app.css`
   (`bark-*` surfaces, `ink-*` neutrals, `accent-*`, `danger/success/warning/info`)
   — never hardcode hex. In markup use the utilities (`bg-bark-850`,
@@ -102,7 +123,7 @@ Bullet list ok. No co-author trailer unless asked.
 - **Headless UI**: [Bits UI](https://bits-ui.com) provides accessible
   primitives (`Select`, `Modal`→Dialog so far; Checkbox/Tabs/Tooltip/Date
   Picker as features need them). Style them with **Tailwind utility classes**
-  (our `@theme` tokens) passed via `class` — *not* scoped `<style>`: classes
+  (our `@theme` tokens) passed via `class` — _not_ scoped `<style>`: classes
   handed to a library component don't get Svelte's scope hash, so scoped
   selectors silently don't apply (Svelte flags them "unused"). Wrap new
   primitives behind a thin local component with a small typed API.
@@ -141,8 +162,9 @@ just format                   # biome + ruff format (staged by default)
 just format-frontend          # biome format (staged by default)
 just format-backend           # ruff format
 just format-check             # check without writing (staged by default)
-just typecheck-frontend       # svelte-check only
+just typecheck-frontend       # svelte-check (regenerates API types first; needs uv)
 just typecheck-backend        # ty type check
+just types                    # regenerate frontend API types (auto: every consumer depends on it)
 just seed                     # seed DB with sample data
 just up                       # containerized prod stack
 ```

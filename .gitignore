@@ -7,3 +7,7 @@
 
 # Runtime data
 backend/data/uploads/
+
+# Generated: derived from the backend's OpenAPI schema, never edited by hand.
+# `just typecheck-frontend` depends on `just types`, so it regenerates on demand.
+frontend/src/lib/api/schema.d.ts

@@ -1,3 +1,28 @@
+import type { components } from './schema'
+
+/**
+ * Wire types are **generated** from the backend's OpenAPI schema — never
+ * hand-written. The Pydantic schemas are the single source of truth. `./schema`
+ * is gitignored build output; every recipe that needs it depends on `just types`,
+ * so it regenerates on demand.
+ *
+ * These aliases keep the import surface stable (`import type { Product }`) and
+ * give the generated `*Read` names their domain names.
+ */
+type Schemas = components['schemas']
+
+export type Product = Schemas['ProductWithStock']
+export type Category = Schemas['CategoryRead']
+export type EANLookupResult = Schemas['EANLookupResult']
+export type AvatarConfig = Schemas['AvatarConfig']
+export type Profile = Schemas['ProfileRead']
+export type Transaction = Schemas['TransactionRead']
+export type SpendingByCategory = Schemas['SpendingByCategory']
+export type TimeseriesPoint = Schemas['TimeseriesPoint']
+export type RestockOverviewRow = Schemas['RestockOverviewRow']
+export type RestockGroupTotal = Schemas['RestockGroupTotal']
+export type RestockOverviewResponse = Schemas['RestockOverviewResponse']
+
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
 /** localStorage key for the active profile id (WL-5.1). Shared with `$lib/profiles`. */
@@ -58,110 +83,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         return undefined as T
     }
     return response.json()
-}
-
-// Products
-export interface Product {
-    id: number
-    ean: string | null
-    name: string
-    brand: string | null
-    category_id: number | null
-    image_url: string | null
-    created_at: string
-    stock: number
-    category: Category | null
-}
-
-export interface Category {
-    id: number
-    name: string
-    parent_id: number | null
-    icon: string | null
-    restock_target: number | null
-    restock_min: number | null
-    restock_inherit: boolean
-}
-
-export interface EANLookupResult {
-    ean: string
-    name: string | null
-    brand: string | null
-    image_url: string | null
-    category: string | null
-}
-
-export interface AvatarConfig {
-    base?: string
-    color?: string
-}
-
-export interface Profile {
-    id: number
-    name: string
-    avatar_config: AvatarConfig
-    xp: number
-    level: number
-    current_streak: number
-    longest_streak: number
-    last_active_on: string | null
-    locale: string | null
-    is_archived: boolean
-    created_at: string
-}
-
-export interface Transaction {
-    id: number
-    product_id: number
-    profile_id: number | null
-    type: 'in' | 'out'
-    quantity: number
-    unit_price: number | null
-    transacted_at: string
-    notes: string | null
-}
-
-export interface SpendingByCategory {
-    category: string
-    total_spent: number
-    item_count: number
-}
-
-export interface TimeseriesPoint {
-    date: string
-    category: string
-    item_count: number
-    total_spent: number
-}
-
-export interface RestockOverviewRow {
-    id: number
-    name: string
-    brand: string | null
-    category_id: number | null
-    category_name: string
-    current_stock: number
-    effective_target: number | null
-    effective_min: number | null
-    resolved_from_category_id: number | null
-    missing_to_target: number
-    below_min: boolean
-    needs_restock: boolean
-}
-
-export interface RestockGroupTotal {
-    category_id: number | null
-    category_name: string
-    total_missing_to_target: number
-    affected_products: number
-}
-
-export interface RestockOverviewResponse {
-    rows: RestockOverviewRow[]
-    total_missing_quantity: number
-    total_products_needing_restock: number
-    by_child_category: RestockGroupTotal[]
-    by_parent_category: RestockGroupTotal[]
 }
 
 function dateRange(since?: string, until?: string): string {

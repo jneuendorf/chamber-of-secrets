@@ -3,6 +3,8 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
+    // The generated schema.d.ts needs no entry here: it's gitignored, and
+    // vcs.useIgnoreFile above already excludes it.
     "includes": ["**", "!**/dist", "!**/node_modules", "!**/.svelte-kit"]
   },
   "formatter": {
