@@ -4,14 +4,16 @@ import unittest
 from pathlib import Path
 
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.engine.interfaces import ReflectedColumn
 
 # Ensure backend/app is importable when tests run from repository root.
 _BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(_BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(_BACKEND_ROOT))
 
-from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
+
+from alembic import command  # noqa: E402
 from app.config import settings  # noqa: E402
 
 
@@ -39,7 +41,7 @@ class MigrationsTestCase(unittest.TestCase):
     def _config(self) -> Config:
         return Config(str(_BACKEND_ROOT / "alembic.ini"))
 
-    def _category_columns(self) -> dict[str, dict]:
+    def _category_columns(self) -> dict[str, ReflectedColumn]:
         engine = create_engine(self._url)
         try:
             return {c["name"]: c for c in inspect(engine).get_columns("categories")}
