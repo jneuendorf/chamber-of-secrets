@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from app.schemas import RestockGroupTotal, RestockOverviewResponse, RestockOverviewRow
 
 if TYPE_CHECKING:
     from app.models import Category, Product
@@ -25,32 +26,6 @@ class RestockComputed:
     missing_to_target: float
     below_min: bool
     needs_restock: bool
-
-
-@dataclass(slots=True)
-class RestockOverviewRowData:
-    id: int
-    name: str
-    brand: str | None
-    category_id: int | None
-    category_name: str
-    current_stock: float
-    effective_target: float | None
-    effective_min: float | None
-    resolved_from_category_id: int | None
-    missing_to_target: float
-    below_min: bool
-    needs_restock: bool
-    top_parent_category_id: int | None
-    top_parent_category_name: str
-
-
-@dataclass(slots=True)
-class RestockGroupTotalData:
-    category_id: int | None
-    category_name: str
-    total_missing_to_target: float
-    affected_products: int
 
 
 def compute_stock_for_product(product: Product) -> float:
@@ -137,13 +112,17 @@ def top_parent_category(
     return current
 
 
-def build_restock_overview_rows(
+def build_restock_overview(
     products: list[Product],
     category_by_id: dict[int, Category],
     *,
     include_all_products: bool = True,
-) -> list[RestockOverviewRowData]:
-    rows: list[RestockOverviewRowData] = []
+) -> RestockOverviewResponse:
+    rows: list[RestockOverviewRow] = []
+    child_buckets: dict[tuple[int | None, str], RestockGroupTotal] = {}
+    parent_buckets: dict[tuple[int | None, str], RestockGroupTotal] = {}
+    total_missing_quantity = 0.0
+    total_products_needing_restock = 0
 
     for product in products:
         category = (
@@ -167,7 +146,7 @@ def build_restock_overview_rows(
         top_parent_name = top_parent.name if top_parent is not None else UNCATEGORIZED_LABEL
 
         rows.append(
-            RestockOverviewRowData(
+            RestockOverviewRow(
                 id=product.id,
                 name=product.name,
                 brand=product.brand,
@@ -180,30 +159,57 @@ def build_restock_overview_rows(
                 missing_to_target=computed.missing_to_target,
                 below_min=computed.below_min,
                 needs_restock=computed.needs_restock,
-                top_parent_category_id=top_parent_id,
-                top_parent_category_name=top_parent_name,
             ),
         )
 
-    return rows
+        total_missing_quantity += computed.missing_to_target
+        if computed.needs_restock:
+            total_products_needing_restock += 1
+        _accumulate(child_buckets, (product.category_id, category_name), computed)
+        _accumulate(parent_buckets, (top_parent_id, top_parent_name), computed)
 
-
-def aggregate_restock_totals(
-    rows: list[RestockOverviewRowData],
-) -> tuple[list[RestockGroupTotalData], list[RestockGroupTotalData], float, int]:
-    child_totals = _aggregate(
-        rows=rows,
-        key=lambda r: (r.category_id, r.category_name),
-    )
-    parent_totals = _aggregate(
-        rows=rows,
-        key=lambda r: (r.top_parent_category_id, r.top_parent_category_name),
+    rows.sort(
+        key=lambda r: (r.needs_restock, r.below_min, r.missing_to_target, r.name.lower()),
+        reverse=True,
     )
 
-    total_missing_quantity = sum(r.missing_to_target for r in rows)
-    total_products_needing_restock = sum(1 for r in rows if r.needs_restock)
+    return RestockOverviewResponse(
+        rows=rows,
+        total_missing_quantity=total_missing_quantity,
+        total_products_needing_restock=total_products_needing_restock,
+        by_child_category=_sorted_totals(child_buckets),
+        by_parent_category=_sorted_totals(parent_buckets),
+    )
 
-    return child_totals, parent_totals, total_missing_quantity, total_products_needing_restock
+
+def _accumulate(
+    buckets: dict[tuple[int | None, str], RestockGroupTotal],
+    key: tuple[int | None, str],
+    computed: RestockComputed,
+) -> None:
+    bucket = buckets.get(key)
+    if bucket is None:
+        bucket = RestockGroupTotal(
+            category_id=key[0],
+            category_name=key[1],
+            total_missing_to_target=0.0,
+            affected_products=0,
+        )
+        buckets[key] = bucket
+
+    bucket.total_missing_to_target += computed.missing_to_target
+    if computed.needs_restock:
+        bucket.affected_products += 1
+
+
+def _sorted_totals(
+    buckets: dict[tuple[int | None, str], RestockGroupTotal],
+) -> list[RestockGroupTotal]:
+    return sorted(
+        buckets.values(),
+        key=lambda b: (b.total_missing_to_target, b.affected_products),
+        reverse=True,
+    )
 
 
 def _resolve_single_field(
@@ -230,35 +236,3 @@ def _resolve_single_field(
         current = category_by_id.get(current.parent_id)
 
     return None, None
-
-
-def _aggregate(
-    *,
-    rows: list[RestockOverviewRowData],
-    key: Callable[[RestockOverviewRowData], tuple[int | None, str]],
-) -> list[RestockGroupTotalData]:
-    buckets: dict[tuple[int | None, str], RestockGroupTotalData] = {}
-
-    for row in rows:
-        bucket_id, bucket_name = key(row)
-        bucket_key = (bucket_id, bucket_name)
-
-        bucket = buckets.get(bucket_key)
-        if bucket is None:
-            bucket = RestockGroupTotalData(
-                category_id=bucket_id,
-                category_name=bucket_name,
-                total_missing_to_target=0.0,
-                affected_products=0,
-            )
-            buckets[bucket_key] = bucket
-
-        bucket.total_missing_to_target += row.missing_to_target
-        if row.needs_restock:
-            bucket.affected_products += 1
-
-    return sorted(
-        buckets.values(),
-        key=lambda b: (b.total_missing_to_target, b.affected_products),
-        reverse=True,
-    )
