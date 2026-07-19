@@ -285,7 +285,6 @@ describe('request error handling', () => {
                 expect(err.status).toBe(404)
                 expect(err.detail).toBe('Product not found')
                 expect(err.isNotFound).toBe(true)
-                expect(err.isServerError).toBe(false)
             }
         }, errorResponse)
     })
@@ -304,53 +303,7 @@ describe('request error handling', () => {
                 const err = e as InstanceType<typeof ApiError>
                 expect(err.status).toBe(500)
                 expect(err.detail).toBe('500 Internal Server Error')
-                expect(err.isServerError).toBe(true)
                 expect(err.isNotFound).toBe(false)
-            }
-        }, errorResponse)
-    })
-
-    test('isConflict returns true for 409', () => {
-        const errorResponse = new Response(
-            JSON.stringify({
-                detail: 'Cannot delete category with assigned products.',
-            }),
-            {
-                status: 409,
-                statusText: 'Conflict',
-                headers: { 'Content-Type': 'application/json' },
-            },
-        )
-        return withMockedApi(async ({ api, ApiError }) => {
-            try {
-                await api.products.list()
-                expect(true).toBe(false)
-            } catch (e) {
-                const err = e as InstanceType<typeof ApiError>
-                expect(err.isConflict).toBe(true)
-                expect(err.detail).toBe(
-                    'Cannot delete category with assigned products.',
-                )
-            }
-        }, errorResponse)
-    })
-
-    test('isValidation returns true for 422', () => {
-        const errorResponse = new Response(
-            JSON.stringify({ detail: 'restock_target must be >= restock_min' }),
-            {
-                status: 422,
-                statusText: 'Unprocessable Entity',
-                headers: { 'Content-Type': 'application/json' },
-            },
-        )
-        return withMockedApi(async ({ api, ApiError }) => {
-            try {
-                await api.products.list()
-                expect(true).toBe(false)
-            } catch (e) {
-                const err = e as InstanceType<typeof ApiError>
-                expect(err.isValidation).toBe(true)
             }
         }, errorResponse)
     })

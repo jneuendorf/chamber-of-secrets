@@ -7,7 +7,7 @@
  */
 import { writable } from 'svelte/store'
 
-import { ACTIVE_PROFILE_KEY } from './api/client'
+import { ACTIVE_PROFILE_KEY, readActiveProfileId } from './api/client'
 import { AVATAR_PALETTE } from './theme'
 
 /**
@@ -44,16 +44,8 @@ export function defaultAvatarConfig(): { base: string; color: string } {
     return { base: AVATAR_BASE_IDS[0], color: AVATAR_PALETTE[0] }
 }
 
-function readStored(): number | null {
-    if (typeof localStorage === 'undefined') {
-        return null
-    }
-    const raw = localStorage.getItem(ACTIVE_PROFILE_KEY)
-    return raw ? Number(raw) : null
-}
-
 /** Active profile id, persisted to localStorage. `null` = no profile selected. */
-export const activeProfileId = writable<number | null>(readStored())
+export const activeProfileId = writable<number | null>(readActiveProfileId())
 
 activeProfileId.subscribe((id) => {
     if (typeof localStorage === 'undefined') {

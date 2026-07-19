@@ -28,7 +28,9 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? '/api'
 /** localStorage key for the active profile id (WL-5.1). Shared with `$lib/profiles`. */
 export const ACTIVE_PROFILE_KEY = 'activeProfileId'
 
-function activeProfileId(): number | null {
+/** Read the active profile id from localStorage. Sync so mutations can stamp
+ *  the current value; also seeds the `$lib/profiles` store. */
+export function readActiveProfileId(): number | null {
     if (typeof localStorage === 'undefined') {
         return null
     }
@@ -50,15 +52,6 @@ export class ApiError extends Error {
 
     get isNotFound() {
         return this.status === 404
-    }
-    get isConflict() {
-        return this.status === 409
-    }
-    get isValidation() {
-        return this.status === 422
-    }
-    get isServerError() {
-        return this.status >= 500
     }
 }
 
@@ -159,7 +152,7 @@ export const api = {
             // Attribute to the active profile (WL-5.1) without touching call sites.
             request<Transaction>('/transactions/', {
                 method: 'POST',
-                body: JSON.stringify({ profile_id: activeProfileId(), ...data }),
+                body: JSON.stringify({ profile_id: readActiveProfileId(), ...data }),
             }),
         update: (
             id: number,
