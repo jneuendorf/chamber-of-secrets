@@ -8,8 +8,25 @@
         type ConsumeCandidate,
     } from '$lib/components/ConsumeSheet.svelte'
     import Modal from '$lib/components/Modal.svelte'
+    import {
+        activeProfile,
+        chamberStage,
+        type GuardianMood,
+        guardianMood,
+        levelUp,
+        refreshProfile,
+    } from '$lib/progression'
     import { resolveRestockPolicy, stockStatus } from '$lib/utils/category'
     import { buildDots, type ChamberDot, visibleSlots } from '$lib/utils/chamber'
+
+    // Stand-in art for the guardian (WL-5.3). Real SVG/Lottie lands with WL-5.5 —
+    // the mood itself is derived data, so swapping this map is the whole change.
+    const GUARDIAN_GLYPH: Record<GuardianMood, string> = {
+        thriving: '🧙',
+        content: '🙂',
+        sparse: '😟',
+        forlorn: '🕸️',
+    }
 
     let products: Product[] = $state([])
     let allCategories: Category[] = $state([])
@@ -38,6 +55,7 @@
     let toastTimer: ReturnType<typeof setTimeout> | undefined
 
     $effect(() => {
+        void refreshProfile() // XP may have been earned on /scan since last visit
         Promise.all([api.products.list(), api.categories.list()])
             .then(([productList, categoryList]) => {
                 products = productList
@@ -83,6 +101,18 @@
             0,
         ),
     )
+
+    // The chamber grows with the active profile's level and reacts to how stocked
+    // it is. Both are plain numbers/names on the scene — styling is WL-5.5's job.
+    let stage = $derived(chamberStage($activeProfile?.level ?? 1))
+    let mood = $derived(guardianMood(products.length, needsRestock, totalItems))
+
+    $effect(() => {
+        if ($levelUp != null) {
+            showToast(get(_)('chamber.levelUp', { values: { level: $levelUp } }))
+            levelUp.set(null)
+        }
+    })
 
     function showToast(
         message: string,
@@ -185,6 +215,7 @@
                 }),
                 { txnId: txn.id, productId: product.id, slots },
             )
+            void refreshProfile() // XP was awarded server-side (WL-5.3)
         } catch (err) {
             releaseSlots(product.id, slots)
             showToast(
@@ -262,7 +293,12 @@
     {:else}
         <!-- Full-scene canvas: one tappable emoji per dot, 2D Gaussian piles -->
         <div class="scene-frame">
-            <div class="scene">
+            <div
+                class="scene"
+                data-stage={stage}
+                data-mood={mood}
+                style="--stage:{stage}"
+            >
                 <div class="item-piles">
                     {#each dots as dot (dot.key)}
                         <button
@@ -282,6 +318,9 @@
                         </button>
                     {/each}
                 </div>
+                <p class="guardian" title={$_(`chamber.mood.${mood}`)}>
+                    {GUARDIAN_GLYPH[mood]}
+                </p>
             </div>
         </div>
     {/if}
@@ -349,6 +388,20 @@
                 <td>{$_('chamber.totalStock')}</td>
                 <td class="stat-val">{totalItems}</td>
             </tr>
+            {#if $activeProfile}
+                <tr>
+                    <td>{$_('chamber.xp')}</td>
+                    <td class="stat-val"
+                        >{$activeProfile.xp} · {$_('profile.level', {
+                            values: { level: $activeProfile.level },
+                        })}</td
+                    >
+                </tr>
+                <tr>
+                    <td>{$_('chamber.streak')}</td>
+                    <td class="stat-val">{$activeProfile.current_streak}</td>
+                </tr>
+            {/if}
         </tbody>
     </table>
 </Modal>
@@ -388,6 +441,26 @@
         background-position: top center;
         background-size: auto 100%;
         background-clip: border-box;
+        /* The chamber lights up as the profile levels (WL-5.3). Placeholder for
+           the real stage art — `data-stage` / `data-mood` are the hooks WL-5.5
+           styles against. */
+        filter: brightness(calc(0.72 + 0.07 * var(--stage, 1)));
+    }
+
+    .guardian {
+        position: absolute;
+        left: 4%;
+        bottom: 6%;
+        margin: 0;
+        font-size: clamp(2rem, 6vh, 4rem);
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+        pointer-events: none;
+    }
+
+    /* Bare chamber: the guardian sags. Mood-specific art lands with WL-5.5. */
+    .scene[data-mood='forlorn'] .guardian,
+    .scene[data-mood='sparse'] .guardian {
+        opacity: 0.75;
     }
 
     /* ---- Item piles ---- */

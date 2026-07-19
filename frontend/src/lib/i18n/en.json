@@ -34,7 +34,16 @@
     "consumeFailed": "Couldn't update {name}: {error}",
     "undo": "Undo",
     "undone": "Put it back",
-    "undoFailed": "Couldn't undo: {error}"
+    "undoFailed": "Couldn't undo: {error}",
+    "levelUp": "Level {level}! The chamber grows.",
+    "xp": "XP",
+    "streak": "Day Streak",
+    "mood": {
+      "thriving": "The guardian is delighted — the chamber is full.",
+      "content": "The guardian is content.",
+      "sparse": "The guardian frets — supplies are running low.",
+      "forlorn": "The guardian is lonely — the chamber is bare."
+    }
   },
   "dashboard": {
     "title": "Dashboard",

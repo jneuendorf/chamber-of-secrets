@@ -156,8 +156,25 @@ emerges from knowing what's in stock:
   without touching stored profiles. WL-5.4 adds a `layers: [{slot, part}]` key
   for unlockable equipment — additive on a JSON column, so no migration.
 - Each profile carries `xp` as the source of truth; **level is derived**
-  (`level_for_xp`), never stored. XP accrual, streaks, achievements, and
-  unlocks land in WL-5.3/5.4 — this is their foundation.
+  (`level_for_xp`), never stored. Achievements and unlocks land in WL-5.4 —
+  this is their foundation.
+
+### 2.9a Progression — XP, Levels & Streaks
+
+- Every stock movement attributed to a profile awards XP server-side
+  (`services/progression.py`): stocking something is worth more than using it
+  up. This is the *only* place XP is granted — levels, and later achievements
+  and rewards, all derive from `Profile.xp`.
+- A daily streak rolls along with it: acting on a consecutive day extends
+  `current_streak`, a gap restarts it, and `longest_streak` keeps the record.
+- XP is not clawed back when a movement is undone — a few XP for a mis-tap is
+  cheaper than an award ledger.
+- The frontend mirrors the active profile in one store (`$lib/progression.ts`)
+  that every gamification feature reads from. It also derives the chamber's
+  visual state — a **stage** (1–5, grows with level) and a **guardian mood**
+  (`thriving` / `content` / `sparse` / `forlorn`, from how much of the pantry
+  needs restocking). Both are plain data rendered as `data-stage` / `data-mood`
+  on the scene; the art that reacts to them is WL-5.5.
 
 ### 2.10 Deployment
 
@@ -185,7 +202,10 @@ emerges from knowing what's in stock:
   accidental consume by deleting the transaction — stock is derived, so the
   emoji simply returns. A new consume replaces the toast; undo targets the
   latest action.
-- A floating 📜 ledger shows in-stock / needs-restocking / total counts.
+- A floating 📜 ledger shows in-stock / needs-restocking / total counts, plus
+  the active profile's XP, level, and current streak.
+- The chamber lights up as the profile levels (stage) and its guardian reacts
+  to how well stocked the pantry is (mood) — see 2.9a.
 - Placement is deterministic and stable: each emoji keeps its spot across
   reloads and as stock changes, so consuming one never reshuffles the rest.
 

@@ -34,7 +34,16 @@
     "consumeFailed": "{name} konnte nicht aktualisiert werden: {error}",
     "undo": "Rückgängig",
     "undone": "Wieder zurückgelegt",
-    "undoFailed": "Rückgängig fehlgeschlagen: {error}"
+    "undoFailed": "Rückgängig fehlgeschlagen: {error}",
+    "levelUp": "Level {level}! Die Kammer wächst.",
+    "xp": "XP",
+    "streak": "Tage in Folge",
+    "mood": {
+      "thriving": "Der Wächter strahlt — die Kammer ist voll.",
+      "content": "Der Wächter ist zufrieden.",
+      "sparse": "Der Wächter sorgt sich — die Vorräte werden knapp.",
+      "forlorn": "Der Wächter ist einsam — die Kammer ist leer."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -112,9 +121,7 @@
   },
   "category": {
     "none": "Keine",
-
     "change": "Ändern",
-
     "newPlaceholder": "Neue Kategorie...",
     "add": "Hinzufügen",
     "addCategory": "+ Kategorie hinzufügen",

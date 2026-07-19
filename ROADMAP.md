@@ -348,15 +348,17 @@ dev S · user high · 🟢
 - Deferred behind seams (see WL-5.6 for cross-route): crumb/dust particles → WL-5.5 art pass; dense-pile chooser widening (fill the sheet with overlapping dots) → when tap collisions actually bite; pile/stack glyph rendering mode
 - Foundation shipped: `$lib/utils/chamber.ts` (pure, tested layout — stable per-`(product, slot)` dot keys, `visibleSlots` overlay so the tapped dot is the one removed and one consume never reflows other piles) + `ConsumeSheet.svelte` (candidate list: 1 = confirm, N = chooser; per-item quantity). Depleted products now show zero dots instead of a gray ghost. `scrollbar-gutter: stable` keeps the modal from shifting the page.
 
-- [ ] **WL-5.3: Progression — XP, Levels & the Living Chamber** ⬜
+- [ ] **WL-5.3: Progression — XP, Levels & the Living Chamber** 🚧
 
 dev M · user high · 🟢
 Depends: WL-5.1 (profiles)
 
-- [ ] Foundational events/XP store (one primitive that all gamification reads from); XP accrues to the active profile
-- [ ] Earn XP for scans, restocks, and consuming-before-expiry; level up
-- [ ] The chamber visibly levels up with you (torches light, shelves fill, background grows richer — see design concept)
-- [ ] Guardian mood: thrives when stocked, looks forlorn/cobwebbed when bare (formalises today's 🏚️ empty state)
+- [x] Foundational events/XP store: `services/progression.py` is the single award point (backend), `$lib/progression.ts` the single store every gamification feature reads (frontend). XP accrues to the active profile on every attributed movement; unattributed movements award nothing
+- [x] Earn XP for scans/restocks (`in`, 10) and consuming (`out`, 2); level derived via `level_for_xp`, level-up announced in the chamber. Daily streak rolls with it (consecutive day extends, gap restarts, longest kept)
+- [ ] Consuming-**before-expiry** bonus — blocked: nothing tracks expiry dates yet
+- [~] The chamber visibly levels up with you — `chamberStage(level)` (1–5) rendered as `data-stage` on the scene, driving a placeholder brightness ramp. Torches/shelves/background art hangs off the same hook in WL-5.5
+- [~] Guardian mood: `guardianMood()` derives `thriving`/`content`/`sparse`/`forlorn` from the share of products needing restock, rendered as `data-mood` + a stand-in glyph. Real art (cobwebs, animation) in WL-5.5
+- XP is deliberately not reversed on undo (WL-5.2) — cheaper than an award ledger; revisit only if XP ever buys something scarce
 
 - [ ] **WL-5.4: Achievements, Streaks & Rewards** ⬜
 
@@ -377,6 +379,7 @@ dev M · user med · 🟡
 - [ ] Adopt Lottie (`lottie-web`, thin Svelte wrapper) for celebratory + ambient animations; respect `prefers-reduced-motion`
 - [ ] Use the **UI Design Concept** below as image-generation prompts → SVG art and Lottie animations
 - [ ] Optional sound effects (scan chime, consume crunch, level-up fanfare) — off by default, kid-delight toggle
+- Seams already reserved by WL-5.3: `data-stage` (1–5) and `data-mood` on the chamber scene, plus `GUARDIAN_GLYPH` — the progression logic is design-agnostic, so the art pass is CSS/assets only
 
 - [ ] **WL-5.6: Cross-route "flying item" hand-off** ⬜
 
