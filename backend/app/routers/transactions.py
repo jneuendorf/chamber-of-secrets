@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import InventoryTransaction, Product, Profile
 from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
+from app.services.progression import award_transaction
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -37,7 +38,8 @@ def create_transaction(
     # SQLite doesn't enforce the FK (pragma off), so attribution is checked here.
     # Existence only — an archived profile is still a valid target, since a device
     # may hold a stale selection until its next reload.
-    if data.profile_id is not None and not db.get(Profile, data.profile_id):
+    profile = db.get(Profile, data.profile_id) if data.profile_id is not None else None
+    if data.profile_id is not None and profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
 
     if data.type == "out":
@@ -52,6 +54,8 @@ def create_transaction(
 
     transaction = InventoryTransaction(**data.model_dump())
     db.add(transaction)
+    if profile is not None:
+        award_transaction(profile, data.type)
     db.commit()
     db.refresh(transaction)
     return transaction

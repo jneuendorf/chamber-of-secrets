@@ -5,6 +5,7 @@ import tempfile
 import unittest
 import unittest.mock
 from collections.abc import Generator
+from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -24,8 +25,9 @@ if str(_BACKEND_ROOT) not in sys.path:
 
 from app.database import get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import Base, InventoryTransaction  # noqa: E402
+from app.models import Base, InventoryTransaction, Profile  # noqa: E402
 from app.routers import products as products_router  # noqa: E402
+from app.services.progression import XP_PER_EVENT, bump_streak  # noqa: E402
 
 
 class BackendAPITestCase(unittest.TestCase):
@@ -716,6 +718,53 @@ class BackendAPITestCase(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 201, res.text)
         self.assertIsNone(res.json()["profile_id"])
+
+    # ---------- WL-5.3: progression (XP, levels, streaks) ----------
+
+    def test_attributed_transactions_award_xp_and_level_up(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Nia"}).json()
+        product = self._create_product("Oats")
+        for _ in range(10):
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+            )
+
+        updated = self._get_profile(profile["id"])
+        self.assertEqual(updated["xp"], 10 * XP_PER_EVENT["in"])
+        self.assertEqual(updated["level"], 2)  # 100 XP crosses the first threshold
+        self.assertEqual(updated["current_streak"], 1)
+        self.assertEqual(updated["longest_streak"], 1)
+
+    def test_unattributed_transaction_awards_nothing(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Ravi"}).json()
+        product = self._create_product("Rice")
+        self.client.post("/api/transactions/", json={"product_id": product["id"], "type": "in"})
+
+        self.assertEqual(self._get_profile(profile["id"])["xp"], 0)
+
+    def test_streak_extends_on_consecutive_days_and_resets_after_a_gap(self) -> None:
+        # Column defaults only apply on insert, so a transient row needs them set.
+        profile = Profile(name="Streaky", current_streak=0, longest_streak=0)
+        today = date(2026, 7, 19)
+
+        bump_streak(profile, today - timedelta(days=1))
+        bump_streak(profile, today)
+        self.assertEqual(profile.current_streak, 2)
+
+        bump_streak(profile, today)  # same day again: no double count
+        self.assertEqual(profile.current_streak, 2)
+
+        bump_streak(profile, today + timedelta(days=3))  # gap
+        self.assertEqual(profile.current_streak, 1)
+        self.assertEqual(profile.longest_streak, 2)
+
+    def _get_profile(self, profile_id: int) -> dict:
+        return next(
+            p
+            for p in self.client.get("/api/profiles/?include_archived=true").json()
+            if p["id"] == profile_id
+        )
 
 
 if __name__ == "__main__":
