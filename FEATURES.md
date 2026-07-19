@@ -166,6 +166,29 @@ emerges from knowing what's in stock:
 - Optional Cloudflare Tunnel for remote access without port-forwarding.
 - Designed for Raspberry Pi (ARM64) but runs on any Docker host.
 
+### 2.11 The Chamber
+
+- The playful home view: current stock rendered as emoji piles on a
+  storybook background, one emoji per unit (capped per product), grouped
+  into per-category Gaussian blobs on the chamber floor. Emoji are guessed
+  from the product/category name, or the category's custom icon/image.
+- **Tap-to-consume**: tap an item to use some up. Because emoji are lossy
+  (the same 🥛 can stand for several products), the tap opens a sheet that
+  names the item(s) under it — a confirmation for one, a chooser for
+  several — with a quantity stepper so you can consume more than one at
+  once. Confirming records an `out` and the emoji poofs away (scale + fade
+  + spin; respects `prefers-reduced-motion`). The *tapped* emoji is the one
+  that vanishes, and a big pile refills from its reserve rather than gapping.
+  This doubles as the quick-consume path alongside the inventory `+`/`−`
+  steppers.
+- **Undo**: a 5-second toast (with an explicit ✕ dismiss) reverses an
+  accidental consume by deleting the transaction — stock is derived, so the
+  emoji simply returns. A new consume replaces the toast; undo targets the
+  latest action.
+- A floating 📜 ledger shows in-stock / needs-restocking / total counts.
+- Placement is deterministic and stable: each emoji keeps its spot across
+  reloads and as stock changes, so consuming one never reshuffles the rest.
+
 ---
 
 ## 3. Data Model

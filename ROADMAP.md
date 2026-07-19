@@ -337,13 +337,16 @@ ProfileAchievement   id, profile_id FK, achievement_key, earned_at    # unique(p
 ProfileUnlock        id, profile_id FK, item_key, acquired_at         # owned cosmetics/equipment; unique(profile_id, item_key)
 ```
 
-- [ ] **WL-5.2: Tap-to-Consume Chamber Interaction** ⬜
+- [ ] **WL-5.2: Tap-to-Consume Chamber Interaction** 🚧
 
 dev S · user high · 🟢
 
-- [ ] Tap an item/pile in the chamber to consume one → records an `out`, with a satisfying vanish (poof of crumbs/dust)
-- [ ] Add-to-chamber animation: a scanned item arcs and bounces into its pile
-- [ ] Doubles as the "quick consume" UX (complements WL-4.3) and the chamber's reason to exist
+- [x] Tap an item in the chamber to consume it → records an `out`, with a satisfying vanish (scale+fade+spin poof). A confirm/chooser sheet names the product first (emoji are lossy — same 🥛 can mean several products) and carries a quantity stepper (consume more than one at a time). A 5s undo toast (with an explicit ✕ dismiss) reverses accidental taps by deleting the transaction; a new consume replaces the toast (undo targets the latest action).
+- [x] The **tapped** dot is the exact one that poofs — a `consumed`-slots overlay excludes the touched slot so no unrelated dot vanishes, and a big (capped) pile refills from its reserve instead of gapping.
+- [x] Doubles as the "quick consume" UX (complements WL-4.3) and the chamber's reason to exist
+- [ ] Add-to-chamber animation: a scanned item arcs and bounces into its pile (within-page; the diff-driven renderer already animates a dot in when stock rises)
+- Deferred behind seams (see WL-5.6 for cross-route): crumb/dust particles → WL-5.5 art pass; dense-pile chooser widening (fill the sheet with overlapping dots) → when tap collisions actually bite; pile/stack glyph rendering mode
+- Foundation shipped: `$lib/utils/chamber.ts` (pure, tested layout — stable per-`(product, slot)` dot keys, `visibleSlots` overlay so the tapped dot is the one removed and one consume never reflows other piles) + `ConsumeSheet.svelte` (candidate list: 1 = confirm, N = chooser; per-item quantity). Depleted products now show zero dots instead of a gray ghost. `scrollbar-gutter: stable` keeps the modal from shifting the page.
 
 - [ ] **WL-5.3: Progression — XP, Levels & the Living Chamber** ⬜
 
@@ -374,6 +377,14 @@ dev M · user med · 🟡
 - [ ] Adopt Lottie (`lottie-web`, thin Svelte wrapper) for celebratory + ambient animations; respect `prefers-reduced-motion`
 - [ ] Use the **UI Design Concept** below as image-generation prompts → SVG art and Lottie animations
 - [ ] Optional sound effects (scan chime, consume crunch, level-up fanfare) — off by default, kid-delight toggle
+
+- [ ] **WL-5.6: Cross-route "flying item" hand-off** ⬜
+
+dev S · user med · 🟡
+Depends: WL-5.2
+
+- [ ] Scan on `/scan` → the just-added item flies across the navigation and bounces into its pile on `/chamber`. WL-5.2 keeps chamber animation within-page; this adds the cross-route arrival.
+- [ ] Seam already reserved: a small "pending arrivals" store that `/scan` pushes to and `/chamber` drains on mount, feeding the same arc-in animation as the within-page add — or SvelteKit view transitions if simpler. Additive, not a renderer rewrite.
 
 ### UI Design Concept (prompt library for image/animation generation)
 
@@ -447,6 +458,16 @@ dev S · user — · ⚪
 dev S · user med · 🟡
 
 - [ ] Guided "scan your first item" beat from the empty chamber (doubles as the first achievement)
+
+- [ ] **WL-6.7: Ambidextrous / One-Handed Layout** ⬜
+
+dev S · user med · 🟡
+
+- [ ] Left/right-handed mode: mirror the reach-critical controls (chamber
+      consume stepper, primary action buttons, nav/switcher placement) so the
+      thumb of the chosen hand covers them one-handed on a phone
+- [ ] Handedness toggle in settings, persisted in `localStorage` (default:
+      right); a CSS-var/`dir`-style flip, not duplicated markup
 
 ---
 

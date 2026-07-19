@@ -80,4 +80,10 @@
     #svelte {
         width: 100%;
     }
+
+    /* Always reserve the scrollbar gutter so opening a modal (which locks body
+       scroll) doesn't remove the scrollbar and shift fixed/centered content. */
+    html {
+        scrollbar-gutter: stable;
+    }
 }

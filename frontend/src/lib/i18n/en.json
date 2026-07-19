@@ -23,7 +23,18 @@
     "required": "Need Restocking",
     "totalStock": "Total Quantity",
     "empty": "The chamber is empty.",
-    "scanCta": "Add something!"
+    "scanCta": "Add something!",
+    "consumeTitle": "Use some up?",
+    "inStock": "In stock: {count}",
+    "useN": "Use {count}",
+    "useAll": "All",
+    "decrease": "Fewer",
+    "increase": "More",
+    "consumed": "Used up {count}× {name}",
+    "consumeFailed": "Couldn't update {name}: {error}",
+    "undo": "Undo",
+    "undone": "Put it back",
+    "undoFailed": "Couldn't undo: {error}"
   },
   "dashboard": {
     "title": "Dashboard",

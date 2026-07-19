@@ -23,7 +23,18 @@
     "required": "Nachbestellen",
     "totalStock": "Gesamtmenge",
     "empty": "Die Kammer ist leer.",
-    "scanCta": "Etwas hinzufügen!"
+    "scanCta": "Etwas hinzufügen!",
+    "consumeTitle": "Etwas aufbrauchen?",
+    "inStock": "Vorrat: {count}",
+    "useN": "Nimm {count}",
+    "useAll": "Alle",
+    "decrease": "Weniger",
+    "increase": "Mehr",
+    "consumed": "{count}× {name} aufgebraucht",
+    "consumeFailed": "{name} konnte nicht aktualisiert werden: {error}",
+    "undo": "Rückgängig",
+    "undone": "Wieder zurückgelegt",
+    "undoFailed": "Rückgängig fehlgeschlagen: {error}"
   },
   "dashboard": {
     "title": "Dashboard",
