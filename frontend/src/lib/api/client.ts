@@ -134,8 +134,14 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ source_id: sourceId, target_id: targetId }),
             }),
-        contribute: (id: number) =>
-            request<{ ok: boolean }>(`/products/${id}/contribute`, { method: 'POST' }),
+        contribute: (id: number) => {
+            // Attributed like transactions (WL-5.1) so it can earn "Explorer".
+            const profileId = readActiveProfileId()
+            const qs = profileId == null ? '' : `?profile_id=${profileId}`
+            return request<{ ok: boolean }>(`/products/${id}/contribute${qs}`, {
+                method: 'POST',
+            })
+        },
     },
     transactions: {
         list: (productId?: number) =>

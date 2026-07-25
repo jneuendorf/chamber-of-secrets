@@ -19,14 +19,17 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.models import Category, InventoryTransaction, Product, ProductRevision, Profile
+from app.services.achievements import check_progress
+from app.services.progression import award_transaction
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "food_catalog.json"
 SEED_DAYS_SPAN = 30
 SEED_STOCK_MULTIPLIER = 3
 
-# Sample household profiles; movements are attributed round-robin so per-profile
-# views have something to show. `base` is a stable part id (never a glyph) and
-# the colors match the frontend presets in `lib/profiles.ts` / `lib/theme.ts`.
+# Sample household profiles. Movements are attributed (see main) so the two end
+# up with *different* badges, showcasing achievements out of the box. `base` is a
+# stable part id (never a glyph) and the colors match the frontend presets in
+# `lib/profiles.ts` / `lib/theme.ts`.
 SEED_PROFILES = [
     {"name": "Mia", "avatar_config": {"base": "fox", "color": "#e8a33d"}},
     {"name": "Leo", "avatar_config": {"base": "bear", "color": "#3498db"}},
@@ -79,9 +82,20 @@ def main() -> None:
             session.flush()
             cat_map[cat_def["name"]] = cat.id
 
+        # Attribution is designed so the two profiles end up with *different*
+        # badges: Mia shops on a long consecutive run (earns the 7-day streak),
+        # Leo only on scattered days (first-scan alone). XP, streaks and badges
+        # are then *derived* from these movements by replaying them through the
+        # real award services below — the seed can't drift from how the app
+        # actually grants them.
+        mia, leo = profiles
+        leo_days = {0, 2, 4, 6, 8, 10}  # alternating days: Leo's streak never builds
+        movements: dict[int, list[datetime]] = {mia.id: [], leo.id: []}
+
         # Insert products and initial "in" transactions spread across recent days.
         now = datetime.now(UTC)
-        for idx, prod_def in enumerate(catalog["products"]):
+        stock_seq = 0
+        for prod_def in catalog["products"]:
             cat_id = cat_map.get(prod_def["category"]) if "category" in prod_def else None
             product = Product(
                 ean=prod_def.get("ean"),
@@ -95,8 +109,9 @@ def main() -> None:
 
             stock = int(prod_def.get("stock", 0)) * SEED_STOCK_MULTIPLIER
             if stock > 0:
-                # Deterministic but varied dates for analytics charts.
-                day_offset = idx % SEED_DAYS_SPAN
+                # One consecutive day per stocked product, so streaks are well-defined.
+                day_offset = stock_seq % SEED_DAYS_SPAN
+                stock_seq += 1
                 txn_day = now - timedelta(days=day_offset)
 
                 # Stable pseudo-randomized time within the day from EAN/name seed.
@@ -109,16 +124,29 @@ def main() -> None:
                     microsecond=0,
                 )
 
+                owner = leo if day_offset in leo_days else mia
                 session.add(
                     InventoryTransaction(
                         product_id=product.id,
-                        profile_id=profiles[idx % len(profiles)].id,
+                        profile_id=owner.id,
                         type="in",
                         quantity=stock,
                         transacted_at=txn_time,
                         notes=f"Initial stock (seed, -{day_offset}d)",
                     ),
                 )
+                movements[owner.id].append(txn_time)
+
+        # Derive XP, streaks and badges exactly as the API would, replaying each
+        # profile's movements oldest-first.
+        granted: dict[str, list[str]] = {}
+        for profile in profiles:
+            for txn_time in sorted(movements[profile.id]):
+                award_transaction(profile, "in", today=txn_time.date())
+            granted[profile.name] = check_progress(session, profile)
+
+        # The seed exists to showcase the feature — the profiles must differ.
+        assert granted[mia.name] != granted[leo.name], granted
 
         session.commit()
 
@@ -128,6 +156,8 @@ def main() -> None:
         f"Seeded {n_cats_seeded} categories, {n_seeded} products, "
         f"and {len(SEED_PROFILES)} profiles."
     )
+    for name, badges in granted.items():
+        print(f"  {name}: {', '.join(badges) or 'no badges'}")
 
 
 if __name__ == "__main__":

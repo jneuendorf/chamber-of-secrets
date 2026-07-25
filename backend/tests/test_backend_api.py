@@ -27,6 +27,13 @@ from app.database import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Base, InventoryTransaction, Profile  # noqa: E402
 from app.routers import products as products_router  # noqa: E402
+from app.services.achievements import (  # noqa: E402
+    EXPLORER,
+    FIRST_SCAN,
+    LEVEL_5,
+    STOCKED_50,
+    STREAK_7,
+)
 from app.services.progression import XP_PER_EVENT, bump_streak  # noqa: E402
 
 
@@ -758,6 +765,76 @@ class BackendAPITestCase(unittest.TestCase):
         bump_streak(profile, today + timedelta(days=3))  # gap
         self.assertEqual(profile.current_streak, 1)
         self.assertEqual(profile.longest_streak, 2)
+
+    # ---------- WL-5.4: achievements ----------
+
+    def test_first_stocking_earns_first_scan_only_once(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Ana"}).json()
+        product = self._create_product("Beans")
+        self.assertEqual(profile["achievements"], [])
+
+        for _ in range(3):
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+            )
+
+        self.assertEqual(self._get_profile(profile["id"])["achievements"], [FIRST_SCAN])
+
+    def test_stocking_milestone_and_level_badges_stack(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Bo"}).json()
+        product = self._create_product("Pasta")
+        for _ in range(50):
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+            )
+
+        earned = self._get_profile(profile["id"])["achievements"]
+        # 500 XP → level 3, so LEVEL_5 must not be handed out yet.
+        self.assertEqual(set(earned), {FIRST_SCAN, STOCKED_50})
+        self.assertNotIn(LEVEL_5, earned)
+
+    def test_consuming_alone_earns_no_stocking_badge(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Cy"}).json()
+        product = self._create_product("Tea")
+        self.client.post("/api/transactions/", json={"product_id": product["id"], "type": "in"})
+        self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "profile_id": profile["id"], "type": "out"},
+        )
+
+        self.assertEqual(self._get_profile(profile["id"])["achievements"], [])
+
+    def test_streak_badge_lands_once_the_longest_streak_reaches_target(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Di"}).json()
+        with self._SessionLocal() as session:
+            row = session.get(Profile, profile["id"])
+            assert row is not None
+            row.longest_streak = 7  # the streak_7 threshold
+            session.commit()
+
+        product = self._create_product("Milk")
+        self.client.post(
+            "/api/transactions/",
+            json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+        )
+
+        self.assertIn(STREAK_7, self._get_profile(profile["id"])["achievements"])
+
+    def test_contributing_to_off_earns_explorer_for_the_active_profile(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Eli"}).json()
+        product = self._create_product("Local jam", ean="4009876543210")
+        with unittest.mock.patch(
+            "app.routers.products.contribute_product",
+            new=unittest.mock.AsyncMock(return_value=True),
+        ):
+            res = self.client.post(
+                f"/api/products/{product['id']}/contribute?profile_id={profile['id']}",
+            )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(self._get_profile(profile["id"])["achievements"], [EXPLORER])
 
     def _get_profile(self, profile_id: int) -> dict:
         return next(

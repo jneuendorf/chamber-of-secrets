@@ -15,7 +15,20 @@
     "new": "Neues Profil",
     "namePlaceholder": "Name",
     "create": "Erstellen",
-    "level": "Lvl {level}"
+    "level": "Lvl {level}",
+    "viewProgress": "Fortschritt ansehen",
+    "progressTitle": "Fortschritt von {name}",
+    "levelFull": "Level {level}",
+    "xpTotal": "{xp} XP",
+    "xpToNext": "{remaining} XP bis Level {level}",
+    "dayStreak": "Tagesserie",
+    "day": "Tag",
+    "days": "Tage",
+    "badges": "Abzeichen",
+    "badgesEarnedCount": "{earned} von {total} erhalten",
+    "locked": "Gesperrt",
+    "back": "Zurück zur Kammer",
+    "notFound": "Dieses Profil existiert nicht."
   },
   "chamber": {
     "statsTitle": "Kammerregister",
@@ -38,6 +51,9 @@
     "levelUp": "Level {level}! Die Kammer wächst.",
     "xp": "XP",
     "streak": "Tage in Folge",
+    "badges": "Abzeichen",
+    "badgesNone": "Noch keine",
+    "badgeEarned": "Abzeichen verdient: {name}!",
     "mood": {
       "thriving": "Der Wächter strahlt — die Kammer ist voll.",
       "content": "Der Wächter ist zufrieden.",
@@ -244,5 +260,27 @@
     "colUrgent": "Dringend",
     "childTotals": "Unterkategorie-Summen",
     "parentTotals": "Oberkategorie-Summen"
+  },
+  "achievement": {
+    "first_scan": {
+      "name": "Erster Scan",
+      "desc": "Du hast deinen allerersten Artikel eingelagert."
+    },
+    "stocked_50": {
+      "name": "Gut Bestückt",
+      "desc": "Du hast 50 Artikel eingelagert."
+    },
+    "streak_7": {
+      "name": "Wochenserie",
+      "desc": "Sieben Tage in Folge."
+    },
+    "level_5": {
+      "name": "Kammerhüter",
+      "desc": "Du hast Level 5 erreicht."
+    },
+    "explorer": {
+      "name": "Entdecker",
+      "desc": "Du hast ein neues Produkt auf die Weltkarte gesetzt."
+    }
   }
 }

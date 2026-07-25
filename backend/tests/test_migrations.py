@@ -84,6 +84,24 @@ class MigrationsTestCase(unittest.TestCase):
         finally:
             engine.dispose()
 
+    def test_profile_achievements_table_is_created(self) -> None:
+        command.upgrade(self._config(), "head")
+
+        engine = create_engine(self._url)
+        try:
+            inspector = inspect(engine)
+            self.assertIn("profile_achievements", inspector.get_table_names())
+
+            # One badge per profile — the uniqueness is what makes re-checking
+            # achievements idempotent, so it must reach the migrated DDL.
+            unique = inspector.get_unique_constraints("profile_achievements")
+            self.assertIn(
+                ["profile_id", "achievement_key"],
+                [constraint["column_names"] for constraint in unique],
+            )
+        finally:
+            engine.dispose()
+
     def test_full_downgrade_and_re_upgrade(self) -> None:
         config = self._config()
         command.upgrade(config, "head")

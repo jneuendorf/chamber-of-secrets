@@ -1,13 +1,13 @@
 import uuid
 from pathlib import PurePosixPath
 
-from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, UploadFile
 from sqlalchemy import delete, update
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import PRODUCT_IMAGE_DIR, settings
 from app.database import get_db
-from app.models import InventoryTransaction, Product, ProductRevision
+from app.models import InventoryTransaction, Product, ProductRevision, Profile
 from app.schemas import (
     CategoryRead,
     EANLookupResult,
@@ -18,6 +18,7 @@ from app.schemas import (
     ProductUpdate,
     ProductWithStock,
 )
+from app.services.achievements import EXPLORER, grant
 from app.services.ean_lookup import lookup_ean
 from app.services.off_contribute import contribute_image, contribute_product
 
@@ -246,6 +247,7 @@ async def lookup_product_by_ean(
 @router.post("/{product_id}/contribute")
 async def contribute_product_to_off(
     product_id: int,
+    profile_id: int | None = Query(None),
     db: Session = Depends(get_db),
 ) -> dict[str, bool]:
     """Opt-in: submit a manually-created product back to Open Food Facts (WL-4.6).
@@ -272,6 +274,11 @@ async def contribute_product_to_off(
         if image:
             image_bytes, filename, content_type = image
             await contribute_image(product.ean, image_bytes, filename, content_type)
+
+    # "Explorer" — you put a new product on the world map (WL-5.4).
+    profile = db.get(Profile, profile_id) if profile_id is not None else None
+    if profile is not None and grant(db, profile, EXPLORER):
+        db.commit()
 
     return {"ok": True}
 

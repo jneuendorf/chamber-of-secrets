@@ -236,8 +236,18 @@ class ProfileRead(BaseModel):
     locale: str | None
     is_archived: bool
     created_at: datetime
+    # Earned badge keys, oldest first (WL-5.4). Names and art are client-side.
+    achievements: list[str]
 
     model_config = {"from_attributes": True}
+
+    @field_validator("achievements", mode="before")
+    @classmethod
+    def unwrap_achievements(cls, value: object) -> object:
+        """Accept the ORM relationship (rows) as well as a plain list of keys."""
+        if isinstance(value, list):
+            return [getattr(item, "achievement_key", item) for item in value]
+        return value
 
     @computed_field
     @property

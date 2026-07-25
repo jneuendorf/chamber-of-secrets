@@ -15,7 +15,20 @@
     "new": "New profile",
     "namePlaceholder": "Name",
     "create": "Create",
-    "level": "Lvl {level}"
+    "level": "Lvl {level}",
+    "viewProgress": "View progress",
+    "progressTitle": "{name}'s progress",
+    "levelFull": "Level {level}",
+    "xpTotal": "{xp} XP",
+    "xpToNext": "{remaining} XP to level {level}",
+    "dayStreak": "Day streak",
+    "day": "day",
+    "days": "days",
+    "badges": "Badges",
+    "badgesEarnedCount": "{earned} of {total} earned",
+    "locked": "Locked",
+    "back": "Back to chamber",
+    "notFound": "That profile doesn't exist."
   },
   "chamber": {
     "statsTitle": "Chamber Ledger",
@@ -38,6 +51,9 @@
     "levelUp": "Level {level}! The chamber grows.",
     "xp": "XP",
     "streak": "Day Streak",
+    "badges": "Badges",
+    "badgesNone": "None yet",
+    "badgeEarned": "Badge earned: {name}!",
     "mood": {
       "thriving": "The guardian is delighted — the chamber is full.",
       "content": "The guardian is content.",
@@ -244,5 +260,27 @@
     "colUrgent": "Urgent",
     "childTotals": "Child category totals",
     "parentTotals": "Parent category totals"
+  },
+  "achievement": {
+    "first_scan": {
+      "name": "First Scan",
+      "desc": "You stocked your very first item."
+    },
+    "stocked_50": {
+      "name": "Well Stocked",
+      "desc": "You stocked 50 items."
+    },
+    "streak_7": {
+      "name": "Week Streak",
+      "desc": "Seven days in a row."
+    },
+    "level_5": {
+      "name": "Chamber Keeper",
+      "desc": "You reached level 5."
+    },
+    "explorer": {
+      "name": "Explorer",
+      "desc": "You put a new product on the world map."
+    }
   }
 }

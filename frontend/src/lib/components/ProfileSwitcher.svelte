@@ -154,7 +154,7 @@
     {:else}
         <ul class="flex flex-col gap-1">
             {#each profiles as profile (profile.id)}
-                <li>
+                <li class="profile-item">
                     <button
                         type="button"
                         class="profile-row"
@@ -169,6 +169,15 @@
                             })}</span
                         >
                     </button>
+                    <a
+                        href="/profile/{profile.id}"
+                        class="progress-link"
+                        title={$_('profile.viewProgress')}
+                        aria-label={$_('profile.viewProgress')}
+                        onclick={() => (pickerOpen = false)}
+                    >
+                        ›
+                    </a>
                 </li>
             {/each}
             <li>
@@ -225,16 +234,41 @@
         line-height: 1;
     }
 
+    .profile-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
     .profile-row {
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        width: 100%;
+        flex: 1 1 auto;
+        min-width: 0;
         padding: 0.5rem;
         border-radius: 0.5rem;
         background: transparent;
         color: var(--color-ink-100);
         cursor: pointer;
+    }
+
+    .progress-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.5rem;
+        color: var(--color-ink-300);
+        font-size: 1.4rem;
+        line-height: 1;
+    }
+
+    .progress-link:hover {
+        background: var(--color-bark-730);
+        color: var(--color-ink-100);
     }
 
     .profile-row:hover {

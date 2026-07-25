@@ -135,8 +135,26 @@ def upgrade() -> None:
             ["profile_id"],
         )
 
+    if "profile_achievements" not in existing:
+        op.create_table(
+            "profile_achievements",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("profile_id", sa.Integer(), sa.ForeignKey("profiles.id"), nullable=False),
+            sa.Column("achievement_key", sa.String(50), nullable=False),
+            sa.Column("earned_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+            sa.UniqueConstraint("profile_id", "achievement_key"),
+        )
+        op.create_index(
+            "ix_profile_achievements_profile_id",
+            "profile_achievements",
+            ["profile_id"],
+        )
+
 
 def downgrade() -> None:
+    op.drop_index("ix_profile_achievements_profile_id", table_name="profile_achievements")
+    op.drop_table("profile_achievements")
     op.drop_index("ix_inventory_transactions_profile_id", table_name="inventory_transactions")
     op.drop_table("inventory_transactions")
     op.drop_table("profiles")

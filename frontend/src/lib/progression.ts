@@ -18,6 +18,9 @@ export const activeProfile = writable<Profile | null>(null)
 /** Set when a refresh observes a higher level; the UI clears it after celebrating. */
 export const levelUp = writable<number | null>(null)
 
+/** Badge keys earned since the last refresh; the UI clears them after celebrating. */
+export const newAchievements = writable<string[]>([])
+
 /** Level of the active profile (1 when none is selected). */
 export const level = derived(activeProfile, (profile) => profile?.level ?? 1)
 
@@ -32,8 +35,18 @@ export async function refreshProfile(): Promise<void> {
     const profiles = await api.profiles.list(true)
     const found = profiles.find((profile) => profile.id === id) ?? null
     const previous = get(activeProfile)
-    if (previous && found && found.level > previous.level) {
-        levelUp.set(found.level)
+    if (previous && found) {
+        if (found.level > previous.level) {
+            levelUp.set(found.level)
+        }
+        // Diffed here rather than returned by the mutation: every award path
+        // (transactions, OFF contributions) lands in the same refresh.
+        const earned = found.achievements.filter(
+            (key) => !previous.achievements.includes(key),
+        )
+        if (earned.length > 0) {
+            newAchievements.set(earned)
+        }
     }
     activeProfile.set(found)
 }
@@ -44,6 +57,36 @@ if (typeof localStorage !== 'undefined') {
     activeProfileId.subscribe(() => {
         void refreshProfile()
     })
+}
+
+/**
+ * Badge catalog (WL-5.4) — display order and stand-in art. Keys mirror
+ * `services/achievements.py`; names/descriptions live in the locales. The glyphs
+ * are placeholders in the same spirit as the avatar emoji: swap the map when
+ * WL-5.5 draws real badges, no stored data changes.
+ */
+export const ACHIEVEMENT_GLYPH: Record<string, string> = {
+    first_scan: '🔍',
+    stocked_50: '📦',
+    streak_7: '🔥',
+    level_5: '⭐',
+    explorer: '🗺️',
+}
+
+export const ACHIEVEMENT_KEYS = Object.keys(ACHIEVEMENT_GLYPH)
+
+/** Unknown keys (a badge from a newer backend) still render rather than blanking. */
+export function achievementGlyph(key: string): string {
+    return ACHIEVEMENT_GLYPH[key] ?? '🏅'
+}
+
+/**
+ * XP at which a level begins — the inverse of the backend's `level_for_xp`
+ * (`level = floor(sqrt(xp / 100)) + 1`). `xpForLevel(2) === 100`. Used to draw
+ * progress toward the next level from the `xp`/`level` the API already returns.
+ */
+export function xpForLevel(level: number): number {
+    return (Math.max(1, level) - 1) ** 2 * 100
 }
 
 /** How built-out the chamber looks. Grows with level, then plateaus. */

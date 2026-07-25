@@ -9,11 +9,13 @@
     } from '$lib/components/ConsumeSheet.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import {
+        achievementGlyph,
         activeProfile,
         chamberStage,
         type GuardianMood,
         guardianMood,
         levelUp,
+        newAchievements,
         refreshProfile,
     } from '$lib/progression'
     import { resolveRestockPolicy, stockStatus } from '$lib/utils/category'
@@ -111,6 +113,17 @@
         if ($levelUp != null) {
             showToast(get(_)('chamber.levelUp', { values: { level: $levelUp } }))
             levelUp.set(null)
+        }
+    })
+
+    $effect(() => {
+        // ponytail: badges earned together announce one at a time (the toast holds
+        // a single message); a queue only pays off once several can land at once.
+        const [key] = $newAchievements
+        if (key) {
+            const name = get(_)(`achievement.${key}.name`)
+            showToast(get(_)('chamber.badgeEarned', { values: { name } }))
+            newAchievements.set([])
         }
     })
 
@@ -401,6 +414,23 @@
                     <td>{$_('chamber.streak')}</td>
                     <td class="stat-val">{$activeProfile.current_streak}</td>
                 </tr>
+                <tr>
+                    <td>{$_('chamber.badges')}</td>
+                    <td class="stat-val">
+                        {#if $activeProfile.achievements.length === 0}
+                            {$_('chamber.badgesNone')}
+                        {:else}
+                            {#each $activeProfile.achievements as key (key)}
+                                <span
+                                    class="badge"
+                                    title="{$_(`achievement.${key}.name`)} — {$_(
+                                        `achievement.${key}.desc`,
+                                    )}">{achievementGlyph(key)}</span
+                                >
+                            {/each}
+                        {/if}
+                    </td>
+                </tr>
             {/if}
         </tbody>
     </table>
@@ -651,5 +681,12 @@
 
     .stat-depleted {
         color: var(--color-danger-300);
+    }
+
+    /* Placeholder badge art (WL-5.4) — glyphs until WL-5.5 draws real ones. */
+    .badge {
+        font-size: 1.1rem;
+        margin-left: 0.15rem;
+        cursor: help;
     }
 </style>

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import InventoryTransaction, Product, Profile
 from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
+from app.services.achievements import check_progress
 from app.services.progression import award_transaction
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
@@ -56,6 +57,8 @@ def create_transaction(
     db.add(transaction)
     if profile is not None:
         award_transaction(profile, data.type)
+        db.flush()  # so the movement just added counts toward its badges
+        check_progress(db, profile)
     db.commit()
     db.refresh(transaction)
     return transaction

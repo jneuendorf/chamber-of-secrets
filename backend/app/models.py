@@ -1,6 +1,17 @@
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -94,8 +105,8 @@ class InventoryTransaction(Base):
 class Profile(Base):
     """Lightweight, login-less identity for per-profile gamification (WL-5.1).
 
-    `xp` is the source of truth; level is derived via `level_for_xp`. Achievement
-    and unlock tables land with WL-5.4 when something first reads them."""
+    `xp` is the source of truth; level is derived via `level_for_xp`. `ProfileUnlock`
+    (owned cosmetics) still waits for the avatar compositor to read it."""
 
     __tablename__ = "profiles"
 
@@ -109,3 +120,26 @@ class Profile(Base):
     locale: Mapped[str | None] = mapped_column(String(5))
     is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    achievements: Mapped[list[ProfileAchievement]] = relationship(
+        back_populates="profile",
+        lazy="selectin",
+        order_by="ProfileAchievement.earned_at",
+    )
+
+
+class ProfileAchievement(Base):
+    """One earned badge (WL-5.4). Rows are append-only — a badge is never unearned.
+
+    Stores the catalog **key** only; name, description and art are resolved
+    client-side, so a badge can be renamed or redrawn without a migration."""
+
+    __tablename__ = "profile_achievements"
+    __table_args__ = (UniqueConstraint("profile_id", "achievement_key"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("profiles.id"), nullable=False, index=True)
+    achievement_key: Mapped[str] = mapped_column(String(50), nullable=False)
+    earned_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    profile: Mapped[Profile] = relationship(back_populates="achievements")

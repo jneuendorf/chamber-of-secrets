@@ -319,8 +319,8 @@ dev S · user high · 🟢
 
 Data model (as built): `Profile` table + nullable indexed
 `InventoryTransaction.profile_id`. The `ProfileAchievement` / `ProfileUnlock`
-tables below are **deferred to WL-5.4**, where the first code reads them —
-creating empty tables now would be dead scaffolding.
+tables below landed only once code read them — `ProfileAchievement` with WL-5.4,
+`ProfileUnlock` still waiting on the avatar compositor.
 
 ```
 Profile
@@ -332,8 +332,9 @@ Profile
 
 InventoryTransaction.profile_id   FK -> Profile, nullable, indexed     # NULL = no profile selected / legacy
 
-# Deferred to WL-5.4:
-ProfileAchievement   id, profile_id FK, achievement_key, earned_at    # unique(profile_id, key)
+ProfileAchievement   id, profile_id FK, achievement_key, earned_at    # unique(profile_id, key) — WL-5.4
+
+# Still deferred:
 ProfileUnlock        id, profile_id FK, item_key, acquired_at         # owned cosmetics/equipment; unique(profile_id, item_key)
 ```
 
@@ -360,12 +361,14 @@ Depends: WL-5.1 (profiles)
 - XP is deliberately not reversed on undo (WL-5.2) — cheaper than an award ledger; revisit only if XP ever buys something scarce
 - Moved out: the consuming-**before-expiry** XP bonus needs batch expiry dates — owned by WL-7.2, lands there
 
-- [ ] **WL-5.4: Achievements, Streaks & Rewards** ⬜
+- [ ] **WL-5.4: Achievements, Streaks & Rewards** 🚧
 
 dev M · user high · 🟢
 Depends: WL-5.3 · leaderboard depends on WL-9.2
 
-- [ ] Badges: First Scan, 50 Stocked, Cleared the List, **Explorer** (added a product to Open Food Facts, WL-4.6) — real-world value + teaches kids
+- [x] Badges: `services/achievements.py` grants them from data that already exists — First Scan, Well Stocked (50 `in`), Week Streak, Chamber Keeper (level 5), **Explorer** (added a product to Open Food Facts, WL-4.6). Stored as keys in `profile_achievements`; names and art are client-side, so a badge is renamed or redrawn without a migration. Earned badges are diffed on profile refresh and announced in the chamber
+- [x] Dedicated per-profile progress page (`/profile/[id]`, reached from the picker): avatar, level + XP-to-next bar, streak, and the full badge grid (earned + locked). Standalone route, so a later nav redesign can reposition it
+- [ ] "Cleared the List" badge — blocked: no shopping list yet (WL-7.1)
 - [ ] Daily streak with a growing flame; combo meter for rapid multi-scan after a shop
 - [ ] Configurable real-life rewards per tier ("Level 5 → pick movie night")
 - [ ] Achievements / levels unlock avatar equipment (`ProfileUnlock`) — the reason to keep earning

@@ -176,6 +176,28 @@ emerges from knowing what's in stock:
   needs restocking). Both are plain data rendered as `data-stage` / `data-mood`
   on the scene; the art that reacts to them is WL-5.5.
 
+### 2.9b Achievements
+
+- Badges are earned automatically and never lost. Only the fact that one was
+  earned is stored (`profile_achievements`, one row per profile + badge key) —
+  every condition is re-derived from data that already exists, so re-checking is
+  idempotent and a new rule retro-awards itself on the next movement.
+- Shipped badges: **First Scan** (stock anything), **Well Stocked** (50 items
+  stocked), **Week Streak** (7 consecutive days), **Chamber Keeper** (level 5)
+  and **Explorer** (contribute a product to Open Food Facts, see 2.7).
+- Stocking milestones count `in` movements only — using things up doesn't
+  advance them.
+- The backend stores keys; names, descriptions and art are resolved
+  client-side, so a badge can be renamed or redrawn without a migration. The
+  glyphs shown in the chamber ledger are placeholders until WL-5.5.
+- Newly earned badges are detected by diffing the active profile on refresh, so
+  every award path announces itself the same way — a toast in the chamber.
+- Each profile has a dedicated progress page (`/profile/[id]`) reached from the
+  profile picker (the `›` on a profile row): avatar, level with an XP bar toward
+  the next level, day streak, and the full badge grid showing earned badges
+  alongside still-locked ones. A standalone route so a later navigation redesign
+  can place it freely.
+
 ### 2.10 Deployment
 
 - Docker / Podman Compose stack (backend + nginx frontend).
@@ -226,7 +248,11 @@ movement to a profile (nullable).
 
 **Profiles** — login-less identity: `name`, `avatar_config` (JSON: layered-SVG
 part ids), `xp` (source of truth; level derived), streak fields, `locale`,
-`is_archived`. Achievement/unlock tables arrive with WL-5.4.
+`is_archived`.
+
+**Profile achievements** — append-only `profile_id` + `achievement_key` rows,
+unique per pair. The unlock table (owned cosmetics) arrives with the avatar
+compositor.
 
 ---
 
@@ -245,7 +271,7 @@ part ids), `xp` (source of truth; level derived), streak fields, `locale`,
 | DELETE | `/api/products/{id}/image` | Remove product image |
 | DELETE | `/api/products/{id}` | Delete product (cascades movements/revisions/image) |
 | POST | `/api/products/merge` | Merge a duplicate into another product |
-| POST | `/api/products/{id}/contribute` | Submit a barcode product back to Open Food Facts (WL-4.6) |
+| POST | `/api/products/{id}/contribute` | Submit a barcode product back to Open Food Facts (WL-4.6); `?profile_id=` earns "Explorer" |
 | GET | `/api/transactions/` | List transactions (optional `product_id`) |
 | POST | `/api/transactions/` | Record a stock movement |
 | PATCH | `/api/transactions/{id}` | Edit a movement |
