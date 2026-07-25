@@ -4,8 +4,6 @@ The single place XP is awarded. Everything else (levels, achievements, rewards)
 *derives* from `Profile.xp` via `level_for_xp` — no feature keeps its own counter.
 """
 
-from __future__ import annotations
-
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
