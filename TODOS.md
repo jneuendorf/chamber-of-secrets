@@ -24,21 +24,7 @@ Delete entries once landed. Keep the file and this header even when empty.
   README presents `just db-make-migrations` as the normal path. Two
   documents, opposite instructions.
 
-## 2. `FEATURES.md` — small but real errors
-
-- §2.9b: Explorer badge says "contribute a product to Open Food Facts,
-  **see 2.7**". §2.7 is Internationalization; the OFF contribution is
-  described in **§2.1**. Broken cross-reference.
-- §3 Data Model has no `RewardTier` / `ProfileReward` entry, although
-  §2.9c describes both tables in detail. Every other table is listed.
-- §2.9 still reads "Achievements and unlocks land in WL-5.4 — this is
-  their foundation". Achievements shipped (§2.9b describes them as live);
-  only the unlock table is still pending.
-- §2.9c omits that reward levels must be **≥ 2** (`RewardTierCreate`
-  rejects level 1 — everyone starts there). §4's API table states it, the
-  prose doesn't.
-
-## 3. `ROADMAP.md` — stale status and unowned dependencies
+## 2. `ROADMAP.md` — stale status and unowned dependencies
 
 - **WL-4.6's last bullet is unchecked** ("Unlocks the *Explorer*
   achievement — earned via WL-5.4") but the badge is granted in
@@ -65,9 +51,9 @@ Delete entries once landed. Keep the file and this header even when empty.
   belong in the item that actually owns them (WL-6.5 already claims the
   WL-3.2 leftover).
 
-## 4. `CONTAINER_ENGINE`'s default is described three different ways
+## 3. `CONTAINER_ENGINE`'s default is described three different ways
 
-Found while fixing item 1 — the container engine is documented
+Found while fixing the root README — the container engine is documented
 inconsistently across three files:
 
 - `justfile:4` defaults it to **docker**, but the comment above `up:`

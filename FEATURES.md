@@ -156,8 +156,9 @@ emerges from knowing what's in stock:
   without touching stored profiles. WL-5.4 adds a `layers: [{slot, part}]` key
   for unlockable equipment — additive on a JSON column, so no migration.
 - Each profile carries `xp` as the source of truth; **level is derived**
-  (`level_for_xp`), never stored. Achievements and unlocks land in WL-5.4 —
-  this is their foundation.
+  (`level_for_xp`), never stored. Progression (2.9a), achievements (2.9b) and
+  rewards (2.9c) all build on it; avatar unlocks are the one piece still
+  pending (WL-5.4).
 
 ### 2.9a Progression — XP, Levels & Streaks
 
@@ -184,7 +185,7 @@ emerges from knowing what's in stock:
   idempotent and a new rule retro-awards itself on the next movement.
 - Shipped badges: **First Scan** (stock anything), **Well Stocked** (50 items
   stocked), **Week Streak** (7 consecutive days), **Chamber Keeper** (level 5)
-  and **Explorer** (contribute a product to Open Food Facts, see 2.7).
+  and **Explorer** (contribute a product to Open Food Facts, see 2.1).
 - Stocking milestones count `in` movements only — using things up doesn't
   advance them.
 - The backend stores keys; names, descriptions and art are resolved
@@ -202,7 +203,9 @@ emerges from knowing what's in stock:
 
 - A household sets treats tied to a level ("Level 5 → pick movie night"). Rewards
   are **household-wide** (`reward_tiers`: a level plus free text, multiple allowed
-  per level), not per profile — whoever reaches the level unlocks it.
+  per level), not per profile — whoever reaches the level unlocks it. The level
+  must be **2 or higher**: everyone starts at level 1, so a reward there would be
+  unlocked from the start and reward nothing.
 - Configured on the profile progress page (2.9b): add a reward (level + text) or
   remove one. Each reward shows unlocked (🎁) or still-locked (🔒) relative to the
   profile being viewed, so the same shared list reads differently per member.
@@ -269,6 +272,15 @@ part ids), `xp` (source of truth; level derived), streak fields, `locale`,
 **Profile achievements** — append-only `profile_id` + `achievement_key` rows,
 unique per pair. The unlock table (owned cosmetics) arrives with the avatar
 compositor.
+
+**Reward tiers** — household-wide real-life rewards: a level (≥ 2) plus free
+text, several allowed per level. Unlocking is *derived* (`level >= tier.level`),
+never stored.
+
+**Profile rewards** — the one per-profile bit that *is* stored: which reward
+tiers a profile has marked redeemed. The row's presence is the flag; un-redeeming
+deletes it. Unique per `(profile_id, reward_tier_id)`, and deleting a tier
+cascades its redemptions.
 
 ---
 
