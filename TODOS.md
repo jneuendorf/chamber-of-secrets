@@ -9,39 +9,7 @@ Delete entries once landed. Keep the file and this header even when empty.
 
 ---
 
-## 1. `README.md` is stale — it predates Milestones 4 and 5
-
-The root README still describes the app as a scan/inventory/analytics
-tracker. Everything from WL-4.6 and Milestone 5 is missing, so it
-contradicts `FEATURES.md` on the same subjects.
-
-- **API table missing 9 routes** that `FEATURES.md` §4 lists and the code
-  serves: `POST /api/products/{id}/contribute`, all 3 `/api/profiles/*`,
-  all 5 `/api/rewards/*` (incl. the two `/redemption` routes).
-- **"What it does" and "Data model"** omit profiles, XP/levels/streaks,
-  achievements, rewards, and the chamber. Data model lists 4 tables;
-  `models.py` has 8 (`profiles`, `profile_achievements`, `reward_tiers`,
-  `profile_rewards` missing).
-- **Project structure** is out of date: routers listed as "products,
-  transactions, categories, analytics" (missing `profiles`, `rewards`);
-  services shows only `ean_lookup.py` (missing `achievements.py`,
-  `progression.py`, `restock.py`, `off_contribute.py`); components list
-  missing `Avatar`, `ConsumeSheet`, `ProfileSwitcher`; routes list missing
-  `/profile/[id]`.
-- **Configuration table missing every `APP_OFF_*` variable** (6 settings in
-  `config.py`) — WL-4.6 shipped undocumented, including the
-  `off_contribute_images` flag that `FEATURES.md` §2.1 refers to.
-- **Code quality section describes the wrong recipes.** `just lint` and
-  `just format` run *both* layers (README says backend-only);
-  `just check-frontend` is biome + prettier + typecheck + test (README says
-  "svelte-check + TypeScript"). `just check`, `just test`, `just seed` and
-  `just types` are absent. Prettier isn't mentioned at all, though it owns
-  `.svelte` formatting because Biome can't.
-- **Dev section missing `just dev https`** (shipped in WL-3.5) — it is the
-  documented prerequisite for on-device camera scanning, which `FEATURES.md`
-  §2.1 presents as a core flow.
-
-## 2. `backend/README.md` contradicts `main.py` and the migration convention
+## 1. `backend/README.md` contradicts `main.py` and the migration convention
 
 - Claims "`create_all` replaced with `alembic upgrade head` in the
   lifespan". `main.py:28-30` runs **both** — `upgrade(…, "head")` *then*
@@ -56,7 +24,7 @@ contradicts `FEATURES.md` on the same subjects.
   README presents `just db-make-migrations` as the normal path. Two
   documents, opposite instructions.
 
-## 3. `FEATURES.md` — small but real errors
+## 2. `FEATURES.md` — small but real errors
 
 - §2.9b: Explorer badge says "contribute a product to Open Food Facts,
   **see 2.7**". §2.7 is Internationalization; the OFF contribution is
@@ -70,7 +38,7 @@ contradicts `FEATURES.md` on the same subjects.
   rejects level 1 — everyone starts there). §4's API table states it, the
   prose doesn't.
 
-## 4. `ROADMAP.md` — stale status and unowned dependencies
+## 3. `ROADMAP.md` — stale status and unowned dependencies
 
 - **WL-4.6's last bullet is unchecked** ("Unlocks the *Explorer*
   achievement — earned via WL-5.4") but the badge is granted in
@@ -96,3 +64,20 @@ contradicts `FEATURES.md` on the same subjects.
   image upload, Explorer). Either the parent isn't done or the leftovers
   belong in the item that actually owns them (WL-6.5 already claims the
   WL-3.2 leftover).
+
+## 4. `CONTAINER_ENGINE`'s default is described three different ways
+
+Found while fixing item 1 — the container engine is documented
+inconsistently across three files:
+
+- `justfile:4` defaults it to **docker**, but the comment above `up:`
+  (`justfile:170`) says "set `CONTAINER_ENGINE=docker` to use Docker
+  instead of Podman" — i.e. it claims the default is podman.
+- `.env.example` sets `CONTAINER_ENGINE=podman`, and the justfile has
+  `set dotenv-load`, so anyone who follows the README's "copy
+  `.env.example` to `.env`" instruction silently flips the default to
+  podman.
+- `README.md` tells you to set `CONTAINER_ENGINE=podman` for Podman, which
+  is only true when no `.env` exists.
+
+Pick one default, then make all three agree.
