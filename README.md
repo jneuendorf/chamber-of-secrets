@@ -221,6 +221,12 @@ just db-rollback 3                           # roll back three steps
 just db-status                               # current revision + history
 ```
 
+> **Pre-alpha:** there is deliberately only one migration. Schema changes are
+> folded into `0001_initial_schema.py` instead of adding revision files, so
+> `just db-make-migrations` is not the current workflow. See
+> [`backend/README.md`](backend/README.md) for the details and the SQLite
+> `batch_alter_table` caveat.
+
 ---
 
 ## Configuration

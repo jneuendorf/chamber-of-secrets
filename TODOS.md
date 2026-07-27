@@ -9,22 +9,7 @@ Delete entries once landed. Keep the file and this header even when empty.
 
 ---
 
-## 1. `backend/README.md` contradicts `main.py` and the migration convention
-
-- Claims "`create_all` replaced with `alembic upgrade head` in the
-  lifespan". `main.py:28-30` runs **both** — `upgrade(…, "head")` *then*
-  `Base.metadata.create_all` as a safety net. That's load-bearing (it is
-  how a new table reaches a running dev DB), so the doc should describe it.
-- "the initial migration captures all four current tables" — it now creates
-  8.
-- Refers to `alembic/versions/…_initial.py`; the file is
-  `0001_initial_schema.py`.
-- The **pre-alpha single-migration rule** (fold schema changes into `0001`
-  rather than adding revisions) is documented nowhere, while the root
-  README presents `just db-make-migrations` as the normal path. Two
-  documents, opposite instructions.
-
-## 2. `ROADMAP.md` — stale status and unowned dependencies
+## 1. `ROADMAP.md` — stale status and unowned dependencies
 
 - **WL-4.6's last bullet is unchecked** ("Unlocks the *Explorer*
   achievement — earned via WL-5.4") but the badge is granted in
