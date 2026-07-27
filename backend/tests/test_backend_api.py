@@ -836,6 +836,123 @@ class BackendAPITestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(self._get_profile(profile["id"])["achievements"], [EXPLORER])
 
+    def test_reward_tiers_created_and_listed_sorted_by_level(self) -> None:
+        self.client.post("/api/rewards/", json={"level": 5, "description": "Movie night"})
+        self.client.post("/api/rewards/", json={"level": 2, "description": "Ice cream"})
+        rewards = self.client.get("/api/rewards/").json()
+        self.assertEqual([r["level"] for r in rewards], [2, 5])
+        self.assertEqual(rewards[0]["description"], "Ice cream")
+
+    def test_reward_tier_rejects_level_below_two(self) -> None:
+        res = self.client.post("/api/rewards/", json={"level": 1, "description": "Nope"})
+        self.assertEqual(res.status_code, 422)
+
+    def test_reward_tier_rejects_blank_description(self) -> None:
+        res = self.client.post("/api/rewards/", json={"level": 3, "description": "   "})
+        self.assertEqual(res.status_code, 422)
+
+    def test_delete_reward_tier(self) -> None:
+        created = self.client.post(
+            "/api/rewards/",
+            json={"level": 4, "description": "Pizza"},
+        ).json()
+        self.assertEqual(self.client.delete(f"/api/rewards/{created['id']}").status_code, 204)
+        self.assertEqual(self.client.get("/api/rewards/").json(), [])
+
+    def test_delete_reward_tier_not_found(self) -> None:
+        self.assertEqual(self.client.delete("/api/rewards/999999").status_code, 404)
+
+    def _level_2_profile(self, name: str) -> dict:
+        """A profile with 100 XP (level 2) via 10 attributed `in` movements."""
+        profile = self.client.post("/api/profiles/", json={"name": name}).json()
+        product = self._create_product(f"{name}-oats")
+        for _ in range(10):
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+            )
+        return self._get_profile(profile["id"])
+
+    def test_redeeming_unlocked_reward_marks_it_for_that_profile(self) -> None:
+        profile = self._level_2_profile("Reda")
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 2, "description": "Ice cream"},
+        ).json()
+
+        res = self.client.post(
+            f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}",
+        )
+        self.assertEqual(res.status_code, 204)
+        self.assertEqual(self._get_profile(profile["id"])["redeemed_rewards"], [reward["id"]])
+
+    def test_redeeming_is_idempotent(self) -> None:
+        profile = self._level_2_profile("Ida")
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 2, "description": "Sticker"},
+        ).json()
+
+        url = f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}"
+        self.assertEqual(self.client.post(url).status_code, 204)
+        self.assertEqual(self.client.post(url).status_code, 204)
+        self.assertEqual(self._get_profile(profile["id"])["redeemed_rewards"], [reward["id"]])
+
+    def test_redeeming_a_locked_reward_is_rejected(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Lo"}).json()  # level 1
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 5, "description": "Movie night"},
+        ).json()
+
+        res = self.client.post(
+            f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}",
+        )
+        self.assertEqual(res.status_code, 409)
+        self.assertEqual(self._get_profile(profile["id"])["redeemed_rewards"], [])
+
+    def test_redeeming_unknown_reward_or_profile_is_404(self) -> None:
+        profile = self._level_2_profile("Uma")
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 2, "description": "Cookie"},
+        ).json()
+
+        self.assertEqual(
+            self.client.post(f"/api/rewards/999999/redemption?profile_id={profile['id']}").status_code,
+            404,
+        )
+        self.assertEqual(
+            self.client.post(f"/api/rewards/{reward['id']}/redemption?profile_id=999999").status_code,
+            404,
+        )
+
+    def test_unredeeming_removes_the_mark(self) -> None:
+        profile = self._level_2_profile("Ned")
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 2, "description": "Extra screen time"},
+        ).json()
+        url = f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}"
+        self.client.post(url)
+
+        self.assertEqual(self.client.delete(url).status_code, 204)
+        self.assertEqual(self._get_profile(profile["id"])["redeemed_rewards"], [])
+        # Idempotent: un-redeeming again is a no-op, still 204.
+        self.assertEqual(self.client.delete(url).status_code, 204)
+
+    def test_deleting_a_reward_tier_cascades_its_redemptions(self) -> None:
+        profile = self._level_2_profile("Cas")
+        reward = self.client.post(
+            "/api/rewards/",
+            json={"level": 2, "description": "Late bedtime"},
+        ).json()
+        self.client.post(f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}")
+
+        # FK ON DELETE CASCADE must clear the redemption, not raise on the FK.
+        self.assertEqual(self.client.delete(f"/api/rewards/{reward['id']}").status_code, 204)
+        self.assertEqual(self._get_profile(profile["id"])["redeemed_rewards"], [])
+
     def _get_profile(self, profile_id: int) -> dict:
         return next(
             p

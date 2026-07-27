@@ -370,7 +370,7 @@ Depends: WL-5.3 · leaderboard depends on WL-9.2
 - [x] Dedicated per-profile progress page (`/profile/[id]`, reached from the picker): avatar, level + XP-to-next bar, streak, and the full badge grid (earned + locked). Standalone route, so a later nav redesign can reposition it
 - [ ] "Cleared the List" badge — blocked: no shopping list yet (WL-7.1)
 - [ ] Daily streak with a growing flame; combo meter for rapid multi-scan after a shop
-- [ ] Configurable real-life rewards per tier ("Level 5 → pick movie night")
+- [x] Configurable real-life rewards per tier ("Level 5 → pick movie night") — household-wide `reward_tiers` (level + text); whoever reaches the level unlocks it. Configured and viewed on the profile page (add/remove, unlocked vs locked per profile). **Redeeming is per profile** (`profile_rewards`): mark/un-mark "✓ Redeemed" on your own active-profile page only (login-less UX guard — backend validates the reward is unlocked but can't enforce whose tap it is); others see a read-only redeemed tag. Idempotent, reversible, cascades on tier delete. The level-up "reward unlocked!" toast is its own item — WL-5.7
 - [ ] Achievements / levels unlock avatar equipment (`ProfileUnlock`) — the reason to keep earning
 - [ ] "Pantry-dex": a collectible card per product scanned (gotta scan 'em all)
 - [ ] Leaderboard / "Scanner of the Week" once multi-user lands (WL-9.2)
@@ -392,6 +392,30 @@ Depends: WL-5.2
 
 - [ ] Scan on `/scan` → the just-added item flies across the navigation and bounces into its pile on `/chamber`. WL-5.2 keeps chamber animation within-page; this adds the cross-route arrival.
 - [ ] Seam already reserved: a small "pending arrivals" store that `/scan` pushes to and `/chamber` drains on mount, feeding the same arc-in animation as the within-page add — or SvelteKit view transitions if simpler. Additive, not a renderer rewrite.
+
+- [ ] **WL-5.7: Level-Up & Reward Notifications** ⬜
+
+dev S · user high · 🟢
+Depends: WL-5.3 (level-up event), WL-5.4 (`reward_tiers`)
+
+- [ ] Celebratory notification when a profile levels up — surfaced app-wide, not
+      only on the chamber page, so the moment lands wherever the kid is scanning.
+      Today WL-5.3 only "announces the level in the chamber"
+- [ ] **"Reward unlocked!" callout** when the new level crosses a `reward_tiers`
+      threshold (moved from WL-5.4) — names the real-life reward ("Level 5 → pick
+      movie night"). This is the dopamine payoff: the on-screen moment that ties
+      the app back to a real kitchen-table treat
+- [ ] Fire **exactly once per crossing** — the crux. The award point
+      (`progression.py` / the `$lib/progression.ts` store) knows the old and new
+      level; diff them, look up any `reward_tiers` in the crossed range, and guard
+      against re-firing on profile refetch (same pattern as the badge diff). The
+      current `level >= reward.level` display derivation stays as-is; this adds the
+      *transition* detection on top
+- [ ] Reuse the existing announce / undo-toast plumbing; respect
+      `prefers-reduced-motion`; fanfare art + optional sound come from WL-5.5
+- [ ] Tests: the once-per-crossing logic and the level-band → rewards lookup are
+      the testable core (extract a pure helper, e.g. `rewardsUnlockedBetween(old,
+      new, tiers)`) — the missing coverage flagged when this was still part of WL-5.4
 
 ### UI Design Concept (prompt library for image/animation generation)
 

@@ -17,6 +17,7 @@ export type EANLookupResult = Schemas['EANLookupResult']
 export type AvatarConfig = Schemas['AvatarConfig']
 export type Profile = Schemas['ProfileRead']
 export type Transaction = Schemas['TransactionRead']
+export type RewardTier = Schemas['RewardTierRead']
 export type SpendingByCategory = Schemas['SpendingByCategory']
 export type TimeseriesPoint = Schemas['TimeseriesPoint']
 export type RestockOverviewRow = Schemas['RestockOverviewRow']
@@ -234,6 +235,26 @@ export const api = {
             request<Profile>(`/profiles/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify(data),
+            }),
+    },
+    rewards: {
+        list: () => request<RewardTier[]>('/rewards/'),
+        create: (data: { level: number; description: string }) =>
+            request<RewardTier>('/rewards/', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+        delete: (id: number) => request<void>(`/rewards/${id}`, { method: 'DELETE' }),
+        // Redeem/un-redeem for a specific profile (WL-5.4). profile_id is the
+        // visited profile — the caller only offers this on the active profile's
+        // own page (login-less, so it's a UX guard, not enforced server-side).
+        redeem: (rewardId: number, profileId: number) =>
+            request<void>(`/rewards/${rewardId}/redemption?profile_id=${profileId}`, {
+                method: 'POST',
+            }),
+        unredeem: (rewardId: number, profileId: number) =>
+            request<void>(`/rewards/${rewardId}/redemption?profile_id=${profileId}`, {
+                method: 'DELETE',
             }),
     },
     analytics: {

@@ -151,8 +151,42 @@ def upgrade() -> None:
             ["profile_id"],
         )
 
+    if "reward_tiers" not in existing:
+        op.create_table(
+            "reward_tiers",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("level", sa.Integer(), nullable=False),
+            sa.Column("description", sa.String(200), nullable=False),
+            sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+        )
+        op.create_index("ix_reward_tiers_level", "reward_tiers", ["level"])
+
+    if "profile_rewards" not in existing:
+        op.create_table(
+            "profile_rewards",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("profile_id", sa.Integer(), sa.ForeignKey("profiles.id"), nullable=False),
+            sa.Column(
+                "reward_tier_id",
+                sa.Integer(),
+                sa.ForeignKey("reward_tiers.id", ondelete="CASCADE"),
+                nullable=False,
+            ),
+            sa.Column("redeemed_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
+            sa.PrimaryKeyConstraint("id"),
+            sa.UniqueConstraint("profile_id", "reward_tier_id"),
+        )
+        op.create_index("ix_profile_rewards_profile_id", "profile_rewards", ["profile_id"])
+        op.create_index("ix_profile_rewards_reward_tier_id", "profile_rewards", ["reward_tier_id"])
+
 
 def downgrade() -> None:
+    op.drop_index("ix_profile_rewards_reward_tier_id", table_name="profile_rewards")
+    op.drop_index("ix_profile_rewards_profile_id", table_name="profile_rewards")
+    op.drop_table("profile_rewards")
+    op.drop_index("ix_reward_tiers_level", table_name="reward_tiers")
+    op.drop_table("reward_tiers")
     op.drop_index("ix_profile_achievements_profile_id", table_name="profile_achievements")
     op.drop_table("profile_achievements")
     op.drop_index("ix_inventory_transactions_profile_id", table_name="inventory_transactions")

@@ -28,7 +28,17 @@
     "badgesEarnedCount": "{earned} of {total} earned",
     "locked": "Locked",
     "back": "Back to chamber",
-    "notFound": "That profile doesn't exist."
+    "notFound": "That profile doesn't exist.",
+    "rewards": "Real-life rewards",
+    "rewardsHint": "Set a treat for reaching a level. Whoever gets there unlocks it.",
+    "rewardsNone": "No rewards yet — add one below.",
+    "rewardLevel": "Level",
+    "rewardDescription": "Reward",
+    "rewardPlaceholder": "e.g. pick movie night",
+    "rewardAdd": "Add",
+    "rewardRemove": "Remove reward",
+    "rewardRedeem": "Redeem",
+    "rewardRedeemed": "Redeemed"
   },
   "chamber": {
     "statsTitle": "Chamber Ledger",

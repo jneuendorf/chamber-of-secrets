@@ -28,7 +28,17 @@
     "badgesEarnedCount": "{earned} von {total} erhalten",
     "locked": "Gesperrt",
     "back": "Zurück zur Kammer",
-    "notFound": "Dieses Profil existiert nicht."
+    "notFound": "Dieses Profil existiert nicht.",
+    "rewards": "Echte Belohnungen",
+    "rewardsHint": "Lege eine Belohnung für ein Level fest. Wer es erreicht, schaltet sie frei.",
+    "rewardsNone": "Noch keine Belohnungen — füge unten eine hinzu.",
+    "rewardLevel": "Level",
+    "rewardDescription": "Belohnung",
+    "rewardPlaceholder": "z. B. Filmabend aussuchen",
+    "rewardAdd": "Hinzufügen",
+    "rewardRemove": "Belohnung entfernen",
+    "rewardRedeem": "Einlösen",
+    "rewardRedeemed": "Eingelöst"
   },
   "chamber": {
     "statsTitle": "Kammerregister",

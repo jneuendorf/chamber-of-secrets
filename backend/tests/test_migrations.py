@@ -102,6 +102,33 @@ class MigrationsTestCase(unittest.TestCase):
         finally:
             engine.dispose()
 
+    def test_reward_tiers_table_is_created(self) -> None:
+        command.upgrade(self._config(), "head")
+
+        engine = create_engine(self._url)
+        try:
+            self.assertIn("reward_tiers", inspect(engine).get_table_names())
+        finally:
+            engine.dispose()
+
+    def test_profile_rewards_table_is_created(self) -> None:
+        command.upgrade(self._config(), "head")
+
+        engine = create_engine(self._url)
+        try:
+            inspector = inspect(engine)
+            self.assertIn("profile_rewards", inspector.get_table_names())
+
+            # One redemption per (profile, tier) — the unique constraint is what
+            # makes re-redeeming idempotent, so it must reach the migrated DDL.
+            unique = inspector.get_unique_constraints("profile_rewards")
+            self.assertIn(
+                ["profile_id", "reward_tier_id"],
+                [constraint["column_names"] for constraint in unique],
+            )
+        finally:
+            engine.dispose()
+
     def test_full_downgrade_and_re_upgrade(self) -> None:
         config = self._config()
         command.upgrade(config, "head")

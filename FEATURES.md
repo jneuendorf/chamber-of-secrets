@@ -198,6 +198,22 @@ emerges from knowing what's in stock:
   alongside still-locked ones. A standalone route so a later navigation redesign
   can place it freely.
 
+### 2.9c Real-Life Rewards
+
+- A household sets treats tied to a level ("Level 5 → pick movie night"). Rewards
+  are **household-wide** (`reward_tiers`: a level plus free text, multiple allowed
+  per level), not per profile — whoever reaches the level unlocks it.
+- Configured on the profile progress page (2.9b): add a reward (level + text) or
+  remove one. Each reward shows unlocked (🎁) or still-locked (🔒) relative to the
+  profile being viewed, so the same shared list reads differently per member.
+- **Redeeming is per profile** (`profile_rewards`): once unlocked, mark a reward
+  "✓ Redeemed" (or un-mark it). The redeem control appears only on your own active
+  profile's page — a login-less UX guard, since profiles aren't accounts. Other
+  members' pages show a read-only "✓ Redeemed" tag so the household can see who
+  claimed what. The backend validates the reward is actually unlocked before
+  recording; it can't enforce *whose* tap it is (no session). Redemption is
+  idempotent and reversible; deleting a reward tier cascades its redemptions.
+
 ### 2.10 Deployment
 
 - Docker / Podman Compose stack (backend + nginx frontend).
@@ -286,4 +302,9 @@ compositor.
 | GET | `/api/profiles/` | List profiles (optional `include_archived`) |
 | POST | `/api/profiles/` | Create a profile |
 | PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
+| GET | `/api/rewards/` | List household reward tiers (sorted by level) |
+| POST | `/api/rewards/` | Create a reward tier (level ≥ 2 + description) |
+| DELETE | `/api/rewards/{id}` | Delete a reward tier (cascades redemptions) |
+| POST | `/api/rewards/{id}/redemption?profile_id=` | Mark a reward redeemed for a profile (idempotent; 409 if not unlocked) |
+| DELETE | `/api/rewards/{id}/redemption?profile_id=` | Un-redeem for a profile (idempotent) |
 | GET | `/api/health` | Health check |

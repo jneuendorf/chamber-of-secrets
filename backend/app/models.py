@@ -126,6 +126,11 @@ class Profile(Base):
         lazy="selectin",
         order_by="ProfileAchievement.earned_at",
     )
+    redeemed_rewards: Mapped[list[ProfileReward]] = relationship(
+        back_populates="profile",
+        lazy="selectin",
+        order_by="ProfileReward.redeemed_at",
+    )
 
 
 class ProfileAchievement(Base):
@@ -143,3 +148,44 @@ class ProfileAchievement(Base):
     earned_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     profile: Mapped[Profile] = relationship(back_populates="achievements")
+
+
+class RewardTier(Base):
+    """A real-life reward a household grants when a profile reaches `level` (WL-5.4).
+
+    Household-wide, not per profile: whoever reaches the level unlocks it. Multiple
+    rows may share a level. Unlocking is *derived* (level >= tier.level); the one
+    per-profile bit that is stored is redemption — see `ProfileReward`."""
+
+    __tablename__ = "reward_tiers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    description: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class ProfileReward(Base):
+    """A reward a profile has marked redeemed in real life (WL-5.4).
+
+    Per profile, unlike the household-wide `RewardTier` it points at: each kid
+    checks off their own treat. The row's *presence* is the redeemed flag —
+    un-redeeming deletes it. Deleting a tier cascades its redemptions.
+
+    Whose tap this is isn't enforced server-side: profiles are login-less
+    (WL-5.1), so "only redeem your own" is a client guard, not access control.
+    The redeem endpoint still validates the reward is actually unlocked."""
+
+    __tablename__ = "profile_rewards"
+    __table_args__ = (UniqueConstraint("profile_id", "reward_tier_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("profiles.id"), nullable=False, index=True)
+    reward_tier_id: Mapped[int] = mapped_column(
+        ForeignKey("reward_tiers.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    redeemed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    profile: Mapped[Profile] = relationship(back_populates="redeemed_rewards")

@@ -238,6 +238,8 @@ class ProfileRead(BaseModel):
     created_at: datetime
     # Earned badge keys, oldest first (WL-5.4). Names and art are client-side.
     achievements: list[str]
+    # Reward-tier ids this profile has marked redeemed (WL-5.4).
+    redeemed_rewards: list[int]
 
     model_config = {"from_attributes": True}
 
@@ -249,10 +251,50 @@ class ProfileRead(BaseModel):
             return [getattr(item, "achievement_key", item) for item in value]
         return value
 
+    @field_validator("redeemed_rewards", mode="before")
+    @classmethod
+    def unwrap_redeemed_rewards(cls, value: object) -> object:
+        """Accept the ORM relationship (rows) as well as a plain list of ids."""
+        if isinstance(value, list):
+            return [getattr(item, "reward_tier_id", item) for item in value]
+        return value
+
     @computed_field
     @property
     def level(self) -> int:
         return level_for_xp(self.xp)
+
+
+# --- Reward Tiers ---
+
+
+class RewardTierCreate(BaseModel):
+    level: int
+    description: str
+
+    @field_validator("level")
+    @classmethod
+    def validate_level(cls, value: int) -> int:
+        # Everyone starts at level 1, so a reward there rewards nothing.
+        if value < 2:
+            raise ValueError("level must be >= 2")
+        return value
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("description must not be empty")
+        return value
+
+
+class RewardTierRead(BaseModel):
+    id: int
+    level: int
+    description: str
+
+    model_config = {"from_attributes": True}
 
 
 # --- EAN Lookup ---
