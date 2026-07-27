@@ -167,7 +167,7 @@ certs:
     fi
 
 # build images and start the full stack in containers (production mode)
-# set CONTAINER_ENGINE=docker to use Docker instead of Podman
+# set CONTAINER_ENGINE=podman to use Podman instead of Docker
 up: certs
     {{ container_engine }} compose up --build -d
 

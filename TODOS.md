@@ -50,20 +50,3 @@ Delete entries once landed. Keep the file and this header even when empty.
   image upload, Explorer). Either the parent isn't done or the leftovers
   belong in the item that actually owns them (WL-6.5 already claims the
   WL-3.2 leftover).
-
-## 3. `CONTAINER_ENGINE`'s default is described three different ways
-
-Found while fixing the root README — the container engine is documented
-inconsistently across three files:
-
-- `justfile:4` defaults it to **docker**, but the comment above `up:`
-  (`justfile:170`) says "set `CONTAINER_ENGINE=docker` to use Docker
-  instead of Podman" — i.e. it claims the default is podman.
-- `.env.example` sets `CONTAINER_ENGINE=podman`, and the justfile has
-  `set dotenv-load`, so anyone who follows the README's "copy
-  `.env.example` to `.env`" instruction silently flips the default to
-  podman.
-- `README.md` tells you to set `CONTAINER_ENGINE=podman` for Podman, which
-  is only true when no `.env` exists.
-
-Pick one default, then make all three agree.

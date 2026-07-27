@@ -178,22 +178,23 @@ just down         # stop and remove containers
 just logs         # tail logs from all services
 ```
 
-To use Podman with the same `just` commands, set `CONTAINER_ENGINE=podman`:
+These use **Docker** by default. To use Podman with the same `just` commands, set
+`CONTAINER_ENGINE=podman`:
 
 ```sh
 CONTAINER_ENGINE=podman just up
-CONTAINER_ENGINE=podman just down
-CONTAINER_ENGINE=podman just logs
 ```
 
-You can also export it once per shell session:
+Or export it once per shell session:
 
 ```sh
 export CONTAINER_ENGINE=podman
 just up
-just down
-just logs
 ```
+
+Or make it permanent for this checkout by uncommenting `CONTAINER_ENGINE` in your
+`.env` — the justfile loads it (`set dotenv-load`), so a value there wins over the
+built-in default.
 
 On first run, `just up` calls `scripts/setup-certs.sh` which uses **mkcert** to generate a locally-trusted certificate covering `localhost` and your machine's LAN IP. Install mkcert first:
 
