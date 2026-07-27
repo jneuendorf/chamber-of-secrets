@@ -190,7 +190,7 @@ dev S · user — · ⚪
 - [x] Add `just check` meta-recipe (lint + typecheck + test, both layers)
 - [x] Seed initial tests: API client (16 tests), scan utils (16 tests), i18n key sync (3 tests)
 - [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
-- [ ] Component-level tests (requires DOM testing library — future work)
+- Moved out: component-level tests need a DOM testing library — owned by WL-6.5
 
 - [ ] **WL-3.3: Tailwind Theme Tokens** 🚧
 
@@ -211,7 +211,13 @@ dev M · user low · 🟡
 - [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
 - [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
 - [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
-- [ ] Standardize other primitives as features land — Checkbox/AlertDialog (WL-4.1), Date Picker/Tooltip (WL-4.2), Tabs/Combobox (WL-5.1)
+- [ ] Adopt further primitives only where a native element can't do the job. The
+      original trigger points (WL-4.1, WL-4.2, WL-5.1) have all shipped without
+      one, correctly: `<input type="date">` covers the analytics range picker,
+      `<input type="checkbox">` the OFF opt-in and restock-inherit toggles. Open
+      candidates are the ones with no native equivalent — Switch (theme toggle
+      WL-3.3, handedness WL-6.7), AlertDialog (destructive confirms, today a
+      plain `Modal`), Tooltip (onboarding WL-6.6)
 - [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
 
 - [x] **WL-3.5: UX Polish (round 2)** ✅
@@ -295,8 +301,8 @@ Depends: WL-4.1 (manual entry). Achievement hook: WL-5.4.
 - [x] Single app-registered OFF account + descriptive `User-Agent`; secrets server-side (submission proxied through the backend, not the browser)
 - [x] Guard the shared DB: name required (`ProductCreate.name`), explicit opt-in checkbox, never auto-submit; contributions are ODbL open data
 - [x] Dev/tests hit the staging instance (`world.openfoodfacts.net`, basic auth `off`/`off`) — never pollute prod (defaults in `config.py`; prod overrides via `APP_OFF_*`)
-- [~] Front image via `/cgi/product_image_upload.pl` — fully wired (`contribute_image` + local-upload reader) but dormant behind `off_contribute_images` (default off); flip the flag once the manual scan flow captures a photo
-- [ ] Unlocks the **"Explorer"** achievement — "you put a new product on the world map" (earned via WL-5.4)
+- [x] Unlocks the **"Explorer"** achievement — "you put a new product on the world map". Granted in `routers/products.py` when `?profile_id=` is passed; the badge itself is catalogued with the rest in WL-5.4
+- Dormant, not missing: front image via `/cgi/product_image_upload.pl` is fully wired (`contribute_image` + local-upload reader) but sits behind `off_contribute_images` (default off). Flip the flag once the manual scan flow captures a photo — no code change needed
 
 ---
 
@@ -368,12 +374,13 @@ Depends: WL-5.3 · leaderboard depends on WL-9.2
 
 - [x] Badges: `services/achievements.py` grants them from data that already exists — First Scan, Well Stocked (50 `in`), Week Streak, Chamber Keeper (level 5), **Explorer** (added a product to Open Food Facts, WL-4.6). Stored as keys in `profile_achievements`; names and art are client-side, so a badge is renamed or redrawn without a migration. Earned badges are diffed on profile refresh and announced in the chamber
 - [x] Dedicated per-profile progress page (`/profile/[id]`, reached from the picker): avatar, level + XP-to-next bar, streak, and the full badge grid (earned + locked). Standalone route, so a later nav redesign can reposition it
-- [ ] "Cleared the List" badge — blocked: no shopping list yet (WL-7.1)
 - [ ] Daily streak with a growing flame; combo meter for rapid multi-scan after a shop
 - [x] Configurable real-life rewards per tier ("Level 5 → pick movie night") — household-wide `reward_tiers` (level + text); whoever reaches the level unlocks it. Configured and viewed on the profile page (add/remove, unlocked vs locked per profile). **Redeeming is per profile** (`profile_rewards`): mark/un-mark "✓ Redeemed" on your own active-profile page only (login-less UX guard — backend validates the reward is unlocked but can't enforce whose tap it is); others see a read-only redeemed tag. Idempotent, reversible, cascades on tier delete. The level-up "reward unlocked!" toast is its own item — WL-5.7
-- [ ] Achievements / levels unlock avatar equipment (`ProfileUnlock`) — the reason to keep earning
+- [ ] **Avatar compositor** — render `avatar_config.layers: [{slot, part}]` over the base part, replacing today's emoji stand-in with real SVG. WL-5.1, `FEATURES.md` §2.9 and `schemas.py` all name WL-5.4 as its owner, so it belongs here. Additive on a JSON column — no migration. The art itself comes from WL-5.5
+- [ ] Achievements / levels unlock avatar equipment (`ProfileUnlock`) — what the compositor renders, and the reason to keep earning
 - [ ] "Pantry-dex": a collectible card per product scanned (gotta scan 'em all)
 - [ ] Leaderboard / "Scanner of the Week" once multi-user lands (WL-9.2)
+- Deferred: the **"Cleared the List"** badge needs a shopping list — owned by WL-7.1, lands there
 - Deferred: the **Zero-Waste Week** badge (nothing expired) needs expiry dates — owned by WL-7.2, lands there
 
 - [ ] **WL-5.5: Animation & Art Pipeline (Lottie + AI assets)** ⬜
@@ -516,6 +523,7 @@ dev M · user high · 🟢
 - [ ] Check-off items during a shopping trip → auto-record `in` transaction with quantity
 - [ ] Shareable list (household members see the same list in real time)
 - [ ] Clear completed items / archive past trips
+- [ ] **"Cleared the List"** badge (deferred from WL-5.4) — every item on a trip checked off
 
 - [ ] **WL-7.2: Expiry Date Tracking** ⬜
 

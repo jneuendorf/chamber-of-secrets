@@ -9,29 +9,4 @@ Delete entries once landed. Keep the file and this header even when empty.
 
 ---
 
-## 1. `ROADMAP.md` — stale status and unowned dependencies
-
-- **WL-4.6's last bullet is unchecked** ("Unlocks the *Explorer*
-  achievement — earned via WL-5.4") but the badge is granted in
-  `routers/products.py:278` and WL-5.4 lists it as done. Two items, one
-  feature, opposite marks. Should be `[x]`.
-- **WL-3.4's "standardize other primitives as features land"** names
-  WL-4.1 (Checkbox/AlertDialog), WL-4.2 (Date Picker/Tooltip) and WL-5.1
-  (Tabs/Combobox) as the trigger points. All three are ✅ and shipped
-  without the migration, so the trigger has passed with the item still
-  open — re-scope it or repoint it at features that haven't landed.
-- **The avatar compositor has no owning item.** WL-5.1 and `FEATURES.md`
-  §2.9 both promise the SVG parts, the `layers: [{slot, part}]` key and the
-  compositor "land with WL-5.4" (`schemas.py:188` says the same), but
-  WL-5.4's checklist has no such bullet — only "achievements/levels unlock
-  avatar equipment (`ProfileUnlock`)". Either add the compositor to WL-5.4
-  or repoint the three references at WL-5.5 (the art pass).
-- **"Cleared the List" badge has no reciprocal item.** WL-5.4 defers it to
-  WL-7.1, but WL-7.1's checklist never mentions it — unlike WL-7.2, which
-  explicitly owns both items deferred to it. It will be forgotten when the
-  shopping list is built.
-- **Status-mark convention is inconsistent.** WL-3.2 and WL-4.6 are marked
-  `[x] ✅` while still carrying unchecked sub-bullets (component tests, OFF
-  image upload, Explorer). Either the parent isn't done or the leftovers
-  belong in the item that actually owns them (WL-6.5 already claims the
-  WL-3.2 leftover).
+_No open items._
