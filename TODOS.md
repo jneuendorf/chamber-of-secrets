@@ -7,22 +7,7 @@ doc-vs-doc drift where two documents disagree about the same feature.
 
 Delete entries once landed. Keep the file and this header even when empty.
 
----
-
-## 1. WL-6.3's chamber bullet describes a problem that's already half-solved
-
-`ROADMAP.md` WL-6.3 still reads "Chamber renders up to ~10 DOM nodes per
-product — cap/virtualise for large pantries". WL-5.2 shipped `DOT_CAP = 8`
-(`frontend/src/lib/utils/chamber.ts:7`), so per-product dots are already
-capped. What remains is the total across _many_ products — a different and
-much smaller concern than the bullet implies.
-
-The second bullet is real but understated: 13 call sites refetch a whole
-list after a mutation (`products.list()` / `profiles.list()` across routes
-and `lib/`). That's the part worth keeping.
-
-Rewrite the item so the cap reads as done and the refetch churn reads as
-the actual remaining work.
+_No open misalignments._
 
 ---
 

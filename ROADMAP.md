@@ -476,8 +476,9 @@ dev M · user med · 🟢
 
 dev S · user med · 🟡
 
-- [ ] Chamber renders up to ~10 DOM nodes per product — cap/virtualise for large pantries
-- [ ] Remove redundant full-list refetches (scan save calls `products.list()` repeatedly; several pages refetch on every change)
+- Already capped: WL-5.2 shipped `DOT_CAP = 8` (`frontend/src/lib/utils/chamber.ts`), so no single product renders more than 8 dots. What's left is the total across a large pantry — a much smaller concern than per-product growth
+- [ ] Drop the list-and-find pattern: four call sites fetch a whole collection to resolve one record — `products.list()` twice in the scan flow (find-by-EAN), `profiles.list(true)` in `lib/progression.ts` and in `routes/profile/[id]` after a redemption. Wants a local by-EAN product lookup and `GET /profiles/{id}`; the `ponytail:` note in `progression.ts` marks the deliberate version
+- [ ] Page loads refetch whole lists on every `$effect` run (chamber, inventory, activity). Harmless at household scale; revisit only if it becomes visible
 
 - [ ] **WL-6.4: Accessibility & Legibility** ⬜
 
