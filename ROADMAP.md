@@ -424,11 +424,6 @@ Depends: WL-5.3 (level-up event), WL-5.4 (`reward_tiers`)
       WL-5.3 limitation where simultaneous badges announced only the first
 - Text only, by design: fanfare art and sound stay with WL-5.5, which now swaps
       presentation into a working event pipeline instead of building both
-- [ ] Reuse the existing announce / undo-toast plumbing; respect
-      `prefers-reduced-motion`; fanfare art + optional sound come from WL-5.5
-- [ ] Tests: the once-per-crossing logic and the level-band → rewards lookup are
-      the testable core (extract a pure helper, e.g. `rewardsUnlockedBetween(old,
-      new, tiers)`) — the missing coverage flagged when this was still part of WL-5.4
 
 ### UI Design Concept (prompt library for image/animation generation)
 

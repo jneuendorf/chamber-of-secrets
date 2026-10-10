@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 
 # Flat per-event XP: stocking is the effortful act, using something up is the reward.
-# ponytail: no combo/expiry bonuses — expiry isn't tracked yet, and WL-5.4 balances
-# the curve once achievements exist.
+# ponytail: no combo/expiry bonuses — the combo meter is WL-5.4, the before-expiry
+# bonus WL-7.2 (needs batch expiry dates).
 XP_PER_EVENT = {"in": 10, "out": 2}
 
 

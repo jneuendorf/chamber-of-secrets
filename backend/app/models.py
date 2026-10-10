@@ -21,7 +21,7 @@ class Base(DeclarativeBase):
 
 def level_for_xp(xp: int) -> int:
     """Level derived from XP (never stored). 100 XP → L2, 400 → L3, 900 → L4 …
-    # ponytail: quadratic curve, retune the 100 constant when WL-5.3 balances XP."""
+    # ponytail: quadratic curve, retune the 100 constant if levels come too fast/slow."""
     return int((max(xp, 0) / 100) ** 0.5) + 1
 
 
