@@ -485,12 +485,13 @@ afterward):
 
 Goal: the add-ons that make the core dependable on a Pi.
 
-- [ ] **WL-6.1: Data Export / Backup** ⬜
+- [x] **WL-6.1: Data Export / Backup** ✅
 
 dev S · user med · 🟡
 
-- [ ] Export inventory + transactions + categories to CSV/JSON; import to restore
-- [ ] Guards against SD-card loss (SQLite on a Pi has no backup today)
+- [x] Export to JSON, import to restore: `GET /api/backup` zips `backup.json` (every table row-for-row, ids kept, plus the alembic revision) with the uploaded product photos; `POST /api/backup/restore` swaps it all in one transaction (deferred FKs, so self-referencing categories load in any order) and writes the photos only after the commit. Rejects non-backups, other schema revisions, zip paths outside `uploads/products/`, and data that breaks a constraint, each leaving the DB untouched. UI: a Backup card on `/analytics`: a download link plus a file picker behind a `ConfirmDialog`
+- [x] Guards against SD-card loss: the download is the off-Pi copy. nginx's `client_max_body_size` raised to 200m on `/api/` (the 1 MB default also capped photo uploads below their 5 MB limit)
+- Skipped: CSV (JSON restores; spreadsheets weren't asked for), scheduled automatic backups (needs somewhere off the Pi to send them), and restoring a backup from an older schema revision (restore it with the build that made it, then upgrade)
 
 - [ ] **WL-6.2: PWA Install + Offline Scan Queue** ⬜
 

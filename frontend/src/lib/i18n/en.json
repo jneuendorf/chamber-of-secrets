@@ -306,5 +306,14 @@
       "name": "Explorer",
       "desc": "You put a new product on the world map."
     }
+  },
+  "backup": {
+    "title": "Backup",
+    "hint": "Download everything — products, history, categories, profiles, rewards and photos — as one file. Keep it off the Pi, so a dead SD card loses nothing.",
+    "download": "Download backup",
+    "restore": "Restore from backup…",
+    "restoreTitle": "Restore from backup?",
+    "restoreWarning": "Everything here will be replaced by \"{name}\". This cannot be undone.",
+    "restoreConfirm": "Replace everything"
   }
 }

@@ -45,7 +45,7 @@ chamber-of-secrets/
 │   │   ├── schemas.py            # Pydantic I/O schemas — the wire contract's source of truth
 │   │   ├── config.py             # Settings (APP_* env vars)
 │   │   ├── database.py           # Engine + session factory (SQLite FKs enabled on connect)
-│   │   ├── routers/              # products, transactions, categories, analytics, profiles, rewards
+│   │   ├── routers/              # products, transactions, categories, analytics, profiles, rewards, backup
 │   │   └── services/
 │   │       ├── ean_lookup.py     # Open Food Facts lookup (cache-first)
 │   │       ├── off_contribute.py # Open Food Facts write-back
@@ -139,6 +139,8 @@ chamber-of-secrets/
 | DELETE | `/api/rewards/{id}` | Delete a reward tier (cascades redemptions) |
 | POST | `/api/rewards/{id}/redemption?profile_id=` | Mark a reward redeemed for a profile (idempotent; 409 if not unlocked) |
 | DELETE | `/api/rewards/{id}/redemption?profile_id=` | Un-redeem for a profile (idempotent) |
+| GET | `/api/backup` | Download a backup ZIP: every table as JSON plus uploaded photos (WL-6.1) |
+| POST | `/api/backup/restore` | Replace everything with an uploaded backup (multipart; 422 if not a backup, from another schema revision, or inconsistent) |
 | GET | `/api/health` | Health check |
 
 Interactive docs are available at `/api/docs` (Swagger UI).

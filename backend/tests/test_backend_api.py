@@ -1,9 +1,12 @@
 import contextlib
+import io
+import json
 import os
 import sys
 import tempfile
 import unittest
 import unittest.mock
+import zipfile
 from collections.abc import Generator
 from datetime import date, timedelta
 from pathlib import Path
@@ -26,6 +29,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 from app.database import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Base, InventoryTransaction, Profile  # noqa: E402
+from app.routers import backup as backup_router  # noqa: E402
 from app.routers import products as products_router  # noqa: E402
 from app.services.achievements import (  # noqa: E402
     EXPLORER,
@@ -709,6 +713,115 @@ class BackendAPITestCase(unittest.TestCase):
 
     def test_pantry_dex_profile_not_found(self) -> None:
         self.assertEqual(self.client.get("/api/profiles/999999/pantry-dex").status_code, 404)
+
+    # ---------- Backup & restore (WL-6.1) ----------
+
+    def _backup_zip(self, payload: dict, extra: dict[str, bytes] | None = None) -> bytes:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("backup.json", json.dumps(payload))
+            for name, data in (extra or {}).items():
+                archive.writestr(name, data)
+        return buffer.getvalue()
+
+    def _restore(self, data: bytes) -> object:
+        return self.client.post(
+            "/api/backup/restore",
+            files={"file": ("backup.zip", data, "application/zip")},
+        )
+
+    def test_backup_round_trip_restores_everything(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            unittest.mock.patch.object(backup_router, "PRODUCT_IMAGE_DIR", Path(tmp)),
+        ):
+            # A child created before its parent: restore must cope with the order.
+            child = self._create_category("Cheese")
+            parent = self._create_category("Dairy")
+            self.client.patch(f"/api/categories/{child['id']}", json={"parent_id": parent["id"]})
+            (Path(tmp) / "1_abc.png").write_bytes(b"photo")
+            product = self._create_product(
+                "Gouda",
+                category_id=child["id"],
+                image_url="/api/uploads/products/1_abc.png",
+            )
+            profile = self.client.post("/api/profiles/", json={"name": "Mia"}).json()
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": profile["id"], "type": "in"},
+            )
+            with self._SessionLocal() as db:
+                db.get(Profile, profile["id"]).xp = 150  # level 2
+                db.commit()
+            reward = self.client.post(
+                "/api/rewards/",
+                json={"level": 2, "description": "Ice cream"},
+            ).json()
+            redeemed = self.client.post(
+                f"/api/rewards/{reward['id']}/redemption?profile_id={profile['id']}",
+            )
+            self.assertEqual(redeemed.status_code, 204)
+
+            def snapshot() -> list:
+                return [
+                    self.client.get(path).json()
+                    for path in (
+                        "/api/categories/",
+                        "/api/products/",
+                        "/api/transactions/",
+                        "/api/profiles/?include_archived=true",
+                        "/api/rewards/",
+                    )
+                ]
+
+            before = snapshot()
+            res = self.client.get("/api/backup")
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(res.headers["content-type"], "application/zip")
+            self.assertIn("attachment", res.headers["content-disposition"])
+            backup = res.content
+
+            self.client.delete(f"/api/products/{product['id']}")
+            self._create_product("Stray")
+            (Path(tmp) / "stray.png").write_bytes(b"stray")
+
+            self.assertEqual(self._restore(backup).status_code, 204)
+            self.assertEqual(snapshot(), before)
+            self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["1_abc.png"])
+            self.assertEqual((Path(tmp) / "1_abc.png").read_bytes(), b"photo")
+
+    def test_restore_rejects_non_backups(self) -> None:
+        self.assertEqual(self._restore(b"not a zip").status_code, 422)
+        self.assertEqual(self._restore(self._backup_zip({"format": 99})).status_code, 422)
+        wrong_revision = {"format": 1, "revision": "abc123", "tables": {}}
+        res = self._restore(self._backup_zip(wrong_revision))
+        self.assertEqual(res.status_code, 422)
+        self.assertIn("version", res.json()["detail"])
+
+    def test_restore_rejects_paths_outside_uploads(self) -> None:
+        self._create_product("Kept")
+        payload = {"format": 1, "revision": None, "tables": {}}
+        for name in ("uploads/products/../../evil.py", "uploads/products/sub/x.png"):
+            res = self._restore(self._backup_zip(payload, {name: b"x"}))
+            self.assertEqual(res.status_code, 422, name)
+        self.assertEqual(len(self.client.get("/api/products/").json()), 1)
+
+    def test_restore_inconsistent_data_changes_nothing(self) -> None:
+        self._create_product("Kept")
+        orphan = {
+            "id": 1,
+            "product_id": 999,
+            "type": "in",
+            "quantity": 1.0,
+            "transacted_at": "2026-01-01T00:00:00",
+        }
+        payload = {
+            "format": 1,
+            "revision": None,
+            "tables": {"inventory_transactions": [orphan]},
+        }
+        self.assertEqual(self._restore(self._backup_zip(payload)).status_code, 422)
+        self.assertEqual([p["name"] for p in self.client.get("/api/products/").json()], ["Kept"])
 
     def test_patch_profile_not_found(self) -> None:
         res = self.client.patch("/api/profiles/999999", json={"name": "Nope"})

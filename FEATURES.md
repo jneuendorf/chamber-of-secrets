@@ -269,6 +269,11 @@ emerges from knowing what's in stock:
 - TLS via mkcert for local HTTPS (trusted on mobile after CA install).
 - Optional Cloudflare Tunnel for remote access without port-forwarding.
 - Designed for Raspberry Pi (ARM64) but runs on any Docker host.
+- **Backup & restore** (on the analytics page): one tap downloads the whole
+  household (products, history, categories, profiles, rewards and uploaded
+  photos) as a single ZIP to keep off the Pi. Restoring asks first, then
+  replaces everything in one go; a file that isn't a backup, comes from a
+  different app version, or doesn't add up is rejected and nothing changes.
 
 ### 2.11 The Chamber
 
@@ -374,4 +379,6 @@ cascades its redemptions.
 | DELETE | `/api/rewards/{id}` | Delete a reward tier (cascades redemptions) |
 | POST | `/api/rewards/{id}/redemption?profile_id=` | Mark a reward redeemed for a profile (idempotent; 409 if not unlocked) |
 | DELETE | `/api/rewards/{id}/redemption?profile_id=` | Un-redeem for a profile (idempotent) |
+| GET | `/api/backup` | Download a backup ZIP: every table as JSON plus uploaded photos (WL-6.1) |
+| POST | `/api/backup/restore` | Replace everything with an uploaded backup (multipart; 422 if not a backup, from another schema revision, or inconsistent) |
 | GET | `/api/health` | Health check |

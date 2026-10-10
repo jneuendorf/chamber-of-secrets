@@ -97,6 +97,25 @@ describe('api.products', () => {
         }, errorResponse)
     })
 
+    test('multipart uploads leave Content-Type to the browser', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            await api.products.uploadImage(3, new File(['x'], 'photo.jpg'))
+            expect(lastCall(fetch).options?.headers).toBeUndefined()
+        }))
+
+    test('backup.restore(file) posts FormData to /backup/restore', () =>
+        withMockedApi(
+            async ({ api, fetch }) => {
+                await api.backup.restore(new File(['zip'], 'backup.zip'))
+                const { url, options } = lastCall(fetch)
+                expect(url).toEndWith('/backup/restore')
+                expect(options?.method).toBe('POST')
+                expect(options?.body).toBeInstanceOf(FormData)
+                expect(api.backup.downloadUrl).toEndWith('/backup')
+            },
+            new Response(null, { status: 204 }),
+        ))
+
     test('deleteImage(id) calls DELETE /products/:id/image', () =>
         withMockedApi(
             async ({ api, fetch }) => {

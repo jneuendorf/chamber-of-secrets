@@ -58,8 +58,12 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+    // FormData sets its own multipart Content-Type (with the boundary).
     const response = await fetch(`${API_BASE}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers:
+            options?.body instanceof FormData
+                ? undefined
+                : { 'Content-Type': 'application/json' },
         ...options,
     })
     if (!response.ok) {
@@ -78,6 +82,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         return undefined as T
     }
     return response.json()
+}
+
+function fileForm(file: File): FormData {
+    const form = new FormData()
+    form.append('file', file)
+    return form
 }
 
 function dateRange(since?: string, until?: string): string {
@@ -109,24 +119,11 @@ export const api = {
                 method: 'PATCH',
                 body: JSON.stringify(data),
             }),
-        uploadImage: async (id: number, file: File): Promise<Product> => {
-            const form = new FormData()
-            form.append('file', file)
-            const res = await fetch(`${API_BASE}/products/${id}/image`, {
+        uploadImage: (id: number, file: File) =>
+            request<Product>(`/products/${id}/image`, {
                 method: 'POST',
-                body: form,
-            })
-            if (!res.ok) {
-                let detail: string | undefined
-                try {
-                    detail = (await res.json()).detail
-                } catch {
-                    /* empty */
-                }
-                throw new ApiError(res.status, res.statusText, detail)
-            }
-            return res.json()
-        },
+                body: fileForm(file),
+            }),
         deleteImage: (id: number) =>
             request<void>(`/products/${id}/image`, { method: 'DELETE' }),
         lookupEAN: (ean: string) => request<EANLookupResult>(`/products/lookup/${ean}`),
@@ -276,5 +273,10 @@ export const api = {
             request<RestockOverviewResponse>(
                 `/analytics/restock-overview${includeAllProducts ? '?include_all_products=true' : ''}`,
             ),
+    }, // WL-6.1: the download is a plain link (the browser saves the ZIP itself).
+    backup: {
+        downloadUrl: `${API_BASE}/backup`,
+        restore: (file: File) =>
+            request<void>('/backup/restore', { method: 'POST', body: fileForm(file) }),
     },
 }

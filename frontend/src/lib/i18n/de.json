@@ -306,5 +306,14 @@
       "name": "Entdecker",
       "desc": "Du hast ein neues Produkt auf die Weltkarte gesetzt."
     }
+  },
+  "backup": {
+    "title": "Sicherung",
+    "hint": "Lade alles – Produkte, Verlauf, Kategorien, Profile, Belohnungen und Fotos – als eine Datei herunter. Bewahre sie außerhalb des Pi auf, dann geht bei einer kaputten SD-Karte nichts verloren.",
+    "download": "Sicherung herunterladen",
+    "restore": "Aus Sicherung wiederherstellen…",
+    "restoreTitle": "Aus Sicherung wiederherstellen?",
+    "restoreWarning": "Alles hier wird durch „{name}“ ersetzt. Das kann nicht rückgängig gemacht werden.",
+    "restoreConfirm": "Alles ersetzen"
   }
 }

@@ -21,6 +21,7 @@
         type SpendingByCategory,
         type TimeseriesPoint,
     } from '$lib/api/client'
+    import ConfirmDialog from '$lib/components/ConfirmDialog.svelte'
     import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
@@ -63,6 +64,33 @@
     let restockOverview: RestockOverviewResponse | null = $state(null)
 
     let restockOpen = $state(false)
+
+    // Backup & restore (WL-6.1)
+    let restoreFile: File | null = $state(null)
+    let restoring = $state(false)
+    let restoreError = $state('')
+
+    function pickRestoreFile(event: Event) {
+        const input = event.currentTarget as HTMLInputElement
+        restoreFile = input.files?.[0] ?? null
+        restoreError = ''
+        input.value = '' // picking the same file again still fires `change`
+    }
+
+    async function confirmRestore() {
+        if (!restoreFile) {
+            return
+        }
+        restoring = true
+        try {
+            await api.backup.restore(restoreFile)
+            // Every list, store and the active profile may have changed.
+            location.reload()
+        } catch (err) {
+            restoreError = err instanceof ApiError ? err.detail : String(err)
+            restoring = false
+        }
+    }
     let restockSort: 'urgency' | 'missing' | 'name' = $state('urgency')
 
     let loading = $state(true)
@@ -434,6 +462,41 @@
     </div>
 {/if}
 
+<section class="pane backup">
+    <h2>{$_('backup.title')}</h2>
+    <p class="summary-text">{$_('backup.hint')}</p>
+    <div class="backup-actions">
+        <a class="restock-btn" href={api.backup.downloadUrl} download
+            >{$_('backup.download')}</a
+        >
+        <label class="restock-btn">
+            {$_('backup.restore')}
+            <input
+                type="file"
+                accept=".zip,application/zip"
+                class="sr-only"
+                onchange={pickRestoreFile}
+            />
+        </label>
+    </div>
+</section>
+
+<ConfirmDialog
+    open={restoreFile !== null}
+    title={$_('backup.restoreTitle')}
+    confirmLabel={$_('backup.restoreConfirm')}
+    onconfirm={confirmRestore}
+    onclose={() => (restoreFile = null)}
+    busy={restoring}
+>
+    <p class="mt-0">
+        {$_('backup.restoreWarning', { values: { name: restoreFile?.name ?? '' } })}
+    </p>
+    {#if restoreError}
+        <p class="error" role="alert">{restoreError}</p>
+    {/if}
+</ConfirmDialog>
+
 <Modal
     open={restockOpen}
     title={$_('analytics.restockOverview')}
@@ -578,6 +641,30 @@
         padding: 0.45rem 0.85rem;
         font-weight: 600;
         cursor: pointer;
+    }
+
+    .backup {
+        margin-top: 1.5rem;
+    }
+
+    .backup-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    /* Links and labels styled as buttons need the button's box. */
+    .backup-actions .restock-btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        text-decoration: none;
+    }
+
+    .backup-actions .restock-btn:focus-within {
+        outline: 2px solid var(--color-accent-500);
+        outline-offset: 2px;
     }
 
     .summary-text {

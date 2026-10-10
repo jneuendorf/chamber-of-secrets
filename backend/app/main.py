@@ -12,7 +12,15 @@ from alembic import command
 from app.config import UPLOAD_DIR, settings
 from app.database import engine
 from app.models import Base
-from app.routers import analytics, categories, products, profiles, rewards, transactions
+from app.routers import (
+    analytics,
+    backup,
+    categories,
+    products,
+    profiles,
+    rewards,
+    transactions,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,6 +62,7 @@ app.include_router(categories.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(profiles.router, prefix="/api")
 app.include_router(rewards.router, prefix="/api")
+app.include_router(backup.router, prefix="/api")
 
 
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
