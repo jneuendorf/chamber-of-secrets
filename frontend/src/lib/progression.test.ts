@@ -174,28 +174,38 @@ describe('guardianMood', () => {
 })
 
 describe('refreshProfile', () => {
+    /** Runs one refresh against `response`, returning the store it left behind. */
     async function refreshWith(response: Response) {
-        const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(response)
+        // Changing the id also kicks off a background refresh (the store's
+        // subscription in `progression.ts`); park that fetch so only ours lands.
+        // (Casts: Bun's `fetch` type also carries `preconnect`.)
+        const pending = (() => new Promise(() => {})) as unknown as typeof fetch
+        const fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(pending)
         activeProfileId.set(7)
+        fetchSpy.mockImplementation((async () => response) as unknown as typeof fetch)
         try {
             await refreshProfile()
+            return get(activeProfile)
         } finally {
-            fetchSpy.mockRestore()
+            fetchSpy.mockImplementation(pending)
             activeProfileId.set(null)
+            fetchSpy.mockRestore()
         }
     }
 
     test('loads the active profile by id', async () => {
-        await refreshWith(Response.json({ id: 7, level: 2, achievements: [] }))
-        expect(get(activeProfile)?.id).toBe(7)
+        const loaded = await refreshWith(
+            Response.json({ id: 7, level: 2, achievements: [] }),
+        )
+        expect(loaded?.id).toBe(7)
     })
 
     test('a stored id whose profile is gone clears the selection', async () => {
         activeProfile.set({ id: 7 } as Profile)
-        await refreshWith(
+        const loaded = await refreshWith(
             Response.json({ detail: 'Profile not found' }, { status: 404 }),
         )
-        expect(get(activeProfile)).toBeNull()
+        expect(loaded).toBeNull()
     })
 
     test('other errors propagate', async () => {

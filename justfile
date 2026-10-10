@@ -112,7 +112,7 @@ test: test-frontend test-backend
 
 # run frontend tests
 test-frontend:
-    cd frontend && bun test
+    cd frontend && bun run test
 
 # run backend tests
 test-backend:

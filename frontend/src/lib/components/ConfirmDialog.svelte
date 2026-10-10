@@ -47,6 +47,7 @@
                 event.preventDefault()
                 cancelButton?.focus()
             }}
+            onEscapeKeydown={(event) => busy && event.preventDefault()}
         >
             <AlertDialog.Title class="m-0 mb-3 text-[1.1rem] text-ink-100">
                 {title}
@@ -57,12 +58,19 @@
                 </AlertDialog.Description>
             {/if}
             <div class="mt-4 flex justify-end gap-2">
-                <AlertDialog.Cancel
-                    bind:ref={cancelButton}
-                    disabled={busy}
-                    class="rounded-lg border border-bark-600 bg-bark-850 px-4 py-2 text-sm font-semibold text-ink-200 disabled:opacity-50"
-                >
-                    {$_('common.cancel')}
+                <!-- Bits UI's Cancel blocks clicks when disabled but doesn't render
+                     the attribute, so render the button ourselves to set it. -->
+                <AlertDialog.Cancel bind:ref={cancelButton} disabled={busy}>
+                    {#snippet child({ props })}
+                        <button
+                            type="button"
+                            {...props}
+                            disabled={busy}
+                            class="rounded-lg border border-bark-600 bg-bark-850 px-4 py-2 text-sm font-semibold text-ink-200 disabled:opacity-50"
+                        >
+                            {$_('common.cancel')}
+                        </button>
+                    {/snippet}
                 </AlertDialog.Cancel>
                 <AlertDialog.Action
                     onclick={onconfirm}

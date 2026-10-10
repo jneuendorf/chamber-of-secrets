@@ -188,19 +188,11 @@ describe('api.transactions', () => {
 
     test('create(data) attributes to the active profile from localStorage', () =>
         withMockedApi(async ({ api, fetch }) => {
-            // bun test has no DOM; stub the minimal localStorage the client reads.
-            ;(globalThis as { localStorage?: Storage }).localStorage = {
-                getItem: (key: string) => (key === 'activeProfileId' ? '7' : null),
-            } as Storage
-            try {
-                await api.transactions.create({ product_id: 1, type: 'out' as const })
-                expect(
-                    JSON.parse(lastCall(fetch).options!.body as string).profile_id,
-                ).toBe(7)
-            } finally {
-                ;(globalThis as { localStorage?: Storage }).localStorage =
-                    undefined as unknown as Storage
-            }
+            localStorage.setItem('activeProfileId', '7') // cleared after each test
+            await api.transactions.create({ product_id: 1, type: 'out' as const })
+            expect(JSON.parse(lastCall(fetch).options!.body as string).profile_id).toBe(
+                7,
+            )
         }))
 
     test('update(id, data) calls PATCH /transactions/:id', () =>

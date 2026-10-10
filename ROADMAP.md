@@ -519,11 +519,16 @@ dev S · user med · 🟡
 - [x] Destructive confirms (activity delete, inventory delete/merge, category delete) → `ConfirmDialog.svelte` over Bits UI `AlertDialog`: announced as `alertdialog`, initial focus on Cancel, outside taps ignored
 - Left: input and card borders (`bark-600`) are ~1.8:1 on light, below the 3:1 that WCAG 1.4.11 wants for input edges. Retinting them restyles every card, so it goes to the WL-5.5 design pass, with that ratio as a given
 
-- [ ] **WL-6.5: Interactive Test Coverage** ⬜
+- [x] **WL-6.5: Interactive Test Coverage** ✅
 
 dev S · user — · ⚪
 
-- [ ] Component/integration tests for the scan flow and `Select`/`Modal` (the most-used, most-regressed paths) — completes the WL-3.2 leftover (needs a DOM testing library)
+- [x] Component/integration tests for the scan flow and `Select`/`Modal` (the most-used, most-regressed paths). This completes the WL-3.2 leftover
+  - Harness: still `bun test`, no second runner. `frontend/test-setup.ts` (preload) compiles `.svelte` and `.svelte.js/ts` rune modules with Svelte's compiler, registers happy-dom (keeping Bun's `fetch`/`Response`), and starts svelte-i18n in English. `--conditions browser` in the `test` script gives `svelte` its client build. Testing Library (`@testing-library/svelte` + `user-event`) drives the components
+  - `Modal`: closed renders nothing; labeled dialog; ✕ and Escape close. `Select`: shows the selection, a click or the keyboard picks the typed value, Escape closes only the listbox. `ConfirmDialog`: `alertdialog`, focus on Cancel so Enter cancels, confirm doesn't auto-close, busy/disabled states
+  - Scan page against a fake backend: known product (price prefill, by-EAN lookup with no catalog download, stock-in, arrival queued, undo), remove mode, unknown barcode → create by hand → stock, implausible code skips the lookup
+  - Bug found and fixed: Bits UI's `AlertDialog.Cancel` ignores clicks when disabled but never renders `disabled`, so a busy confirm showed an active Cancel. `ConfirmDialog` now renders the button itself, and Escape is blocked while busy
+  - With a DOM present, `progression.ts` auto-refreshes on id changes; the `refreshProfile` tests park that background fetch so only theirs lands
 
 - [ ] **WL-6.6: Onboarding / First-Run** ⬜
 

@@ -26,8 +26,11 @@ use this without being told to?_
   new roadmap work. Delete entries once landed — don't keep struck-through
   items.
 - **Test-driven**: critical functionality MUST be tested. Target >90%
-  coverage. Frontend tests use `bun test`. Write tests before or
-  alongside implementation, not as an afterthought.
+  coverage. Frontend tests run on `bun test` via `bun run test`, which adds
+  `--conditions browser` (so `svelte` resolves to its client build). Component
+  tests render real `.svelte` files into happy-dom with Testing Library (the
+  setup is in `frontend/test-setup.ts`). Write tests before or alongside
+  implementation, not as an afterthought.
 - Run `just check-frontend` (lint + typecheck + test) or `just check-backend`,
   respectively, before declaring done.
 - Use `just lint-frontend` / `just format-frontend` for quick checks
@@ -155,7 +158,7 @@ just check-all                # same as check, but all files (not staged)
 just check-frontend           # biome check + typecheck + test (frontend)
 just check-backend            # lint + typecheck + test (backend, needs uv)
 just test                     # all tests
-just test-frontend            # bun test
+just test-frontend            # bun run test (unit + component)
 just test-backend             # backend unit tests
 just lint                     # biome + ruff lint (staged by default)
 just lint-frontend            # biome lint (staged by default)
