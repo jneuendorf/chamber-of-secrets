@@ -5,6 +5,7 @@ import {
     ARC_DRIFT,
     ARC_RISE,
     arcIn,
+    arrivalSlots,
     buildDots,
     DOT_CAP,
     emojiFor,
@@ -179,5 +180,21 @@ describe('arcIn', () => {
         for (let step = 0; step <= 100; step++) {
             expect(arcIn(step / 100).y).toBeLessThanOrEqual(1e-9)
         }
+    })
+})
+
+describe('arrivalSlots', () => {
+    // Holding the slots back must render the pre-arrival pile; releasing them
+    // must add exactly the newly visible dots.
+    test.each([
+        [3, 2], // small pile, all new dots visible
+        [10, 4], // crosses the cap: only the dots up to the cap are new
+        [12, 2], // already full before: nothing changes
+        [2, 5], // stock fell below the arrival count meanwhile
+    ])('stock %i, arrived %i', (stock, arrived) => {
+        const before = visibleSlots(Math.max(0, stock - arrived))
+        expect(visibleSlots(stock, arrivalSlots(stock, arrived))).toEqual(before)
+        const after = visibleSlots(stock)
+        expect(after.slice(0, before.length)).toEqual(before)
     })
 })

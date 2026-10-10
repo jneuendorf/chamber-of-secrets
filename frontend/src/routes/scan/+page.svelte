@@ -11,6 +11,7 @@
         type Product,
         type Transaction,
     } from '$lib/api/client'
+    import { cancelArrival, queueArrival } from '$lib/arrivals'
     import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
     import CategoryPicker from '$lib/components/CategoryPicker.svelte'
     import { refreshProfile } from '$lib/progression'
@@ -53,6 +54,7 @@
         undoTxnId = null
         try {
             await api.transactions.delete(id)
+            cancelArrival(id)
             showSuccessToast(get(_)('scan.undone'))
         } catch (e) {
             lookupError = get(_)('scan.failedToAdd', {
@@ -328,6 +330,9 @@
                 }
             }
 
+            if (transactionType === 'in') {
+                queueArrival(created.id, product.id, quantity) // WL-5.6
+            }
             void refreshProfile() // XP (and maybe Explorer) was awarded server-side
 
             showSuccessToast(

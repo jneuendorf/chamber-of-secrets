@@ -74,6 +74,19 @@ export function visibleSlots(
     return slots
 }
 
+/** Slots to hold back so a pile looks as it did before `arrived` items joined
+ *  it (WL-5.6). Fed to the `consumed` overlay on load, then released so the new
+ *  dots arc in. The top `arrived` slots: below the cap they're exactly the new
+ *  dots; a pile that was already full stays unchanged either way. */
+export function arrivalSlots(stock: number, arrived: number): number[] {
+    const top = Math.max(0, Math.floor(stock))
+    const slots: number[] = []
+    for (let slot = Math.max(0, top - arrived); slot < top; slot++) {
+        slots.push(slot)
+    }
+    return slots
+}
+
 // --- Deterministic placement -------------------------------------------------
 
 // djb2-style hash → unsigned 32-bit

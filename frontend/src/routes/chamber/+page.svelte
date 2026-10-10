@@ -4,6 +4,7 @@
     import { _ } from 'svelte-i18n'
 
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
+    import { drainArrivals } from '$lib/arrivals'
     import ConsumeSheet, {
         type ConsumeCandidate,
     } from '$lib/components/ConsumeSheet.svelte'
@@ -17,7 +18,13 @@
         refreshProfile,
     } from '$lib/progression'
     import { resolveRestockPolicy, stockStatus } from '$lib/utils/category'
-    import { arcIn, buildDots, type ChamberDot, visibleSlots } from '$lib/utils/chamber'
+    import {
+        arcIn,
+        arrivalSlots,
+        buildDots,
+        type ChamberDot,
+        visibleSlots,
+    } from '$lib/utils/chamber'
 
     // Stand-in art for the guardian (WL-5.3). Real SVG/Lottie lands with WL-5.5 —
     // the mood itself is derived data, so swapping this map is the whole change.
@@ -66,6 +73,7 @@
             .then(([productList, categoryList]) => {
                 products = productList
                 allCategories = categoryList
+                landArrivals(productList)
             })
             .catch((err: unknown) => {
                 error = err instanceof ApiError ? err.detail : String(err)
@@ -74,6 +82,30 @@
                 loading = false
             })
     })
+
+    // Items scanned on /scan since the last visit (WL-5.6): render the piles as
+    // they were before, then release the new dots so they arc in. The delay
+    // lets the initial piles land first — local transitions skip that render.
+    function landArrivals(productList: Product[]) {
+        const arrivals = drainArrivals()
+        const held = productList
+            .filter((product) => arrivals.has(product.id))
+            .map((product) => ({
+                productId: product.id,
+                slots: arrivalSlots(product.stock, arrivals.get(product.id) ?? 0),
+            }))
+        if (held.length === 0) {
+            return
+        }
+        consumed = Object.fromEntries(
+            held.map(({ productId, slots }) => [productId, slots]),
+        )
+        setTimeout(() => {
+            for (const { productId, slots } of held) {
+                releaseSlots(productId, slots)
+            }
+        }, 300)
+    }
 
     let consumedMap = $derived(
         new Map(Object.entries(consumed).map(([id, slots]) => [Number(id), slots])),
@@ -268,7 +300,7 @@
 
     // Arrival: the dot arcs in from above and bounces into its slot (path in
     // `arcIn`). Plays for dots added while the page is open (today: an undo
-    // restoring consumed dots; WL-5.6 feeds scans in). Svelte's local
+    // restoring consumed dots, and scans landing via `landArrivals`). Svelte's local
     // transitions skip the initial render, so a page load doesn't rain items.
     // biome-ignore lint/correctness/noUnusedVariables: used by the `in:arrive` directive, which Biome's Svelte parser doesn't track
     function arrive(_node: Element, productId: number) {

@@ -269,6 +269,10 @@ emerges from knowing what's in stock:
 - Only the dots that follow a pile's change animate: a consume poofs, a
   return arcs in, and the silent reserve swap behind a big pile never looks
   like an item flying in or vanishing. A page load shows the piles at rest.
+- **Arrivals**: what you scanned in on the scan page since your last chamber
+  visit lands when you get there — the piles first appear as they were, then
+  the new items arc in and bounce into place. Undoing the scan withdraws its
+  arrival; a full page reload skips the show and just displays the new stock.
 - A floating 📜 ledger shows in-stock / needs-restocking / total counts, plus
   the active profile's XP, level, and current streak.
 - The chamber lights up as the profile levels (stage) and its guardian reacts

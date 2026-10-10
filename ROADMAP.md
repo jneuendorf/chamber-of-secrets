@@ -361,7 +361,7 @@ dev S · user high · 🟢
 - [x] Tap an item in the chamber to consume it → records an `out`, with a satisfying vanish (scale+fade+spin poof). A confirm/chooser sheet names the product first (emoji are lossy — same 🥛 can mean several products) and carries a quantity stepper (consume more than one at a time). A 5s undo toast (with an explicit ✕ dismiss) reverses accidental taps by deleting the transaction; a new consume replaces the toast (undo targets the latest action).
 - [x] The **tapped** dot is the exact one that poofs — a `consumed`-slots overlay excludes the touched slot so no unrelated dot vanishes, and a big (capped) pile refills from its reserve instead of gapping.
 - [x] Doubles as the "quick consume" UX (complements WL-4.3) and the chamber's reason to exist
-- [x] Add-to-chamber animation: a dot that joins its pile arcs in from above and bounces into its slot (`in:arrive`, path in the pure, tested `arcIn()` in `$lib/utils/chamber.ts`; respects `prefers-reduced-motion`). Within the page that's an undo returning a consumed dot — nothing else adds stock on `/chamber`, so scans arriving from `/scan` are WL-5.6, which feeds the same transition. A per-product `pileTrend` keeps a capped pile's reserve swap silent: a consume poofs the tapped dot without a refill flying in, an undo arcs it back without the reserve dot poofing. Local transitions skip the first render, so a page load doesn't rain items
+- [x] Add-to-chamber animation: a dot that joins its pile arcs in from above and bounces into its slot (`in:arrive`, path in the pure, tested `arcIn()` in `$lib/utils/chamber.ts`; respects `prefers-reduced-motion`). Within the page that's an undo returning a consumed dot — nothing else adds stock on `/chamber`, scans arriving from `/scan` feed the same transition (WL-5.6). A per-product `pileTrend` keeps a capped pile's reserve swap silent: a consume poofs the tapped dot without a refill flying in, an undo arcs it back without the reserve dot poofing. Local transitions skip the first render, so a page load doesn't rain items
 - Deferred behind seams (see WL-5.6 for cross-route): crumb/dust particles → WL-5.5 art pass; dense-pile chooser widening (fill the sheet with overlapping dots) → when tap collisions actually bite; pile/stack glyph rendering mode
 - Foundation shipped: `$lib/utils/chamber.ts` (pure, tested layout — stable per-`(product, slot)` dot keys, `visibleSlots` overlay so the tapped dot is the one removed and one consume never reflows other piles) + `ConsumeSheet.svelte` (candidate list: 1 = confirm, N = chooser; per-item quantity). Depleted products now show zero dots instead of a gray ghost. `scrollbar-gutter: stable` keeps the modal from shifting the page.
 
@@ -402,13 +402,14 @@ dev M · user med · 🟡
 - [ ] Optional sound effects (scan chime, consume crunch, level-up fanfare) — off by default, kid-delight toggle
 - Seams already reserved by WL-5.3: `data-stage` (1–5) and `data-mood` on the chamber scene, plus `GUARDIAN_GLYPH` — the progression logic is design-agnostic, so the art pass is CSS/assets only
 
-- [ ] **WL-5.6: Cross-route "flying item" hand-off** ⬜
+- [x] **WL-5.6: Cross-route "flying item" hand-off** ✅
 
 dev S · user med · 🟡
 Depends: WL-5.2
 
-- [ ] Scan on `/scan` → the just-added item flies across the navigation and bounces into its pile on `/chamber`. WL-5.2 keeps chamber animation within-page; this adds the cross-route arrival.
-- [ ] Seam already reserved: a small "pending arrivals" store that `/scan` pushes to and `/chamber` drains on mount, feeding the WL-5.2 `in:arrive` transition (mark the product's `pileTrend` as `up`; note local transitions skip the first render, so arrivals must land *after* the initial piles) — or SvelteKit view transitions if simpler. Additive, not a renderer rewrite.
+- [x] Scan on `/scan` → the just-added item arcs into its pile when you next open `/chamber`. `/scan` queues each stock-in in `$lib/arrivals.ts` (keyed by transaction id, so its undo withdraws it); `/chamber` drains the queue on load, holds the new dots back via the `consumed` overlay (`arrivalSlots()`, pure and tested), and releases them after the initial piles have landed — the WL-5.2 `in:arrive` transition does the rest
+- The arc starts above the pile, not literally at the nav — a true across-the-nav flight needs SvelteKit view transitions; revisit with the WL-5.5 art pass if the plain arc doesn't sell it
+- Inventory `+` doesn't queue arrivals (spec names `/scan`); a full reload drops the in-memory queue, so items just appear at rest
 
 - [x] **WL-5.7: Level-Up & Reward Notifications** ✅
 
