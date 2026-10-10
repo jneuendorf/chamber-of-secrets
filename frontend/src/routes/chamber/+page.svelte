@@ -9,6 +9,7 @@
         type ConsumeCandidate,
     } from '$lib/components/ConsumeSheet.svelte'
     import Modal from '$lib/components/Modal.svelte'
+    import StreakFlame from '$lib/components/StreakFlame.svelte'
     import {
         achievementGlyph,
         activeProfile,
@@ -454,7 +455,10 @@
                 </tr>
                 <tr>
                     <td>{$_('chamber.streak')}</td>
-                    <td class="stat-val">{$activeProfile.current_streak}</td>
+                    <td class="stat-val"
+                        ><StreakFlame streak={$activeProfile.current_streak} />
+                        {$activeProfile.current_streak}</td
+                    >
                 </tr>
                 <tr>
                     <td>{$_('chamber.badges')}</td>

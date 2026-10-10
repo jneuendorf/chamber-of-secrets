@@ -11,6 +11,7 @@ import {
     activeProfile,
     CHAMBER_STAGES,
     chamberStage,
+    flameScale,
     guardianMood,
     progressSince,
     refreshProfile,
@@ -201,5 +202,18 @@ describe('refreshProfile', () => {
         await expect(
             refreshWith(Response.json({ detail: 'boom' }, { status: 500 })),
         ).rejects.toThrow('boom')
+    })
+})
+
+describe('flameScale', () => {
+    test('no streak, no flame', () => {
+        expect(flameScale(0)).toBe(0)
+    })
+
+    test('grows with the streak and caps at 2x', () => {
+        expect(flameScale(1)).toBe(1)
+        expect(flameScale(7)).toBeGreaterThan(flameScale(2))
+        expect(flameScale(32)).toBe(2)
+        expect(flameScale(365)).toBe(2)
     })
 })

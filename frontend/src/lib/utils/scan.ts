@@ -65,3 +65,19 @@ export function buildProductPayload(
         category_id: categoryId,
     }
 }
+
+/** How long after a stock-in the next one still extends the combo (WL-5.4).
+ *  Generous enough to type in an unknown product between two barcodes. */
+export const COMBO_WINDOW_MS = 90_000
+
+export interface Combo {
+    count: number
+    lastAt: number
+}
+
+/** The combo after a stock-in at `now`: within the window it grows, otherwise
+ *  it restarts at 1. Display only — the combo awards no extra XP. */
+export function extendCombo(combo: Combo | null, now: number): Combo {
+    const alive = combo !== null && now - combo.lastAt <= COMBO_WINDOW_MS
+    return { count: alive ? combo.count + 1 : 1, lastAt: now }
+}

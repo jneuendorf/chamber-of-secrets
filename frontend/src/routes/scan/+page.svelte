@@ -17,7 +17,10 @@
     import { refreshProfile } from '$lib/progression'
     import {
         buildProductPayload,
+        COMBO_WINDOW_MS,
+        type Combo,
         clampQuantity,
+        extendCombo,
         isPlausibleBarcode,
         parseLookupCategory,
     } from '$lib/utils/scan'
@@ -44,6 +47,19 @@
             },
             txnId ? 5000 : 2500,
         )
+    }
+
+    // Combo meter (WL-5.4): rapid stock-ins after a shop chain up; the bar
+    // drains over the window. ponytail: undo doesn't shrink it — display only.
+    let combo = $state<Combo | null>(null)
+    let comboTimer: ReturnType<typeof setTimeout> | undefined
+
+    function bumpCombo() {
+        combo = extendCombo(combo, Date.now())
+        clearTimeout(comboTimer)
+        comboTimer = setTimeout(() => {
+            combo = null
+        }, COMBO_WINDOW_MS)
     }
 
     async function undoLastTransaction() {
@@ -332,6 +348,7 @@
 
             if (transactionType === 'in') {
                 queueArrival(created.id, product.id, quantity) // WL-5.6
+                bumpCombo()
             }
             void refreshProfile() // XP (and maybe Explorer) was awarded server-side
 
@@ -380,6 +397,16 @@
                     {$_('scan.undo')}
                 </button>
             {/if}
+        </div>
+    {/if}
+
+    {#if combo && combo.count >= 2}
+        <div class="combo-meter" role="status">
+            <span>⚡ {$_('scan.combo', { values: { count: combo.count } })}</span>
+            {#key combo.lastAt}
+                <span class="combo-drain" style="--combo-window:{COMBO_WINDOW_MS}ms"
+                ></span>
+            {/key}
         </div>
     {/if}
 
@@ -681,6 +708,38 @@
         font-size: 0.8rem;
         font-weight: 700;
         cursor: pointer;
+    }
+
+    .combo-meter {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        color: var(--color-accent-300);
+        animation: toast-in 0.3s ease-out;
+    }
+
+    .combo-drain {
+        width: 8rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: var(--color-accent-500);
+        transform-origin: left;
+        animation: drain var(--combo-window) linear forwards;
+    }
+
+    @keyframes drain {
+        to {
+            transform: scaleX(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .combo-drain {
+            animation: none;
+        }
     }
 
     @keyframes toast-in {

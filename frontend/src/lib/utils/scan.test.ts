@@ -2,7 +2,9 @@ import { describe, expect, test } from 'bun:test'
 
 import {
     buildProductPayload,
+    COMBO_WINDOW_MS,
     clampQuantity,
+    extendCombo,
     isPlausibleBarcode,
     parseLookupCategory,
 } from './scan.ts'
@@ -134,5 +136,21 @@ describe('isPlausibleBarcode', () => {
     test('rejects non-digit input', () => {
         expect(isPlausibleBarcode('12345abc')).toBe(false)
         expect(isPlausibleBarcode('4001234 67890')).toBe(false)
+    })
+})
+
+describe('extendCombo', () => {
+    test('starts at 1', () => {
+        expect(extendCombo(null, 1000)).toEqual({ count: 1, lastAt: 1000 })
+    })
+
+    test('grows within the window, measured from the last scan', () => {
+        const second = extendCombo({ count: 1, lastAt: 0 }, COMBO_WINDOW_MS)
+        expect(second).toEqual({ count: 2, lastAt: COMBO_WINDOW_MS })
+        expect(extendCombo(second, 2 * COMBO_WINDOW_MS).count).toBe(3)
+    })
+
+    test('restarts after the window', () => {
+        expect(extendCombo({ count: 5, lastAt: 0 }, COMBO_WINDOW_MS + 1).count).toBe(1)
     })
 })

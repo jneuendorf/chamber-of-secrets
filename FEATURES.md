@@ -174,6 +174,13 @@ emerges from knowing what's in stock:
   and rewards, all derive from `Profile.xp`.
 - A daily streak rolls along with it: acting on a consecutive day extends
   `current_streak`, a gap restarts it, and `longest_streak` keeps the record.
+- The streak shows as a 🔥 flame that grows with it — quickly over the first
+  days, topping out at double size after a month — on the profile page and in
+  the chamber ledger.
+- **Combo meter**: stocking several items in quick succession on the scan
+  page (each within 90 seconds of the last) builds a "⚡ Combo ×N" with a
+  draining bar — the unpacking-the-shopping rush. Just for fun: it awards no
+  extra XP.
 - XP is not clawed back when a movement is undone — a few XP for a mis-tap is
   cheaper than an award ledger.
 - The frontend mirrors the active profile in one store (`$lib/progression.ts`)

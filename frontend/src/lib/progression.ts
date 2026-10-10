@@ -111,6 +111,17 @@ export function achievementGlyph(key: string): string {
 }
 
 /**
+ * Streak flame size (WL-5.4): a multiplier that grows fast over the first days
+ * and caps at 2× from a month on (`log2(32) / 5 === 1`). 0 = no streak, no flame.
+ */
+export function flameScale(streak: number): number {
+    if (streak <= 0) {
+        return 0
+    }
+    return 1 + Math.min(1, Math.log2(streak) / 5)
+}
+
+/**
  * XP at which a level begins — the inverse of the backend's `level_for_xp`
  * (`level = floor(sqrt(xp / 100)) + 1`). `xpForLevel(2) === 100`. Used to draw
  * progress toward the next level from the `xp`/`level` the API already returns.

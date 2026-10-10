@@ -8,6 +8,7 @@
 
     import { ApiError, api, type Profile, type RewardTier } from '$lib/api/client'
     import Avatar from '$lib/components/Avatar.svelte'
+    import StreakFlame from '$lib/components/StreakFlame.svelte'
     import { activeProfileId } from '$lib/profiles'
     import { ACHIEVEMENT_KEYS, achievementGlyph, xpForLevel } from '$lib/progression'
 
@@ -144,7 +145,8 @@
         <section class="card flex items-center justify-between">
             <span class="text-ink-200">{$_('profile.dayStreak')}</span>
             <span class="text-lg font-semibold text-ink-100">
-                🔥 {profile.current_streak}
+                <StreakFlame streak={profile.current_streak} />
+                {profile.current_streak}
                 <span class="text-sm font-normal text-ink-400">
                     {profile.current_streak === 1
                         ? $_('profile.day')

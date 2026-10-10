@@ -137,6 +137,7 @@
     "scanNext": "Nächsten Artikel scannen",
     "undo": "Rückgängig",
     "undone": "Rückgängig gemacht",
+    "combo": "Combo ×{count}",
     "dismissScanned": "Scan verwerfen",
     "dismissCategory": "Kategorie verwerfen",
     "categoryLabel": "Kategorie",

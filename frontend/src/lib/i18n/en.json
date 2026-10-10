@@ -137,6 +137,7 @@
     "scanNext": "Scan next item",
     "undo": "Undo",
     "undone": "Undone",
+    "combo": "Combo ×{count}",
     "dismissScanned": "Dismiss scanned item",
     "dismissCategory": "Dismiss category suggestion",
     "categoryLabel": "Category",
