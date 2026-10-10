@@ -35,6 +35,19 @@ describe('api.products', () => {
             expect(lastCall(fetch).options?.method).toBeUndefined()
         }))
 
+    test('findByEan(ean) filters the list server-side and unwraps it', async () => {
+        await withMockedApi(
+            async ({ api, fetch }) => {
+                expect((await api.products.findByEan('4001234567890'))?.id).toBe(7)
+                expect(lastCall(fetch).url).toEndWith('/products/?ean=4001234567890')
+            },
+            Response.json([{ id: 7 }]),
+        )
+        await withMockedApi(async ({ api }) => {
+            expect(await api.products.findByEan('0000')).toBeUndefined()
+        }, Response.json([]))
+    })
+
     test('get(id) calls GET /products/:id', () =>
         withMockedApi(async ({ api, fetch }) => {
             await api.products.get(42)

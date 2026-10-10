@@ -78,13 +78,17 @@ def _get_or_404(product_id: int, db: Session) -> Product:
 
 
 @router.get("/", response_model=list[ProductWithStock])
-def list_products(db: Session = Depends(get_db)) -> list[ProductWithStock]:
-    products = (
-        db.query(Product)
-        .options(joinedload(Product.transactions), joinedload(Product.category))
-        .all()
+def list_products(
+    ean: str | None = Query(None, description="Only the product with this EAN (0 or 1 rows)"),
+    db: Session = Depends(get_db),
+) -> list[ProductWithStock]:
+    query = db.query(Product).options(
+        joinedload(Product.transactions),
+        joinedload(Product.category),
     )
-    return [_serialize(p) for p in products]
+    if ean is not None:
+        query = query.filter(Product.ean == ean)
+    return [_serialize(p) for p in query.all()]
 
 
 @router.get("/{product_id}", response_model=ProductWithStock)

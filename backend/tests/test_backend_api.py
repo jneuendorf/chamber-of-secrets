@@ -100,6 +100,17 @@ class BackendAPITestCase(unittest.TestCase):
         self.assertEqual(set(body.keys()), {"status"})
         self.assertEqual(body["status"], "ok")
 
+    def test_products_list_filters_by_ean(self) -> None:
+        wanted = self._create_product("Gouda", ean="4001234567890")
+        self._create_product("Other", ean="4001234567891")
+        self._create_product("No code")
+        res = self.client.get("/api/products/?ean=4001234567890")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual([p["id"] for p in res.json()], [wanted["id"]])
+        self.assertIn("stock", res.json()[0])
+        self.assertEqual(self.client.get("/api/products/?ean=0000").json(), [])
+        self.assertEqual(len(self.client.get("/api/products/").json()), 3)
+
     def test_products_list_route_available_and_shape(self) -> None:
         res = self.client.get("/api/products/")
         self.assertEqual(res.status_code, 200)

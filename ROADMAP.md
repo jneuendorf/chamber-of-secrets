@@ -500,14 +500,14 @@ dev M · user med · 🟢
 - [ ] Make the existing manifest installable; service worker for offline shell
 - [ ] Queue scans/movements while offline, sync when back online (scan in the garage on bad wifi)
 
-- [ ] **WL-6.3: Performance Pass** 🚧
+- [x] **WL-6.3: Performance Pass** ✅
 
 dev S · user med · 🟡
 
 - Already capped: WL-5.2 shipped `DOT_CAP = 8` (`frontend/src/lib/utils/chamber.ts`), so no single product renders more than 8 dots. What's left is the total across a large pantry — a much smaller concern than per-product growth
-- [ ] Drop the list-and-find pattern for products: `products.list()` runs twice in the scan flow just to find one product by EAN. Wants a by-EAN lookup
+- [x] Drop the list-and-find pattern for products: `GET /products/?ean=` returns just that product (same shape, 0 or 1 rows), and `api.products.findByEan()` replaced both `products.list()` + find sites in the scan flow (last-price prefill and the save-time dedup, which still covers manual entries typed with a known EAN)
 - [x] Same for profiles: `GET /profiles/{id}` (archived ones resolve; unknown id → 404) replaced the three `profiles.list(true)` + find sites — `refreshProfile()` and the `/profile/[id]` load and post-redeem refetch
-- [ ] Page loads refetch whole lists on every `$effect` run (chamber, inventory, activity). Harmless at household scale; revisit only if it becomes visible
+- [x] Page-load refetches: checked, not a problem. The chamber, inventory and activity load `$effect`s read no reactive state synchronously, so each runs once per mount (verified in the network log: one products/categories fetch per page, none on a locale switch). Activity refetches transactions only when its filter changes, as intended. Whole-list loads per visit stay; at household scale that's the cheap option
 
 - [x] **WL-6.4: Accessibility & Legibility** ✅
 

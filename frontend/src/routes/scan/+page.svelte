@@ -8,7 +8,6 @@
         api,
         type Category,
         type EANLookupResult,
-        type Product,
         type Transaction,
     } from '$lib/api/client'
     import { cancelArrival, queueArrival } from '$lib/arrivals'
@@ -226,12 +225,11 @@
 
     async function lookupLastUnitPriceByEAN(ean: string): Promise<number | undefined> {
         // Best effort:
-        // 1) find existing product by EAN from product list
+        // 1) find existing product by EAN
         // 2) fetch latest transactions for that product
         // 3) use first transaction with non-null unit_price (transactions are returned newest first)
         try {
-            const products = await api.products.list()
-            const existing = products.find((p: Product) => p.ean === ean)
+            const existing = await api.products.findByEan(ean)
             if (!existing) {
                 return undefined
             }
@@ -299,11 +297,10 @@
         loading = true
 
         try {
-            const products = await api.products.list()
             // Only dedup on a real EAN; blank-EAN manual products must not
             // collapse into one another.
             const existing = lookupResult.ean
-                ? products.find((p: Product) => p.ean === lookupResult!.ean)
+                ? await api.products.findByEan(lookupResult.ean)
                 : undefined
 
             const resolvedCategory = await resolveCategoryForSave()

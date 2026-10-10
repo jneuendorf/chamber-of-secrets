@@ -105,6 +105,9 @@ function dateRange(since?: string, until?: string): string {
 export const api = {
     products: {
         list: () => request<Product[]>('/products/'),
+        /** The product with this EAN, if the catalog has it (WL-6.3). */
+        findByEan: async (ean: string): Promise<Product | undefined> =>
+            (await request<Product[]>(`/products/?ean=${encodeURIComponent(ean)}`))[0],
         get: (id: number) => request<Product>(`/products/${id}`),
         create: (data: Partial<Product>) =>
             request<Product>('/products/', {

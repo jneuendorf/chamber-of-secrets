@@ -106,7 +106,7 @@ chamber-of-secrets/
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/products/` | List products with computed stock |
+| GET | `/api/products/` | List products with computed stock (optional `ean` → just that product) |
 | GET | `/api/products/{id}` | Get one product with computed stock |
 | GET | `/api/products/{id}/revisions` | List a product's revision history |
 | GET | `/api/products/lookup/{ean}` | EAN lookup (DB cache → Open Food Facts) |

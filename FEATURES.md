@@ -346,7 +346,7 @@ cascades its redemptions.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/products/` | List products with computed stock |
+| GET | `/api/products/` | List products with computed stock (optional `ean` → just that product) |
 | GET | `/api/products/{id}` | Get one product with computed stock |
 | GET | `/api/products/{id}/revisions` | List a product's revision history |
 | GET | `/api/products/lookup/{ean}` | EAN lookup (cache → Open Food Facts) |
