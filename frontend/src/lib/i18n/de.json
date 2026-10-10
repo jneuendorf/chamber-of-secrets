@@ -96,6 +96,12 @@
     "cancel": "Abbrechen",
     "confirm": "Bestätigen"
   },
+  "theme": {
+    "label": "Design: {theme} (tippen zum Wechseln)",
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
   "scanner": {
     "startCamera": "Kamerascan starten",
     "scanBarcode": "Barcode scannen",

@@ -63,7 +63,7 @@ dev M · user high · 🟢
 - [x] SvelteKit 2 + Svelte 5 + TypeScript + Tailwind CSS 4
 - [x] Typed API client (`lib/api/client.ts`)
 - [x] Mobile-friendly nav bar
-- [x] Dark color scheme (proper theming deferred to WL-3.3)
+- [x] Dark color scheme (light theme + toggle added in WL-3.3)
 - [x] Docker + nginx with TLS (mkcert), Podman support
 
 - [x] **WL-1.2: Barcode Scanner** ✅
@@ -192,17 +192,26 @@ dev S · user — · ⚪
 - [x] Wire coverage reporting (`bun test --coverage`); tested modules at 100%
 - Moved out: component-level tests need a DOM testing library — owned by WL-6.5
 
-- [ ] **WL-3.3: Tailwind Theme Tokens** 🚧
+- [x] **WL-3.3: Tailwind Theme Tokens** ✅
 
 dev S · user med · 🟡
 
 - [x] Replace hardcoded hex colors (`bg-[#1a1a2e]` etc.) with `@theme`
       tokens in `src/app.css` (`bark-*`, `ink-*`, `accent-*`, status scales);
-      chart series colors centralized in `src/lib/theme.ts`. App stays
-      dark-only for now — values unchanged.
-- [ ] Add `dark:` variant support so light/dark both work
-- [ ] Add theme toggle component (system / light / dark)
-- [ ] Persist preference in `localStorage`
+      chart series colors centralized in `src/lib/theme.ts`.
+- [x] Light/dark support — not via `dark:` variants (that would touch every
+      class in every component) but by making each token a
+      `light-dark(<light>, <dark>)` pair, so components stay untouched and a
+      theme is retuned in one file. Step numbers are roles, not lightness.
+      Also defined five tokens components already used but `@theme` lacked
+      (`bark-500`, `accent-700`/`300`, `danger-100`, `success-200`)
+- [x] Theme toggle (`ThemeSwitcher.svelte`, nav bar): one button cycling
+      system → light → dark. Sets `data-theme` → `color-scheme` on <html>;
+      the nav, the chamber scene and the celebration toast pin
+      `color-scheme: dark`
+- [x] Persist preference in `localStorage`, applied by an inline script in
+      `app.html` before first paint. Charts resolve tokens through
+      `themeColor(token, scheme)` and redraw on a theme change
 
 - [ ] **WL-3.4: Adopt a Headless Component Library** 🚧
 
@@ -215,8 +224,8 @@ dev M · user low · 🟡
       original trigger points (WL-4.1, WL-4.2, WL-5.1) have all shipped without
       one, correctly: `<input type="date">` covers the analytics range picker,
       `<input type="checkbox">` the OFF opt-in and restock-inherit toggles. Open
-      candidates are the ones with no native equivalent — Switch (theme toggle
-      WL-3.3, handedness WL-6.7), AlertDialog (destructive confirms, today a
+      candidates are the ones with no native equivalent — Switch (handedness
+      WL-6.7; the WL-3.3 theme toggle shipped as a plain button), AlertDialog (destructive confirms, today a
       plain `Modal`), Tooltip (onboarding WL-6.6)
 - [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
 
@@ -428,7 +437,8 @@ Depends: WL-5.3 (level-up event), WL-5.4 (`reward_tiers`)
 ### UI Design Concept (prompt library for image/animation generation)
 
 Art direction: warm, storybook flat-vector; earthy browns with gold accents
-(matches the `bark-*` / `ink-*` / gold tokens); dark-friendly; simple shapes
+(matches the `bark-*` / `ink-*` / gold tokens); designed for dark backgrounds
+— the chamber scene is pinned dark in both themes (WL-3.3); simple shapes
 that export cleanly to SVG; transparent backgrounds for sprites; no text in
 images. Feed these as prompts to an image/Lottie generator, then tokenize
 colors to the theme.

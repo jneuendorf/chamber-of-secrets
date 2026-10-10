@@ -5,6 +5,7 @@
     import Celebration from '$lib/components/Celebration.svelte'
     import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
     import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte'
+    import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte'
     import '../app.css'
 
     let { children } = $props()
@@ -94,6 +95,7 @@
             </div>
             <div class="nav-actions">
                 <ProfileSwitcher />
+                <ThemeSwitcher />
                 <LocaleSwitcher />
             </div>
         </div>
@@ -120,12 +122,19 @@
         min-height: 100dvh;
         background: radial-gradient(
             ellipse at center,
-            rgb(57, 47, 25) 0%,
-            rgb(48, 39, 21) 72%,
-            rgb(28, 22, 12) 100%
+            var(--color-backdrop-center) 0%,
+            var(--color-backdrop-mid) 72%,
+            var(--color-backdrop-edge) 100%
         );
         display: flex;
         flex-direction: column;
+    }
+
+    /* Dark in both themes: the brand bar, and the chamber scene with its art
+       (WL-5.5 then only needs dark-ready assets). */
+    .site-nav,
+    .chamber-bg {
+        color-scheme: dark;
     }
 
     .site-nav {

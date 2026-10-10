@@ -118,6 +118,8 @@
         max-width: min(90vw, 28rem);
         padding: 0.6rem 1rem;
         border-radius: 0.75rem;
+        /* Indigo with light text in both themes, like the nav. */
+        color-scheme: dark;
         background: var(--color-accent-900);
         color: var(--color-accent-100);
         border: 1px solid color-mix(in srgb, var(--color-gold) 55%, transparent);

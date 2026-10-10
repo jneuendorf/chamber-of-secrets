@@ -119,7 +119,9 @@ Bullet list ok. No co-author trailer unless asked.
   — never hardcode hex. In markup use the utilities (`bg-bark-850`,
   `text-ink-100`); in scoped `<style>` use `var(--color-…)`. Chart series
   colors live in `src/lib/theme.ts` (`CHART_PALETTE` + `themeColor()`), since
-  canvas needs raw strings. App is dark-only for now (WL-3.3).
+  canvas needs raw strings. Every token is a `light-dark(<light>, <dark>)` pair —
+  add both sides for a new one; step numbers are roles, not lightness (see the
+  header in `app.css`). A subtree that must stay dark sets `color-scheme: dark`.
 - **Headless UI**: [Bits UI](https://bits-ui.com) provides accessible
   primitives (`Select`, `Modal`→Dialog so far; Checkbox/Tabs/Tooltip/Date
   Picker as features need them). Style them with **Tailwind utility classes**

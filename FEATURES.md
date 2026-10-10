@@ -137,9 +137,15 @@ emerges from knowing what's in stock:
 
 ### 2.8 Visual Style
 
-- Dark color scheme throughout (driven by imagery and backgrounds).
-- Proper theming (light/dark toggle, CSS variables) is a future feature
-  (see `ROADMAP.md` WL-3.3).
+- Light and dark themes. A toggle in the navigation bar cycles
+  **system → light → dark**; the choice is remembered on the device and
+  applied before the first paint (no flash). "System" follows the OS setting
+  live.
+- The navigation bar and the chamber scene stay dark in both themes — the
+  chamber's imagery sets its mood, so its art only needs a dark version.
+- All colors are design tokens in one file (`src/app.css`), each defined as a
+  light/dark pair, so either theme is adjusted by editing a single value.
+  Charts read the same tokens and redraw when the theme changes.
 
 ### 2.9 Profiles & Attribution
 

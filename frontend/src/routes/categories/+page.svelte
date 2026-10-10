@@ -849,7 +849,7 @@
     }
 
     .drill-area:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: color-mix(in srgb, var(--color-ink-100) 5%, transparent);
     }
 
     .child-badge {

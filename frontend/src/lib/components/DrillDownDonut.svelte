@@ -2,7 +2,7 @@
     import { ArcElement, Chart, DoughnutController, Legend, Tooltip } from 'chart.js'
     import { _ } from 'svelte-i18n'
 
-    import { CHART_PALETTE, themeColor } from '$lib/theme'
+    import { CHART_PALETTE, colorScheme, themeColor } from '$lib/theme'
 
     Chart.register(DoughnutController, ArcElement, Legend, Tooltip)
 
@@ -56,6 +56,8 @@
         const cLabel = centerLabel
         const fTooltip = formatTooltip
 
+        const scheme = $colorScheme
+
         const chart = new Chart<'doughnut'>(canvas, {
             type: 'doughnut',
             data: {
@@ -98,7 +100,7 @@
                         labels: {
                             boxWidth: 12,
                             font: { size: 11 },
-                            color: themeColor('ink-200'),
+                            color: themeColor('ink-200', scheme),
                         },
                         onClick: (_e, legendItem, legend) => {
                             const idx = legendItem.index!
@@ -141,10 +143,10 @@
                         ctx.save()
                         ctx.textAlign = 'center'
                         ctx.textBaseline = 'middle'
-                        ctx.fillStyle = themeColor('ink-100')
+                        ctx.fillStyle = themeColor('ink-100', scheme)
                         ctx.font = 'bold 20px sans-serif'
                         ctx.fillText(totalFormatted, cx, cy - 8)
-                        ctx.fillStyle = themeColor('ink-250')
+                        ctx.fillStyle = themeColor('ink-250', scheme)
                         ctx.font = '11px sans-serif'
                         ctx.fillText(cLabel, cx, cy + 10)
                         ctx.restore()

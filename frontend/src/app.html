@@ -3,6 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- WL-3.3: apply a pinned theme before first paint (key = THEME_KEY in lib/theme.ts). -->
+    <script>
+    try {
+      const theme = localStorage.getItem('theme')
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.dataset.theme = theme
+      }
+    } catch {}
+    </script>
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

@@ -1,77 +1,107 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. The app is dark-only for now (the chamber background image
- * sets the mood); these tokens just centralize the palette so colors aren't
- * hardcoded across components. Light/dark theming is deferred (ROADMAP WL-3.3).
+ * Design tokens — the one place to retheme the app.
+ *
+ * Every color is a `light-dark(<light>, <dark>)` pair; the browser picks a side
+ * from `color-scheme`, which the theme toggle sets on <html> (`data-theme`,
+ * see `$lib/theme.ts`). Tweak a theme by editing one side of a pair.
+ *
+ * The step numbers are *roles*, not lightness (like Radix scales): `ink-100`
+ * is always the strongest text, `bark-850` always the card surface, `ink-900`
+ * always the input/control background — they just resolve to dark text on a
+ * light card in light mode. Step names follow the dark theme they were born in.
+ * Steps without a pair (`accent-900`/`700`/`500`, mid status colors, `gold`)
+ * read well on both.
  *
  * Tailwind v4 turns each `--color-<name>` into utilities (`bg-<name>`,
- * `text-<name>`, `border-<name>`, …) and exposes it as a CSS variable for use
- * in scoped <style> blocks via `var(--color-<name>)`. Chart series colors live
- * in `src/lib/theme.ts` (canvas needs raw strings, not classes).
+ * `text-<name>`, …) and a CSS variable for scoped <style> blocks
+ * (`var(--color-<name>)`). Chart colors live in `src/lib/theme.ts`.
  */
 @theme {
-    /* Warm "chamber" surfaces & borders (dark wood palette) */
-    --color-bark-950: #0a0814;
-    --color-bark-900: #201c16;
-    --color-bark-880: #211d17;
-    --color-bark-850: #26221b;
-    --color-bark-820: #2a251d;
-    --color-bark-800: #2f2a22;
-    --color-bark-750: #3a3125;
-    --color-bark-730: #3b3327;
-    --color-bark-700: #4a3f2f;
-    --color-bark-650: #4f4534;
-    --color-bark-600: #5b4f3a;
+    /* Warm "chamber" surfaces & borders (wood / parchment) */
+    --color-bark-950: light-dark(#f3ede1, #0a0814);
+    --color-bark-900: light-dark(#f1eadc, #201c16);
+    --color-bark-880: light-dark(#f4eee3, #211d17);
+    --color-bark-850: light-dark(#fffcf5, #26221b); /* card surface */
+    --color-bark-820: light-dark(#f8f2e6, #2a251d);
+    --color-bark-800: light-dark(#f6efe2, #2f2a22); /* raised surface */
+    --color-bark-750: light-dark(#ece3d2, #3a3125);
+    --color-bark-730: light-dark(#efe6d6, #3b3327); /* hover, chips */
+    --color-bark-700: light-dark(#e2d6c0, #4a3f2f);
+    --color-bark-650: light-dark(#d6c8ae, #4f4534);
+    --color-bark-600: light-dark(#cbbb9c, #5b4f3a); /* default border */
+    --color-bark-500: light-dark(#ae9b78, #7a6a4f); /* hover border */
 
-    /* Cool neutrals — text and dark cool surfaces */
-    --color-ink-900: #111827;
-    --color-ink-700: #374151;
-    --color-ink-600: #4b5563;
-    --color-ink-500: #6b7280;
-    --color-ink-400: #9ca3af;
-    --color-ink-300: #cbd5e1;
-    --color-ink-250: #d1d5db;
-    --color-ink-200: #e5e7eb;
-    --color-ink-100: #f3f4f6;
+    /* Page backdrop, a radial gradient from center to edge */
+    --color-backdrop-center: light-dark(#f7f1e3, #392f19);
+    --color-backdrop-mid: light-dark(#efe6d2, #302715);
+    --color-backdrop-edge: light-dark(#e2d5b9, #1c160c);
+
+    /* Neutrals — text (100 strongest → 500 faintest), controls (900 bg, 700/600 borders) */
+    --color-ink-900: light-dark(#ffffff, #111827);
+    --color-ink-700: light-dark(#ddd2bf, #374151);
+    --color-ink-600: light-dark(#c9bda8, #4b5563);
+    --color-ink-500: light-dark(#82786a, #6b7280);
+    --color-ink-400: light-dark(#6b6152, #9ca3af);
+    --color-ink-300: light-dark(#4f463a, #cbd5e1);
+    --color-ink-250: light-dark(#3d352a, #d1d5db);
+    --color-ink-200: light-dark(#2f281f, #e5e7eb);
+    --color-ink-100: light-dark(#1f1a14, #f3f4f6);
 
     /* Indigo accent — primary actions and chamber labels */
     --color-accent-900: #1a1a2e;
+    --color-accent-700: #4f46e5;
     --color-accent-500: #6366f1;
-    --color-accent-100: #e0e0ff;
+    --color-accent-300: light-dark(#4338ca, #a5b4fc);
+    --color-accent-100: light-dark(#3730a3, #e0e0ff);
 
     /* Gold — chamber treasure accents (used with color-mix for alpha) */
     --color-gold: #ffd700;
 
-    /* Status — danger */
-    --color-danger-900: #7f1d1d;
-    --color-danger-800: #991b1b;
+    /* Status — 900/800 tint surfaces, 100–300 text on them */
+    --color-danger-900: light-dark(#fee2e2, #7f1d1d);
+    --color-danger-800: light-dark(#fecaca, #991b1b);
     --color-danger-500: #e74c3c;
     --color-danger-450: #ef4444;
-    --color-danger-300: #f87171;
-    --color-danger-200: #fca5a5;
+    --color-danger-300: light-dark(#b91c1c, #f87171);
+    --color-danger-200: light-dark(#991b1b, #fca5a5);
+    --color-danger-100: light-dark(#7f1d1d, #fee2e2);
 
-    /* Status — success */
-    --color-success-900: #14532d;
-    --color-success-800: #166534;
+    --color-success-900: light-dark(#dcfce7, #14532d);
+    --color-success-800: light-dark(#bbf7d0, #166534);
     --color-success-700: #1f9d55;
     --color-success-600: #27ae60;
-    --color-success-300: #86efac;
-    --color-success-100: #bbf7d0;
+    --color-success-300: light-dark(#15803d, #86efac);
+    --color-success-200: light-dark(#166534, #bbf7d0);
+    --color-success-100: light-dark(#14532d, #bbf7d0);
 
-    /* Status — warning */
     --color-warning-550: #f39c12;
     --color-warning-500: #f59e0b;
-    --color-warning-400: #fbbf24;
+    --color-warning-400: light-dark(#b45309, #fbbf24);
 
-    /* Status — info */
     --color-info-500: #3498db;
-    --color-info-400: #5dade2;
+    --color-info-400: light-dark(#2563eb, #5dade2);
+}
+
+/* Theme selection: system by default, pinned by the toggle. A subtree can pin
+   itself too — `color-scheme: dark` keeps the nav and the chamber scene dark in
+   both themes, so the art pass (WL-5.5) only needs dark-ready assets. */
+:root {
+    color-scheme: light dark;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
 }
 
 @layer base {
     body {
-        @apply font-sans bg-neutral-100 text-ink-100;
+        @apply font-sans bg-backdrop-edge text-ink-100;
         margin: 0;
     }
 

@@ -24,7 +24,7 @@
     import DrillDownDonut from '$lib/components/DrillDownDonut.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
-    import { CHART_PALETTE, themeColor } from '$lib/theme'
+    import { CHART_PALETTE, colorScheme, themeColor } from '$lib/theme'
     import {
         aggregateTimeseriesToParents,
         aggregateToParents,
@@ -203,6 +203,7 @@
         if (!childItemsLineCanvas || !childTsDates.length) {
             return
         }
+        const scheme = $colorScheme
         const chart = new Chart(childItemsLineCanvas, {
             type: 'line',
             data: {
@@ -223,19 +224,19 @@
                         labels: {
                             boxWidth: 12,
                             font: { size: 11 },
-                            color: themeColor('ink-200'),
+                            color: themeColor('ink-200', scheme),
                         },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: themeColor('ink-250') },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        ticks: { color: themeColor('ink-250', scheme) },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: themeColor('ink-250') },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        ticks: { stepSize: 1, color: themeColor('ink-250', scheme) },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                 },
             },
@@ -247,6 +248,7 @@
         if (!parentItemsLineCanvas || !parentTsDates.length) {
             return
         }
+        const scheme = $colorScheme
         const chart = new Chart(parentItemsLineCanvas, {
             type: 'line',
             data: {
@@ -267,19 +269,19 @@
                         labels: {
                             boxWidth: 12,
                             font: { size: 11 },
-                            color: themeColor('ink-200'),
+                            color: themeColor('ink-200', scheme),
                         },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: themeColor('ink-250') },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        ticks: { color: themeColor('ink-250', scheme) },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: themeColor('ink-250') },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        ticks: { stepSize: 1, color: themeColor('ink-250', scheme) },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                 },
             },
@@ -291,6 +293,7 @@
         if (!spendingLineCanvas || !childTsDates.length) {
             return
         }
+        const scheme = $colorScheme
         const chart = new Chart(spendingLineCanvas, {
             type: 'line',
             data: {
@@ -311,22 +314,22 @@
                         labels: {
                             boxWidth: 12,
                             font: { size: 11 },
-                            color: themeColor('ink-200'),
+                            color: themeColor('ink-200', scheme),
                         },
                     },
                 },
                 scales: {
                     x: {
-                        ticks: { color: themeColor('ink-250') },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        ticks: { color: themeColor('ink-250', scheme) },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                     y: {
                         beginAtZero: true,
                         ticks: {
                             callback: (v) => `€${v}`,
-                            color: themeColor('ink-250'),
+                            color: themeColor('ink-250', scheme),
                         },
-                        grid: { color: 'rgba(209, 213, 219, 0.15)' },
+                        grid: { color: themeColor('bark-700', scheme) },
                     },
                 },
             },
@@ -556,7 +559,6 @@
         border-radius: 0.4rem;
         background: var(--color-ink-900);
         color: var(--color-ink-100);
-        color-scheme: dark;
     }
 
     .restock-summary {

@@ -96,6 +96,12 @@
     "cancel": "Cancel",
     "confirm": "Confirm"
   },
+  "theme": {
+    "label": "Theme: {theme} (tap to change)",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "scanner": {
     "startCamera": "Start Camera Scan",
     "preparing": "Preparing barcode scanner…",

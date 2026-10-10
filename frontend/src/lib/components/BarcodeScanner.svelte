@@ -290,7 +290,7 @@
                 <button
                     type="button"
                     onclick={submitManual}
-                    class="flex-1 h-12 px-3 sm:px-4 bg-bark-750 text-white border border-bark-600 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
+                    class="flex-1 h-12 px-3 sm:px-4 bg-bark-750 text-ink-100 border border-bark-600 rounded-md cursor-pointer inline-flex items-center justify-center gap-2"
                     aria-label={$_('scanner.lookUp')}
                     title={$_('scanner.lookUp')}
                 >
@@ -305,7 +305,7 @@
             <button
                 type="button"
                 onclick={startCamera}
-                class="flex-1 h-12 px-4 text-base bg-bark-750 text-white border border-bark-600 rounded-lg cursor-pointer"
+                class="flex-1 h-12 px-4 text-base bg-bark-750 text-ink-100 border border-bark-600 rounded-lg cursor-pointer"
             >
                 {$_('scanner.startCamera')}
             </button>

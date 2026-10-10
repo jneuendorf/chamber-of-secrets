@@ -22,21 +22,6 @@ Ordinary unblocked work with **no** coupling to the art pass — WL-6.1
 (export/backup), WL-6.2 (PWA/offline), WL-6.5 (component tests) — is
 deliberately not listed. It's worth doing, just not worth front-loading.
 
-## WL-3.3 — decide light/dark before any asset is generated
-
-A decision, not a task, and the cheapest item here with the largest
-downstream cost if deferred.
-
-`src/app.css` has `@theme` tokens but no `dark:` variants and no
-`prefers-color-scheme` — the app is dark-only in practice, while the art
-brief only says "dark-friendly". If light mode is ever wanted, every
-generated sprite needs either a second variant or a theme-neutral build
-(transparent background, `currentColor` strokes) — a constraint that can
-only be imposed *before* generation.
-
-Either implement `dark:` support or consciously drop those sub-items and
-commit to dark-only. Both are fine. Deciding after the art exists is not.
-
 ## WL-6.4 — Accessibility & legibility, as an input to the art brief
 
 Contrast ratios and minimum tap-target sizes are constraints the art pass
@@ -55,5 +40,5 @@ unblocks WL-5.6.
 ## WL-6.7 — Ambidextrous / one-handed layout
 
 A CSS-var layout flip is cheaper to establish before animations anchor to
-fixed positions. Lowest urgency of the five, but still genuinely
+fixed positions. Lowest urgency of the three, but still genuinely
 pre-design.
