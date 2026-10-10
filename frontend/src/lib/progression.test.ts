@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import type { Profile, RewardTier } from './api/client'
 import en from './i18n/en.json'
 import {
     ACHIEVEMENT_KEYS,
@@ -7,6 +8,8 @@ import {
     CHAMBER_STAGES,
     chamberStage,
     guardianMood,
+    progressSince,
+    rewardsUnlockedBetween,
     xpForLevel,
 } from './progression'
 
@@ -69,6 +72,82 @@ describe('xpForLevel', () => {
             expect(xpForLevel(level)).toBeLessThanOrEqual(xp)
             expect(xpForLevel(level + 1)).toBeGreaterThan(xp)
         }
+    })
+})
+
+describe('progressSince', () => {
+    // Only the fields the diff reads; the rest of a Profile is irrelevant here.
+    const snapshot = (id: number, level: number, achievements: string[] = []) =>
+        ({ id, level, achievements }) as unknown as Profile
+
+    test('a higher level on the same profile is a crossing', () => {
+        expect(progressSince(snapshot(1, 2), snapshot(1, 4)).crossing).toEqual({
+            from: 2,
+            to: 4,
+        })
+    })
+
+    test('reports only badges that are new since the last snapshot', () => {
+        const { earned } = progressSince(
+            snapshot(1, 1, ['first_scan']),
+            snapshot(1, 1, ['first_scan', 'explorer']),
+        )
+        expect(earned).toEqual(['explorer'])
+    })
+
+    test('an unchanged refetch announces nothing — the once-per-crossing guard', () => {
+        const same = snapshot(1, 3, ['first_scan'])
+        expect(progressSince(same, same)).toEqual({ crossing: null, earned: [] })
+    })
+
+    test('switching to a profile further along is not a level-up', () => {
+        expect(
+            progressSince(snapshot(1, 1), snapshot(2, 4, ['level_5', 'streak_7'])),
+        ).toEqual({ crossing: null, earned: [] })
+    })
+
+    test('first load (no previous snapshot) stays quiet', () => {
+        expect(progressSince(null, snapshot(1, 4, ['explorer']))).toEqual({
+            crossing: null,
+            earned: [],
+        })
+    })
+})
+
+describe('rewardsUnlockedBetween', () => {
+    const tier = (id: number, level: number): RewardTier => ({
+        id,
+        level,
+        description: `reward ${id}`,
+    })
+    // Two tiers share level 5 — the spec allows several rewards per level.
+    const tiers = [tier(1, 2), tier(2, 5), tier(3, 5), tier(4, 9)]
+
+    test('announces the tier at the level just reached', () => {
+        expect(rewardsUnlockedBetween(1, 2, tiers).map((t) => t.id)).toEqual([1])
+    })
+
+    test('excludes the level already held — no re-announcing on the next crossing', () => {
+        expect(rewardsUnlockedBetween(2, 4, tiers)).toEqual([])
+        expect(rewardsUnlockedBetween(5, 8, tiers)).toEqual([])
+    })
+
+    test('one movement spanning several levels catches every tier in between', () => {
+        expect(rewardsUnlockedBetween(1, 9, tiers).map((t) => t.id)).toEqual([
+            1, 2, 3, 4,
+        ])
+    })
+
+    test('orders by level regardless of how the API returned them', () => {
+        const shuffled = [tier(4, 9), tier(1, 2), tier(3, 5)]
+        expect(rewardsUnlockedBetween(1, 10, shuffled).map((t) => t.level)).toEqual([
+            2, 5, 9,
+        ])
+    })
+
+    test('nothing to announce without tiers, or when the level did not move', () => {
+        expect(rewardsUnlockedBetween(1, 5, [])).toEqual([])
+        expect(rewardsUnlockedBetween(5, 5, tiers)).toEqual([])
     })
 })
 

@@ -361,7 +361,7 @@ dev M · user high · 🟢
 Depends: WL-5.1 (profiles)
 
 - [x] Foundational events/XP store: `services/progression.py` is the single award point (backend), `$lib/progression.ts` the single store every gamification feature reads (frontend). XP accrues to the active profile on every attributed movement; unattributed movements award nothing
-- [x] Earn XP for scans/restocks (`in`, 10) and consuming (`out`, 2); level derived via `level_for_xp`, level-up announced in the chamber. Daily streak rolls with it (consecutive day extends, gap restarts, longest kept)
+- [x] Earn XP for scans/restocks (`in`, 10) and consuming (`out`, 2); level derived via `level_for_xp`, level-up announced app-wide (WL-5.7). Daily streak rolls with it (consecutive day extends, gap restarts, longest kept)
 - [x] The chamber visibly levels up with you — `chamberStage(level)` (1–5) rendered as `data-stage` on the scene, driving a placeholder brightness ramp. Torches/shelves/background art hangs off the same hook in WL-5.5
 - [x] Guardian mood: `guardianMood()` derives `thriving`/`content`/`sparse`/`forlorn` from the share of products needing restock, rendered as `data-mood` + a stand-in glyph. Real art (cobwebs, animation) in WL-5.5
 - XP is deliberately not reversed on undo (WL-5.2) — cheaper than an award ledger; revisit only if XP ever buys something scarce
@@ -372,7 +372,7 @@ Depends: WL-5.1 (profiles)
 dev M · user high · 🟢
 Depends: WL-5.3 · leaderboard depends on WL-9.2
 
-- [x] Badges: `services/achievements.py` grants them from data that already exists — First Scan, Well Stocked (50 `in`), Week Streak, Chamber Keeper (level 5), **Explorer** (added a product to Open Food Facts, WL-4.6). Stored as keys in `profile_achievements`; names and art are client-side, so a badge is renamed or redrawn without a migration. Earned badges are diffed on profile refresh and announced in the chamber
+- [x] Badges: `services/achievements.py` grants them from data that already exists — First Scan, Well Stocked (50 `in`), Week Streak, Chamber Keeper (level 5), **Explorer** (added a product to Open Food Facts, WL-4.6). Stored as keys in `profile_achievements`; names and art are client-side, so a badge is renamed or redrawn without a migration. Earned badges are diffed on profile refresh and announced app-wide (WL-5.7)
 - [x] Dedicated per-profile progress page (`/profile/[id]`, reached from the picker): avatar, level + XP-to-next bar, streak, and the full badge grid (earned + locked). Standalone route, so a later nav redesign can reposition it
 - [ ] Daily streak with a growing flame; combo meter for rapid multi-scan after a shop
 - [x] Configurable real-life rewards per tier ("Level 5 → pick movie night") — household-wide `reward_tiers` (level + text); whoever reaches the level unlocks it. Configured and viewed on the profile page (add/remove, unlocked vs locked per profile). **Redeeming is per profile** (`profile_rewards`): mark/un-mark "✓ Redeemed" on your own active-profile page only (login-less UX guard — backend validates the reward is unlocked but can't enforce whose tap it is); others see a read-only redeemed tag. Idempotent, reversible, cascades on tier delete. The level-up "reward unlocked!" toast is its own item — WL-5.7
@@ -400,24 +400,30 @@ Depends: WL-5.2
 - [ ] Scan on `/scan` → the just-added item flies across the navigation and bounces into its pile on `/chamber`. WL-5.2 keeps chamber animation within-page; this adds the cross-route arrival.
 - [ ] Seam already reserved: a small "pending arrivals" store that `/scan` pushes to and `/chamber` drains on mount, feeding the same arc-in animation as the within-page add — or SvelteKit view transitions if simpler. Additive, not a renderer rewrite.
 
-- [ ] **WL-5.7: Level-Up & Reward Notifications** ⬜
+- [x] **WL-5.7: Level-Up & Reward Notifications** ✅
 
 dev S · user high · 🟢
 Depends: WL-5.3 (level-up event), WL-5.4 (`reward_tiers`)
 
-- [ ] Celebratory notification when a profile levels up — surfaced app-wide, not
-      only on the chamber page, so the moment lands wherever the kid is scanning.
-      Today WL-5.3 only "announces the level in the chamber"
-- [ ] **"Reward unlocked!" callout** when the new level crosses a `reward_tiers`
+- [x] Celebratory notification when a profile levels up — `Celebration.svelte`
+      mounted in the root layout, so it fires on every route. This also fixed the
+      reason it mattered: `/scan` and the inventory ± buttons awarded XP but never
+      called `refreshProfile()`, so those levels went unnoticed until the next
+      chamber visit
+- [x] **"Reward unlocked!" callout** when the new level crosses a `reward_tiers`
       threshold (moved from WL-5.4) — names the real-life reward ("Level 5 → pick
-      movie night"). This is the dopamine payoff: the on-screen moment that ties
-      the app back to a real kitchen-table treat
-- [ ] Fire **exactly once per crossing** — the crux. The award point
-      (`progression.py` / the `$lib/progression.ts` store) knows the old and new
-      level; diff them, look up any `reward_tiers` in the crossed range, and guard
-      against re-firing on profile refetch (same pattern as the badge diff). The
-      current `level >= reward.level` display derivation stays as-is; this adds the
-      *transition* detection on top
+      movie night"). Tiers are fetched at the crossing rather than held in a store
+- [x] Fire **exactly once per crossing** — `levelUp` now carries `{ from, to }`
+      instead of just the new level, so `rewardsUnlockedBetween()` can pick up
+      every tier in a multi-level jump. The store holds a *transition*, cleared as
+      soon as it's shown, which is the guard: the next refetch sees an unchanged
+      level and stays quiet. `progressSince()` only diffs a profile against
+      itself, so switching the picker to someone further along announces
+      nothing. The `level >= tier.level` display derivation is untouched
+- Announcements from one movement queue and play in turn — this retired the
+      WL-5.3 limitation where simultaneous badges announced only the first
+- Text only, by design: fanfare art and sound stay with WL-5.5, which now swaps
+      presentation into a working event pipeline instead of building both
 - [ ] Reuse the existing announce / undo-toast plumbing; respect
       `prefers-reduced-motion`; fanfare art + optional sound come from WL-5.5
 - [ ] Tests: the once-per-crossing logic and the level-band → rewards lookup are

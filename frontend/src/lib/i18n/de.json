@@ -58,18 +58,21 @@
     "undo": "Rückgängig",
     "undone": "Wieder zurückgelegt",
     "undoFailed": "Rückgängig fehlgeschlagen: {error}",
-    "levelUp": "Level {level}! Die Kammer wächst.",
     "xp": "XP",
     "streak": "Tage in Folge",
     "badges": "Abzeichen",
     "badgesNone": "Noch keine",
-    "badgeEarned": "Abzeichen verdient: {name}!",
     "mood": {
       "thriving": "Der Wächter strahlt — die Kammer ist voll.",
       "content": "Der Wächter ist zufrieden.",
       "sparse": "Der Wächter sorgt sich — die Vorräte werden knapp.",
       "forlorn": "Der Wächter ist einsam — die Kammer ist leer."
     }
+  },
+  "celebrate": {
+    "levelUp": "Level {level}! Die Kammer wächst.",
+    "rewardUnlocked": "Belohnung freigeschaltet: {reward}!",
+    "badgeEarned": "Abzeichen verdient: {name}!"
   },
   "dashboard": {
     "title": "Dashboard",

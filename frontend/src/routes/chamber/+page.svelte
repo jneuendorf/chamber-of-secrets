@@ -14,8 +14,6 @@
         chamberStage,
         type GuardianMood,
         guardianMood,
-        levelUp,
-        newAchievements,
         refreshProfile,
     } from '$lib/progression'
     import { resolveRestockPolicy, stockStatus } from '$lib/utils/category'
@@ -108,24 +106,6 @@
     // it is. Both are plain numbers/names on the scene — styling is WL-5.5's job.
     let stage = $derived(chamberStage($activeProfile?.level ?? 1))
     let mood = $derived(guardianMood(products.length, needsRestock, totalItems))
-
-    $effect(() => {
-        if ($levelUp != null) {
-            showToast(get(_)('chamber.levelUp', { values: { level: $levelUp } }))
-            levelUp.set(null)
-        }
-    })
-
-    $effect(() => {
-        // ponytail: badges earned together announce one at a time (the toast holds
-        // a single message); a queue only pays off once several can land at once.
-        const [key] = $newAchievements
-        if (key) {
-            const name = get(_)(`achievement.${key}.name`)
-            showToast(get(_)('chamber.badgeEarned', { values: { name } }))
-            newAchievements.set([])
-        }
-    })
 
     function showToast(
         message: string,

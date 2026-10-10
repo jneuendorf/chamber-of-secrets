@@ -7,6 +7,7 @@
     import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
+    import { refreshProfile } from '$lib/progression'
     import {
         resolveIcon,
         resolveRestockPolicy,
@@ -96,6 +97,7 @@
                 product_id: product.id,
                 type: delta > 0 ? 'in' : 'out',
             })
+            void refreshProfile() // XP was awarded server-side (WL-5.3)
         } catch (e) {
             products = products.map((p) =>
                 p.id === product.id ? { ...p, stock: p.stock - delta } : p,

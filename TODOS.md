@@ -22,17 +22,6 @@ Ordinary unblocked work with **no** coupling to the art pass — WL-6.1
 (export/backup), WL-6.2 (PWA/offline), WL-6.5 (component tests) — is
 deliberately not listed. It's worth doing, just not worth front-loading.
 
-## WL-5.7 — Level-Up & Reward Notifications (logic only)
-
-**Best next pick.** Unblocked: WL-5.3 ✅ and `reward_tiers` ✅.
-
-Most of the seam already exists — `levelUp` (`frontend/src/lib/progression.ts:19`)
-is set on any refresh that observes a higher level, and it is consumed in
-exactly one place (`routes/chamber/+page.svelte:113`). Remaining work is
-app-wide surfacing, the `rewardsUnlockedBetween(old, new, tiers)` helper,
-and the once-per-crossing guard: pure, testable, and art-free. The item's
-own text puts fanfare art in WL-5.5, so it is designed to land first.
-
 ## WL-3.3 — decide light/dark before any asset is generated
 
 A decision, not a task, and the cheapest item here with the largest

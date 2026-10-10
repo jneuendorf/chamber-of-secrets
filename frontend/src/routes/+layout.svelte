@@ -2,6 +2,7 @@
     import { _ } from 'svelte-i18n'
 
     import { page } from '$app/state'
+    import Celebration from '$lib/components/Celebration.svelte'
     import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
     import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte'
     import '../app.css'
@@ -106,6 +107,9 @@
             {@render children()}
         </div>
     </main>
+
+    <!-- WL-5.7: level-up / reward / badge toasts, on every route. -->
+    <Celebration />
 </div>
 
 <style>
@@ -129,6 +133,13 @@
         z-index: 10;
         flex: 0 0 auto;
         padding: 0.5rem 1rem;
+    }
+
+    /* How far down a fixed overlay must start to clear the nav. Declared here,
+       beside the rules that decide the nav's height, and inherited by anything
+       nested — `Celebration` reads it. Update both values together. */
+    .layout-root {
+        --nav-offset: 3.25rem;
     }
 
     .nav-main {
@@ -168,6 +179,11 @@
     }
 
     @media (max-width: 760px) {
+        /* Two rows here (brand + links), so the nav is taller. */
+        .layout-root {
+            --nav-offset: 5.5rem;
+        }
+
         .site-nav {
             padding: 0.5rem 1rem 0.25rem;
         }

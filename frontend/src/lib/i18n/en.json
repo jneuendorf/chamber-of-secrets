@@ -58,18 +58,21 @@
     "undo": "Undo",
     "undone": "Put it back",
     "undoFailed": "Couldn't undo: {error}",
-    "levelUp": "Level {level}! The chamber grows.",
     "xp": "XP",
     "streak": "Day Streak",
     "badges": "Badges",
     "badgesNone": "None yet",
-    "badgeEarned": "Badge earned: {name}!",
     "mood": {
       "thriving": "The guardian is delighted — the chamber is full.",
       "content": "The guardian is content.",
       "sparse": "The guardian frets — supplies are running low.",
       "forlorn": "The guardian is lonely — the chamber is bare."
     }
+  },
+  "celebrate": {
+    "levelUp": "Level {level}! The chamber grows.",
+    "rewardUnlocked": "Reward unlocked: {reward}!",
+    "badgeEarned": "Badge earned: {name}!"
   },
   "dashboard": {
     "title": "Dashboard",

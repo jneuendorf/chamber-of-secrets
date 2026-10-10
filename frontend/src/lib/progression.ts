@@ -9,14 +9,22 @@
  */
 import { derived, get, writable } from 'svelte/store'
 
-import { api, type Profile } from './api/client'
+import { api, type Profile, type RewardTier } from './api/client'
 import { activeProfileId } from './profiles'
 
 /** The active profile with its live xp/level/streaks. `null` = none selected. */
 export const activeProfile = writable<Profile | null>(null)
 
-/** Set when a refresh observes a higher level; the UI clears it after celebrating. */
-export const levelUp = writable<number | null>(null)
+/**
+ * The level crossing a refresh observed, or `null`. Carries `from` as well as
+ * `to` because a single movement can span several levels, and the rewards it
+ * unlocked are the ones in that whole range (WL-5.7). The UI clears it after
+ * celebrating, which is also the once-per-crossing guard: the next refresh sees
+ * an unchanged level and sets nothing.
+ */
+export type LevelCrossing = { from: number; to: number }
+
+export const levelUp = writable<LevelCrossing | null>(null)
 
 /** Badge keys earned since the last refresh; the UI clears them after celebrating. */
 export const newAchievements = writable<string[]>([])
@@ -34,21 +42,39 @@ export async function refreshProfile(): Promise<void> {
     // ponytail: no GET /profiles/{id} — the list is a handful of rows on a home LAN.
     const profiles = await api.profiles.list(true)
     const found = profiles.find((profile) => profile.id === id) ?? null
-    const previous = get(activeProfile)
-    if (previous && found) {
-        if (found.level > previous.level) {
-            levelUp.set(found.level)
-        }
-        // Diffed here rather than returned by the mutation: every award path
-        // (transactions, OFF contributions) lands in the same refresh.
-        const earned = found.achievements.filter(
-            (key) => !previous.achievements.includes(key),
-        )
-        if (earned.length > 0) {
-            newAchievements.set(earned)
-        }
+    // Diffed here rather than returned by the mutation: every award path
+    // (transactions, OFF contributions) lands in the same refresh.
+    const { crossing, earned } = progressSince(get(activeProfile), found)
+    if (crossing) {
+        levelUp.set(crossing)
+    }
+    if (earned.length > 0) {
+        newAchievements.set(earned)
     }
     activeProfile.set(found)
+}
+
+/**
+ * What one profile gained between two snapshots of it. Only the *same* profile
+ * counts: switching the picker to someone further along is not a level-up, and
+ * their existing badges are not newly earned.
+ */
+export function progressSince(
+    previous: Profile | null,
+    found: Profile | null,
+): { crossing: LevelCrossing | null; earned: string[] } {
+    if (!previous || !found || previous.id !== found.id) {
+        return { crossing: null, earned: [] }
+    }
+    return {
+        crossing:
+            found.level > previous.level
+                ? { from: previous.level, to: found.level }
+                : null,
+        earned: found.achievements.filter(
+            (key) => !previous.achievements.includes(key),
+        ),
+    }
 }
 
 // Keep the store in sync with the picker. Guarded like `profiles.ts`: no fetch
@@ -87,6 +113,25 @@ export function achievementGlyph(key: string): string {
  */
 export function xpForLevel(level: number): number {
     return (Math.max(1, level) - 1) ** 2 * 100
+}
+
+/**
+ * Reward tiers a level crossing just unlocked (WL-5.7): `from < level <= to`.
+ * Half-open at the bottom so the level you were already on doesn't re-announce,
+ * inclusive at the top so the level you just reached does. Several levels can be
+ * crossed by one movement, so this returns a list, ordered by level.
+ *
+ * Announcing only — the *display* side stays the plain `level >= tier.level`
+ * derivation on the profile page.
+ */
+export function rewardsUnlockedBetween(
+    from: number,
+    to: number,
+    tiers: RewardTier[],
+): RewardTier[] {
+    return tiers
+        .filter((tier) => tier.level > from && tier.level <= to)
+        .sort((first, second) => first.level - second.level)
 }
 
 /** How built-out the chamber looks. Grows with level, then plateaus. */

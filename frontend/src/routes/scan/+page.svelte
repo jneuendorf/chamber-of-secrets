@@ -13,6 +13,7 @@
     } from '$lib/api/client'
     import BarcodeScanner from '$lib/components/BarcodeScanner.svelte'
     import CategoryPicker from '$lib/components/CategoryPicker.svelte'
+    import { refreshProfile } from '$lib/progression'
     import {
         buildProductPayload,
         clampQuantity,
@@ -326,6 +327,8 @@
                     /* non-fatal: product is stored locally regardless */
                 }
             }
+
+            void refreshProfile() // XP (and maybe Explorer) was awarded server-side
 
             showSuccessToast(
                 get(_)(

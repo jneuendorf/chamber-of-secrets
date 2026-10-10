@@ -192,7 +192,7 @@ emerges from knowing what's in stock:
   client-side, so a badge can be renamed or redrawn without a migration. The
   glyphs shown in the chamber ledger are placeholders until WL-5.5.
 - Newly earned badges are detected by diffing the active profile on refresh, so
-  every award path announces itself the same way — a toast in the chamber.
+  every award path announces itself the same way — see 2.9d.
 - Each profile has a dedicated progress page (`/profile/[id]`) reached from the
   profile picker (the `›` on a profile row): avatar, level with an XP bar toward
   the next level, day streak, and the full badge grid showing earned badges
@@ -216,6 +216,23 @@ emerges from knowing what's in stock:
   claimed what. The backend validates the reward is actually unlocked before
   recording; it can't enforce *whose* tap it is (no session). Redemption is
   idempotent and reversible; deleting a reward tier cascades its redemptions.
+
+### 2.9d Celebrations
+
+- Level-ups, unlocked rewards and earned badges are announced **on whatever page
+  you're on**, not only in the chamber — XP is earned while scanning, so that's
+  where the moment has to land.
+- A level-up carries the whole crossing (old level → new level), so one big
+  movement that jumps two levels still announces every reward tier in between.
+  Unlocking stays *derived* (`level >= tier.level`) for display; this is only the
+  **transition** detection layered on top.
+- Each announcement fires **once per crossing**: the store holds a transition,
+  not a state, and is cleared as soon as it's shown — a later profile refetch
+  sees an unchanged level and says nothing. A page reload right after leveling
+  stays quiet rather than re-celebrating, and so does switching the picker to a
+  profile that's further along — only the *same* profile's progress counts.
+- Several announcements from one movement queue up and show in turn rather than
+  overwriting each other. Text only for now; the fanfare art and sound are WL-5.5.
 
 ### 2.10 Deployment
 
