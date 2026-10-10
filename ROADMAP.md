@@ -168,7 +168,7 @@ dev S · user med · 🟡
 
 ---
 
-## Milestone 3 — Tooling & Quality 🚧
+## Milestone 3 — Tooling & Quality ✅
 
 Goal: code quality tooling, formatting, linting, test infrastructure.
 
@@ -213,21 +213,22 @@ dev S · user med · 🟡
       `app.html` before first paint. Charts resolve tokens through
       `themeColor(token, scheme)` and redraw on a theme change
 
-- [ ] **WL-3.4: Adopt a Headless Component Library** 🚧
+- [x] **WL-3.4: Adopt a Headless Component Library** ✅
 
 dev M · user low · 🟡
 
 - [x] Evaluate [Bits UI](https://bits-ui.com) (Svelte 5 runes-native, accessible) — chosen over Melt UI (lower-level) and styled kits (would change the look)
 - [x] Migrate the hand-rolled `Select` to Bits UI `Select` (same `items`/`value`/`onchange` API; still iOS-safe via Floating UI + portal). −225 lines.
 - [x] Migrate `Modal` to Bits UI `Dialog` (gains focus-trap + scroll-lock; same `open`/`title`/`onclose` API). −57 lines.
-- [ ] Adopt further primitives only where a native element can't do the job. The
-      original trigger points (WL-4.1, WL-4.2, WL-5.1) have all shipped without
-      one, correctly: `<input type="date">` covers the analytics range picker,
-      `<input type="checkbox">` the OFF opt-in and restock-inherit toggles. Open
-      candidates are the ones with no native equivalent — Switch (handedness
-      WL-6.7; the WL-3.3 theme toggle shipped as a plain button), AlertDialog (destructive confirms, today a
-      plain `Modal`), Tooltip (onboarding WL-6.6)
-- [ ] Keep bundle impact in check — pilot added ~32 KB gz (Select + Dialog + Floating UI); marginal cost drops as more components reuse the core. Only import what's used.
+- Standing rule, not a task (see `AGENTS.md` → Headless UI): adopt a further
+  primitive only where a native element can't do the job, and only import what's
+  used — the pilot cost ~32 KB gz (Select + Dialog + Floating UI), later primitives
+  reuse that core. So far native has always sufficed: `<input type="date">` for
+  the analytics range, checkboxes for the OFF opt-in and restock-inherit, a plain
+  cycling button for the WL-3.3 theme toggle
+- Candidates are decided by the item that needs them: Switch → WL-6.7
+  (handedness; likely a plain button too), Tooltip → WL-6.6 (onboarding),
+  AlertDialog → WL-6.4
 
 - [x] **WL-3.5: UX Polish (round 2)** ✅
 
@@ -495,7 +496,8 @@ dev S · user med · 🟡
 
 dev S · user med · 🟡
 
-- [ ] Contrast audit of the dark theme; larger tap targets for small hands; screen-reader labels (chamber decorative emojis, stat tables)
+- [ ] Contrast audit of both themes (the WL-3.3 light values are a first pass — e.g. `danger-500` text on a light card is ~3.8:1); larger tap targets for small hands; screen-reader labels (chamber decorative emojis, stat tables)
+- [ ] Destructive confirms (activity delete, inventory delete/merge, category delete — today a plain `Modal`) → Bits UI `AlertDialog`: announced as `alertdialog`, initial focus on Cancel so a stray Enter can't delete. Shares `Dialog`'s core, so near-zero bundle cost
 
 - [ ] **WL-6.5: Interactive Test Coverage** ⬜
 
