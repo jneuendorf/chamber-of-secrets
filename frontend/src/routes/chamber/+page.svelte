@@ -17,7 +17,7 @@
         refreshProfile,
     } from '$lib/progression'
     import { resolveRestockPolicy, stockStatus } from '$lib/utils/category'
-    import { buildDots, type ChamberDot, visibleSlots } from '$lib/utils/chamber'
+    import { arcIn, buildDots, type ChamberDot, visibleSlots } from '$lib/utils/chamber'
 
     // Stand-in art for the guardian (WL-5.3). Real SVG/Lottie lands with WL-5.5 —
     // the mood itself is derived data, so swapping this map is the whole change.
@@ -43,6 +43,12 @@
     // slot) and a big pile refills from its reserve instead of gapping. Reset
     // on reload, where server stock already reflects the committed movements.
     let consumed = $state<Record<number, number[]>>({})
+
+    // Which way each pile last moved. A capped pile swaps dots when it moves (a
+    // consume pulls a reserve dot in, an undo sends it back), so only the dots
+    // that follow the pile's direction animate — the swap itself is silent.
+    // Read by the transitions when they start, so it needs no reactivity.
+    const pileTrend = new Map<number, 'up' | 'down'>()
 
     // Toast with one-tap undo. A new consume replaces the previous toast (undo
     // targets the latest action only); an explicit ✕ dismisses it.
@@ -195,6 +201,7 @@
             return
         }
         const slots = slotsToConsume(product, current, slot, qty)
+        pileTrend.set(product.id, 'down')
         consumed = { ...consumed, [product.id]: [...current, ...slots] }
         try {
             const txn = await api.transactions.create({
@@ -245,9 +252,33 @@
 
     function releaseSlots(productId: number, slots: number[]) {
         const current = consumed[productId] ?? []
+        pileTrend.set(productId, 'up')
         consumed = {
             ...consumed,
             [productId]: current.filter((slot) => !slots.includes(slot)),
+        }
+    }
+
+    function prefersReducedMotion(): boolean {
+        return (
+            typeof matchMedia !== 'undefined' &&
+            matchMedia('(prefers-reduced-motion: reduce)').matches
+        )
+    }
+
+    // Arrival: the dot arcs in from above and bounces into its slot (path in
+    // `arcIn`). Plays for dots added while the page is open (today: an undo
+    // restoring consumed dots; WL-5.6 feeds scans in). Svelte's local
+    // transitions skip the initial render, so a page load doesn't rain items.
+    // biome-ignore lint/correctness/noUnusedVariables: used by the `in:arrive` directive, which Biome's Svelte parser doesn't track
+    function arrive(_node: Element, productId: number) {
+        const animate = pileTrend.get(productId) === 'up' && !prefersReducedMotion()
+        return {
+            duration: animate ? 700 : 0,
+            css: (t: number) => {
+                const { x, y, scale } = arcIn(t)
+                return `opacity:${Math.min(1, t * 5)}; transform: translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale});`
+            },
         }
     }
 
@@ -255,12 +286,10 @@
     // transform is translate(-50%, -50%), so keep it here or the dot would jump.
     // ponytail: crumb/dust particles deferred to WL-5.5 (art pipeline).
     // biome-ignore lint/correctness/noUnusedVariables: used by the `out:poof` directive, which Biome's Svelte parser doesn't track
-    function poof(_node: Element) {
-        const reduce =
-            typeof matchMedia !== 'undefined' &&
-            matchMedia('(prefers-reduced-motion: reduce)').matches
+    function poof(_node: Element, productId: number) {
+        const animate = pileTrend.get(productId) !== 'up' && !prefersReducedMotion()
         return {
-            duration: reduce ? 0 : 320,
+            duration: animate ? 320 : 0,
             easing: cubicOut,
             css: (t: number) => {
                 const scale = 0.35 + t * 0.65
@@ -301,7 +330,8 @@
                             title={dot.title}
                             aria-label={dot.title}
                             onclick={() => openSheet(dot)}
-                            out:poof
+                            in:arrive={dot.productId}
+                            out:poof={dot.productId}
                         >
                             {#if dot.isUrl}
                                 <img src={dot.src} alt="" class="img-e" />

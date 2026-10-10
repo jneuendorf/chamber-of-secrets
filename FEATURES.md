@@ -264,8 +264,11 @@ emerges from knowing what's in stock:
   steppers.
 - **Undo**: a 5-second toast (with an explicit ✕ dismiss) reverses an
   accidental consume by deleting the transaction — stock is derived, so the
-  emoji simply returns. A new consume replaces the toast; undo targets the
-  latest action.
+  emoji comes back, arcing in from above and bouncing into its spot. A new
+  consume replaces the toast; undo targets the latest action.
+- Only the dots that follow a pile's change animate: a consume poofs, a
+  return arcs in, and the silent reserve swap behind a big pile never looks
+  like an item flying in or vanishing. A page load shows the piles at rest.
 - A floating 📜 ledger shows in-stock / needs-restocking / total counts, plus
   the active profile's XP, level, and current streak.
 - The chamber lights up as the profile levels (stage) and its guardian reacts
@@ -335,10 +338,10 @@ cascades its redemptions.
 | GET | `/api/analytics/timeseries` | Spending over time |
 | GET | `/api/analytics/restock-overview` | Products needing restock by category |
 | GET | `/api/profiles/` | List profiles (optional `include_archived`) |
+| GET | `/api/profiles/{id}` | Get one profile (archived ones too; 404 if unknown) |
 | POST | `/api/profiles/` | Create a profile |
 | PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
 | GET | `/api/rewards/` | List household reward tiers (sorted by level) |
-| GET | `/api/profiles/{id}` | Get one profile (archived ones too; 404 if unknown) |
 | POST | `/api/rewards/` | Create a reward tier (level ≥ 2 + description) |
 | DELETE | `/api/rewards/{id}` | Delete a reward tier (cascades redemptions) |
 | POST | `/api/rewards/{id}/redemption?profile_id=` | Mark a reward redeemed for a profile (idempotent; 409 if not unlocked) |

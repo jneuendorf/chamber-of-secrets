@@ -1,3 +1,5 @@
+import { bounceOut } from 'svelte/easing'
+
 import type { Category, Product } from '$lib/api/client'
 import { resolveIcon } from '$lib/utils/category'
 
@@ -5,6 +7,22 @@ import { resolveIcon } from '$lib/utils/category'
  *  consume from a huge stock doesn't visibly change anything — and for
  *  stock <= cap, one consume removes exactly one dot. */
 export const DOT_CAP = 8
+
+/** How far above / beside its resting spot an arriving dot starts, in px. */
+export const ARC_RISE = 120
+export const ARC_DRIFT = 40
+
+/** Where an arriving dot is at `progress` 0 → 1, relative to its resting spot
+ *  (WL-5.2): a sideways drift plus a bouncing fall traces an arc that lands
+ *  and bounces into the pile. `progress === 1` is exactly at rest, and the
+ *  bounce never dips below it — the dot doesn't sink into the floor. */
+export function arcIn(progress: number): { x: number; y: number; scale: number } {
+    return {
+        x: (1 - progress) * ARC_DRIFT,
+        y: -(1 - bounceOut(progress)) * ARC_RISE,
+        scale: 0.6 + 0.4 * Math.min(1, progress * 2),
+    }
+}
 
 /** A single placed emoji in the chamber scene. `key` is stable across stock
  *  changes so a keyed {#each} can animate one dot out without reflowing its

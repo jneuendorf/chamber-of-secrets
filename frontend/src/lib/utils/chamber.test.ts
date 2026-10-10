@@ -1,7 +1,15 @@
 import { describe, expect, test } from 'bun:test'
 
 import type { Category, Product } from '$lib/api/client'
-import { buildDots, DOT_CAP, emojiFor, visibleSlots } from './chamber'
+import {
+    ARC_DRIFT,
+    ARC_RISE,
+    arcIn,
+    buildDots,
+    DOT_CAP,
+    emojiFor,
+    visibleSlots,
+} from './chamber'
 
 function makeProduct(
     overrides: Partial<Product> & { id: number; stock: number },
@@ -152,5 +160,24 @@ describe('buildDots', () => {
         const fruitBefore = before.filter((dot) => dot.productId === 2)
         const fruitAfter = after.filter((dot) => dot.productId === 2)
         expect(fruitAfter).toEqual(fruitBefore)
+    })
+})
+
+describe('arcIn', () => {
+    test('starts up and to the side, shrunk', () => {
+        expect(arcIn(0)).toEqual({ x: ARC_DRIFT, y: -ARC_RISE, scale: 0.6 })
+    })
+
+    test('ends exactly at rest', () => {
+        const end = arcIn(1)
+        expect(end.x).toBe(0)
+        expect(end.y).toBeCloseTo(0)
+        expect(end.scale).toBe(1)
+    })
+
+    test('never dips below the resting spot while bouncing', () => {
+        for (let step = 0; step <= 100; step++) {
+            expect(arcIn(step / 100).y).toBeLessThanOrEqual(1e-9)
+        }
     })
 })

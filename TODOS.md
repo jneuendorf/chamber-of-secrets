@@ -30,15 +30,8 @@ in particular set the chamber dot size, which sets pile density, which sets
 the scene composition. Auditing afterwards means re-tinting sprites and
 re-spacing the chamber floor.
 
-## WL-5.2 — the add-to-chamber arc-in (its one open bullet)
-
-Mechanics, not art: the diff-driven renderer already animates a dot in when
-stock rises. Landing the arc now means WL-5.5 swaps a sprite into a working
-animation instead of building motion and art at the same time. Also
-unblocks WL-5.6.
-
 ## WL-6.7 — Ambidextrous / one-handed layout
 
 A CSS-var layout flip is cheaper to establish before animations anchor to
-fixed positions. Lowest urgency of the three, but still genuinely
+fixed positions. Lowest urgency of the two, but still genuinely
 pre-design.
