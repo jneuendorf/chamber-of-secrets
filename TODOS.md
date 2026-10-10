@@ -22,8 +22,4 @@ Ordinary unblocked work with **no** coupling to the art pass — WL-6.1
 (export/backup), WL-6.2 (PWA/offline), WL-6.5 (component tests) — is
 deliberately not listed. It's worth doing, just not worth front-loading.
 
-## WL-6.7 — Ambidextrous / one-handed layout
-
-A CSS-var layout flip is cheaper to establish before animations anchor to
-fixed positions. Lowest urgency of the two, but still genuinely
-pre-design.
+_Nothing queued — WL-5.5 is unblocked._

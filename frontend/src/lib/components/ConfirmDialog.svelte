@@ -57,7 +57,7 @@
                     {@render children()}
                 </AlertDialog.Description>
             {/if}
-            <div class="mt-4 flex justify-end gap-2">
+            <div class="mt-4 flex justify-end gap-2 left-hand:flex-row-reverse">
                 <!-- Bits UI's Cancel blocks clicks when disabled but doesn't render
                      the attribute, so render the button ourselves to set it. -->
                 <AlertDialog.Cancel bind:ref={cancelButton} disabled={busy}>

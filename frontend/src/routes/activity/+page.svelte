@@ -238,7 +238,7 @@
                     class="px-2 py-2 border border-bark-600 bg-bark-850 text-ink-100 rounded-md text-base"
                 />
             </label>
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-2 left-hand:flex-row-reverse">
                 <button
                     type="button"
                     onclick={() => (editing = null)}

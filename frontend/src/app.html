@@ -3,12 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- WL-3.3: apply a pinned theme before first paint (key = THEME_KEY in lib/theme.ts). -->
+    <!-- WL-3.3 / WL-6.7: apply a pinned theme and handedness before first paint. -->
     <script>
     try {
       const theme = localStorage.getItem('theme')
       if (theme === 'light' || theme === 'dark') {
         document.documentElement.dataset.theme = theme
+      }
+      // WL-6.7: HAND_KEY in lib/hand.ts.
+      if (localStorage.getItem('hand') === 'left') {
+        document.documentElement.dataset.hand = 'left'
       }
     } catch {}
     </script>

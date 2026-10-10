@@ -80,7 +80,9 @@
                     </span>
                 </div>
 
-                <div class="flex items-center justify-end gap-2">
+                <div
+                    class="flex items-center justify-end gap-2 left-hand:flex-row-reverse"
+                >
                     <button
                         type="button"
                         class="select-none rounded-md border border-bark-600 px-2 py-1 text-sm font-bold text-ink-300 disabled:opacity-40"

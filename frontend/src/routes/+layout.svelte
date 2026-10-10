@@ -3,6 +3,7 @@
 
     import { page } from '$app/state'
     import Celebration from '$lib/components/Celebration.svelte'
+    import HandSwitcher from '$lib/components/HandSwitcher.svelte'
     import LocaleSwitcher from '$lib/components/LocaleSwitcher.svelte'
     import ProfileSwitcher from '$lib/components/ProfileSwitcher.svelte'
     import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte'
@@ -96,6 +97,7 @@
             <div class="nav-actions">
                 <ProfileSwitcher />
                 <ThemeSwitcher />
+                <HandSwitcher />
                 <LocaleSwitcher />
             </div>
         </div>
@@ -216,6 +218,22 @@
         .nav-actions {
             grid-area: locale;
             justify-self: end;
+        }
+
+        /* WL-6.7: switchers under the left thumb. */
+        :global([data-hand='left']) .nav-main {
+            grid-template-columns: auto minmax(0, 1fr);
+            grid-template-areas:
+                'locale brand'
+                'links links';
+        }
+
+        :global([data-hand='left']) .nav-actions {
+            justify-self: start;
+        }
+
+        :global([data-hand='left']) .brand-link {
+            text-align: right;
         }
 
         .nav-links-wrap {

@@ -543,6 +543,12 @@
         pointer-events: none;
     }
 
+    /* WL-6.7: the stats button takes this corner, so the guardian swaps. */
+    :global([data-hand='left']) .guardian {
+        left: auto;
+        right: 4%;
+    }
+
     /* Bare chamber: the guardian sags. Mood-specific art lands with WL-5.5. */
     .scene[data-mood='forlorn'] .guardian,
     .scene[data-mood='sparse'] .guardian {
@@ -712,6 +718,12 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    /* WL-6.7: under the left thumb. */
+    :global([data-hand='left']) .stats-btn {
+        right: auto;
+        left: 1.5rem;
     }
 
     .stats-btn:hover {

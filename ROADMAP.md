@@ -226,9 +226,9 @@ dev M · user low · 🟡
   reuse that core. So far native has always sufficed: `<input type="date">` for
   the analytics range, checkboxes for the OFF opt-in and restock-inherit, a plain
   cycling button for the WL-3.3 theme toggle
-- Candidates are decided by the item that needs them: Switch → WL-6.7
-  (handedness; likely a plain button too), Tooltip → WL-6.6 (onboarding).
-  AlertDialog landed with WL-6.4
+- Candidates are decided by the item that needs them: Tooltip → WL-6.6
+  (onboarding). AlertDialog landed with WL-6.4; WL-6.7's handedness toggle
+  is a plain button, no Switch
 
 - [x] **WL-3.5: UX Polish (round 2)** ✅
 
@@ -536,15 +536,21 @@ dev S · user med · 🟡
 
 - [ ] Guided "scan your first item" beat from the empty chamber (doubles as the first achievement)
 
-- [ ] **WL-6.7: Ambidextrous / One-Handed Layout** ⬜
+- [x] **WL-6.7: Ambidextrous / One-Handed Layout** ✅
 
 dev S · user med · 🟡
 
-- [ ] Left/right-handed mode: mirror the reach-critical controls (chamber
+- [x] Left/right-handed mode: mirror the reach-critical controls (chamber
       consume stepper, primary action buttons, nav/switcher placement) so the
       thumb of the chosen hand covers them one-handed on a phone
-- [ ] Handedness toggle in settings, persisted in `localStorage` (default:
+- [x] Handedness toggle in settings, persisted in `localStorage` (default:
       right); a CSS-var/`dir`-style flip, not duplicated markup
+  - `$lib/hand.ts` sets `data-hand="left"` on `<html>` (pre-paint in
+    `app.html`); markup mirrors via the `left-hand:` Tailwind variant
+    (`flex-row-reverse` on action rows), scoped styles via
+    `:global([data-hand='left'])`
+  - No settings page exists, so the toggle is a 👉/👈 button beside the
+    theme toggle in the nav
 
 - [ ] **WL-6.8: End-to-End Smoke Tests** ⬜
 

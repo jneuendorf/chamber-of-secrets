@@ -156,6 +156,11 @@ emerges from knowing what's in stock:
     44×44 px.
   - Icon-only controls and the chamber's emoji (guardian, badges) carry
     screen-reader labels; decorative glyphs are hidden from them.
+- **Left- or right-handed**: a 👉/👈 toggle in the navigation bar (default
+  right, remembered on the device, applied before the first paint) mirrors the
+  controls a thumb reaches for on a phone — the chamber's stats button (the
+  guardian swaps corners with it), the consume sheet's use/stepper row, the
+  confirm/save buttons of dialogs, and the switchers in the mobile nav bar.
 
 ### 2.9 Profiles & Attribution
 

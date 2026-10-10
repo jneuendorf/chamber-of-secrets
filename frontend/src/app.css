@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* WL-6.7: mirror reach-critical controls for left-handed use (`$lib/hand.ts`). */
+@custom-variant left-hand (&:where([data-hand="left"] *));
+
 /*
  * Design tokens — the one place to retheme the app.
  *
