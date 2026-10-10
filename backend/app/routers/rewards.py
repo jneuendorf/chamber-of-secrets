@@ -46,9 +46,7 @@ def redeem_reward(reward_id: int, profile_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=409, detail="Reward not unlocked yet")
 
     existing = (
-        db.query(ProfileReward)
-        .filter_by(profile_id=profile_id, reward_tier_id=reward_id)
-        .first()
+        db.query(ProfileReward).filter_by(profile_id=profile_id, reward_tier_id=reward_id).first()
     )
     if existing:  # already redeemed — idempotent, nothing to do
         return

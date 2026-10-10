@@ -40,9 +40,7 @@ def create_transaction(
     # SQLite doesn't enforce the FK (pragma off), so attribution is checked here.
     # Existence only — an archived profile is still a valid target, since a device
     # may hold a stale selection until its next reload.
-    profile = (
-        get_profile_or_404(data.profile_id, db) if data.profile_id is not None else None
-    )
+    profile = get_profile_or_404(data.profile_id, db) if data.profile_id is not None else None
 
     if data.type == "out":
         current_stock = sum(
