@@ -22,14 +22,6 @@ Ordinary unblocked work with **no** coupling to the art pass — WL-6.1
 (export/backup), WL-6.2 (PWA/offline), WL-6.5 (component tests) — is
 deliberately not listed. It's worth doing, just not worth front-loading.
 
-## WL-6.4 — Accessibility & legibility, as an input to the art brief
-
-Contrast ratios and minimum tap-target sizes are constraints the art pass
-should be given, not a polish pass applied after it. Kid-sized tap targets
-in particular set the chamber dot size, which sets pile density, which sets
-the scene composition. Auditing afterwards means re-tinting sprites and
-re-spacing the chamber floor.
-
 ## WL-6.7 — Ambidextrous / one-handed layout
 
 A CSS-var layout flip is cheaper to establish before animations anchor to

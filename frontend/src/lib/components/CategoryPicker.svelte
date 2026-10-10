@@ -105,7 +105,8 @@
                         }
                     }}
                     class="ml-0.5 text-xs opacity-40 hover:opacity-100 cursor-pointer"
-                    title={$_('category.editIcon')}>✎</span
+                    title={$_('category.editIcon')}
+                    aria-label={$_('category.editIcon')}>✎</span
                 >
             {/if}
         </button>

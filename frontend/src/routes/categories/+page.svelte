@@ -3,8 +3,8 @@
     import { _ } from 'svelte-i18n'
 
     import { ApiError, api, type Category } from '$lib/api/client'
+    import ConfirmDialog from '$lib/components/ConfirmDialog.svelte'
     import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
-    import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
     import { resolveIcon } from '$lib/utils/category'
 
@@ -463,7 +463,7 @@
 {/if}
 
 {#if error}
-    <p class="text-danger-500">{error}</p>
+    <p class="text-danger-300">{error}</p>
 {/if}
 
 {#if !loading && categories.length === 0}
@@ -518,6 +518,10 @@
                                     title={expanded.has(cat.id)
                                         ? $_('category.collapse')
                                         : $_('category.expand')}
+                                    aria-label={expanded.has(cat.id)
+                                        ? $_('category.collapse')
+                                        : $_('category.expand')}
+                                    aria-expanded={expanded.has(cat.id)}
                                 >
                                     ›
                                 </button>
@@ -663,76 +667,26 @@
     {/key}
 {/if}
 
-<Modal
+<ConfirmDialog
     open={confirmingDelete !== null}
     title={$_('category.deleteConfirm', {
         values: { name: confirmingDelete?.name ?? '' },
     })}
+    confirmLabel={$_('category.deleteButton')}
+    onconfirm={confirmDelete}
     onclose={closeDeleteConfirm}
+    busy={deletingId !== null}
 >
     {#if deleteError}
         <p class="delete-error" role="alert">{deleteError}</p>
     {/if}
-    <div class="confirm-actions">
-        <button
-            type="button"
-            class="confirm-cancel"
-            disabled={deletingId !== null}
-            onclick={closeDeleteConfirm}
-        >
-            {$_('common.cancel')}
-        </button>
-        <button
-            type="button"
-            class="confirm-delete"
-            disabled={deletingId !== null}
-            onclick={confirmDelete}
-        >
-            {$_('category.deleteButton')}
-        </button>
-    </div>
-</Modal>
+</ConfirmDialog>
 
 <style>
     .delete-error {
         margin: 0 0 0.75rem;
         color: var(--color-danger-300);
         font-size: 0.9rem;
-    }
-
-    .confirm-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .confirm-cancel {
-        background: var(--color-bark-850);
-        color: var(--color-ink-200);
-        border: 1px solid var(--color-bark-600);
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .confirm-cancel:hover {
-        background: var(--color-bark-730);
-    }
-
-    .confirm-delete {
-        background: var(--color-danger-900);
-        color: var(--color-danger-200);
-        border: 1px solid var(--color-danger-800);
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .confirm-delete:hover {
-        background: var(--color-danger-800);
     }
 
     .drill-header {
@@ -745,7 +699,7 @@
     .drill-back {
         background: none;
         border: none;
-        color: var(--color-info-500);
+        color: var(--color-info-400);
         font-size: 1.4rem;
         font-weight: 600;
         cursor: pointer;
@@ -855,7 +809,7 @@
     .child-badge {
         margin-left: auto;
         font-size: 0.8rem;
-        color: var(--color-info-500);
+        color: var(--color-info-400);
         font-weight: 600;
         white-space: nowrap;
     }

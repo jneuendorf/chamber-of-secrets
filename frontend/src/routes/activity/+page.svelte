@@ -9,6 +9,7 @@
         type Product,
         type Transaction,
     } from '$lib/api/client'
+    import ConfirmDialog from '$lib/components/ConfirmDialog.svelte'
     import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
     import { resolveIcon } from '$lib/utils/category'
@@ -139,7 +140,7 @@
 {#if loading}
     <p>{$_('common.loading')}</p>
 {:else if error}
-    <p class="text-danger-500">{error}</p>
+    <p class="text-danger-300">{error}</p>
 {:else if transactions.length === 0}
     <p class="text-center text-ink-300 my-12">{$_('activity.empty')}</p>
 {:else}
@@ -258,29 +259,15 @@
     {/if}
 </Modal>
 
-<Modal
+<ConfirmDialog
     open={deleting !== null}
     title={$_('activity.delete')}
+    confirmLabel={$_('activity.delete')}
+    onconfirm={confirmDelete}
     onclose={() => (deleting = null)}
 >
-    <p class="mt-0 text-ink-200">{$_('activity.deleteConfirm')}</p>
-    <div class="mt-4 flex justify-end gap-2">
-        <button
-            type="button"
-            onclick={() => (deleting = null)}
-            class="px-3 py-2 text-sm rounded-lg border border-bark-600 bg-bark-850 text-ink-200"
-        >
-            {$_('common.cancel')}
-        </button>
-        <button
-            type="button"
-            onclick={confirmDelete}
-            class="px-3 py-2 text-sm rounded-lg border-0 bg-danger-500 text-white"
-        >
-            {$_('activity.delete')}
-        </button>
-    </div>
-</Modal>
+    {$_('activity.deleteConfirm')}
+</ConfirmDialog>
 
 <style>
     .added {

@@ -128,6 +128,9 @@ emerges from knowing what's in stock:
   undeletable because a product still referenced it.
 - **Merge duplicates**: pick a survivor for a duplicate product; its
   movements are repointed onto the survivor and the duplicate is removed.
+- Every destructive step (movement delete, product delete/merge, category
+  delete) asks first in a confirm dialog that starts focused on **Cancel**, so
+  a stray Enter can't delete, and a tap outside doesn't dismiss it.
 
 ### 2.7 Internationalization
 
@@ -146,6 +149,13 @@ emerges from knowing what's in stock:
 - All colors are design tokens in one file (`src/app.css`), each defined as a
   light/dark pair, so either theme is adjusted by editing a single value.
   Charts read the same tokens and redraw when the theme changes.
+- **Legible and tappable for kids**:
+  - Every text/surface pairing meets WCAG AA (4.5:1 text, 3:1 UI parts) in
+    both themes, enforced by a test over the tokens.
+  - On touch screens every control, chamber items included, is at least
+    44×44 px.
+  - Icon-only controls and the chamber's emoji (guardian, badges) carry
+    screen-reader labels; decorative glyphs are hidden from them.
 
 ### 2.9 Profiles & Attribution
 

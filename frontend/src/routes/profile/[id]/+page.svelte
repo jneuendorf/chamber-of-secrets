@@ -330,6 +330,9 @@
 
 <style>
     .back-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
         color: var(--color-ink-300);
         font-size: 0.9rem;
         width: fit-content;
@@ -541,11 +544,12 @@
 
     .reward-desc-input {
         flex: 1;
+        min-width: 0;
     }
 
     .reward-add {
-        background: var(--color-accent-500);
-        color: var(--color-bark-900);
+        background: var(--color-accent-700);
+        color: white;
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         font-weight: 600;

@@ -210,7 +210,7 @@
     .drill-back {
         background: none;
         border: none;
-        color: var(--color-info-500);
+        color: var(--color-info-400);
         font-size: 1.4rem;
         font-weight: 600;
         cursor: pointer;

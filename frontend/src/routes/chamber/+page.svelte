@@ -341,7 +341,7 @@
         <p class="state-msg error-msg">{error}</p>
     {:else if products.length === 0}
         <div class="empty-state">
-            <p class="empty-icon">🏚️</p>
+            <p class="empty-icon" aria-hidden="true">🏚️</p>
             <p class="empty-text">{$_('chamber.empty')}</p>
             <a href="/scan" class="cta-link">{$_('chamber.scanCta')}</a>
         </div>
@@ -374,7 +374,12 @@
                         </button>
                     {/each}
                 </div>
-                <p class="guardian" title={$_(`chamber.mood.${mood}`)}>
+                <p
+                    class="guardian"
+                    role="img"
+                    title={$_(`chamber.mood.${mood}`)}
+                    aria-label={$_(`chamber.mood.${mood}`)}
+                >
                     {GUARDIAN_GLYPH[mood]}
                 </p>
             </div>
@@ -384,7 +389,7 @@
 
 <!-- Consume toast with undo -->
 {#if toastMsg}
-    <div class="consume-toast">
+    <div class="consume-toast" role="status">
         <span>{toastMsg}</span>
         {#if pendingUndo}
             <button type="button" class="toast-undo" onclick={undoConsume}>
@@ -416,6 +421,7 @@
         class="stats-btn"
         onclick={() => (statsOpen = true)}
         title={$_('chamber.statsTitle')}
+        aria-label={$_('chamber.statsTitle')}
     >
         📜
     </button>
@@ -424,29 +430,29 @@
 <!-- Stats modal -->
 <Modal
     open={statsOpen}
-    title="📜 {$_('chamber.statsTitle')}"
+    title={$_('chamber.statsTitle')}
     onclose={() => (statsOpen = false)}
     width="min(340px, 100%)"
 >
     <table class="stats-table">
         <tbody>
             <tr>
-                <td>{$_('chamber.available')}</td>
+                <th scope="row">{$_('chamber.available')}</th>
                 <td class="stat-val">{available}</td>
             </tr>
             <tr>
-                <td>{$_('chamber.required')}</td>
+                <th scope="row">{$_('chamber.required')}</th>
                 <td class="stat-val" class:stat-depleted={needsRestock > 0}
                     >{needsRestock}</td
                 >
             </tr>
             <tr>
-                <td>{$_('chamber.totalStock')}</td>
+                <th scope="row">{$_('chamber.totalStock')}</th>
                 <td class="stat-val">{totalItems}</td>
             </tr>
             {#if $activeProfile}
                 <tr>
-                    <td>{$_('chamber.xp')}</td>
+                    <th scope="row">{$_('chamber.xp')}</th>
                     <td class="stat-val"
                         >{$activeProfile.xp} · {$_('profile.level', {
                             values: { level: $activeProfile.level },
@@ -454,14 +460,14 @@
                     >
                 </tr>
                 <tr>
-                    <td>{$_('chamber.streak')}</td>
+                    <th scope="row">{$_('chamber.streak')}</th>
                     <td class="stat-val"
                         ><StreakFlame streak={$activeProfile.current_streak} />
                         {$activeProfile.current_streak}</td
                     >
                 </tr>
                 <tr>
-                    <td>{$_('chamber.badges')}</td>
+                    <th scope="row">{$_('chamber.badges')}</th>
                     <td class="stat-val">
                         {#if $activeProfile.achievements.length === 0}
                             {$_('chamber.badgesNone')}
@@ -469,6 +475,10 @@
                             {#each $activeProfile.achievements as key (key)}
                                 <span
                                     class="badge"
+                                    role="img"
+                                    aria-label="{$_(`achievement.${key}.name`)} — {$_(
+                                        `achievement.${key}.desc`,
+                                    )}"
                                     title="{$_(`achievement.${key}.name`)} — {$_(
                                         `achievement.${key}.desc`,
                                     )}">{achievementGlyph(key)}</span
@@ -614,8 +624,10 @@
     }
 
     .cta-link {
-        display: inline-block;
-        padding: 0.4rem 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0 1.1rem;
         background: color-mix(in srgb, var(--color-gold) 12%, transparent);
         border: 1px solid color-mix(in srgb, var(--color-gold) 35%, transparent);
         border-radius: 6px;
@@ -714,9 +726,15 @@
         font-size: 0.85rem;
     }
 
+    .stats-table th,
     .stats-table td {
         padding: 0.28rem 0;
         color: var(--color-ink-250);
+    }
+
+    .stats-table th {
+        text-align: left;
+        font-weight: normal;
     }
 
     .stat-val {

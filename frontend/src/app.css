@@ -11,8 +11,10 @@
  * is always the strongest text, `bark-850` always the card surface, `ink-900`
  * always the input/control background — they just resolve to dark text on a
  * light card in light mode. Step names follow the dark theme they were born in.
- * Steps without a pair (`accent-900`/`700`/`500`, mid status colors, `gold`)
- * read well on both.
+ * Steps without a pair (`accent-900`/`700`/`500`, mid status colors) read well
+ * on both. Text belongs on the text roles (`ink-*`, status `100`–`400`); the mid
+ * status steps are fills and accents. `src/lib/contrast.test.ts` holds every
+ * pairing to WCAG AA (4.5:1 text, 3:1 UI parts) in both themes (WL-6.4).
  *
  * Tailwind v4 turns each `--color-<name>` into utilities (`bg-<name>`,
  * `text-<name>`, …) and a CSS variable for scoped <style> blocks
@@ -42,7 +44,7 @@
     --color-ink-900: light-dark(#ffffff, #111827);
     --color-ink-700: light-dark(#ddd2bf, #374151);
     --color-ink-600: light-dark(#c9bda8, #4b5563);
-    --color-ink-500: light-dark(#82786a, #6b7280);
+    --color-ink-500: light-dark(#736958, #949aa3);
     --color-ink-400: light-dark(#6b6152, #9ca3af);
     --color-ink-300: light-dark(#4f463a, #cbd5e1);
     --color-ink-250: light-dark(#3d352a, #d1d5db);
@@ -56,13 +58,13 @@
     --color-accent-300: light-dark(#4338ca, #a5b4fc);
     --color-accent-100: light-dark(#3730a3, #e0e0ff);
 
-    /* Gold — chamber treasure accents (used with color-mix for alpha) */
-    --color-gold: #ffd700;
+    /* Gold — treasure accents (used with color-mix for alpha); deeper on light */
+    --color-gold: light-dark(#b8860b, #ffd700);
 
     /* Status — 900/800 tint surfaces, 100–300 text on them */
     --color-danger-900: light-dark(#fee2e2, #7f1d1d);
     --color-danger-800: light-dark(#fecaca, #991b1b);
-    --color-danger-500: #e74c3c;
+    --color-danger-500: #d03a2b; /* fill under white text */
     --color-danger-450: #ef4444;
     --color-danger-300: light-dark(#b91c1c, #f87171);
     --color-danger-200: light-dark(#991b1b, #fca5a5);
@@ -70,18 +72,18 @@
 
     --color-success-900: light-dark(#dcfce7, #14532d);
     --color-success-800: light-dark(#bbf7d0, #166534);
-    --color-success-700: #1f9d55;
+    --color-success-700: #1a7f45; /* fill under white text */
     --color-success-600: #27ae60;
-    --color-success-300: light-dark(#15803d, #86efac);
+    --color-success-300: light-dark(#14763a, #86efac);
     --color-success-200: light-dark(#166534, #bbf7d0);
     --color-success-100: light-dark(#14532d, #bbf7d0);
 
     --color-warning-550: #f39c12;
     --color-warning-500: #f59e0b;
-    --color-warning-400: light-dark(#b45309, #fbbf24);
+    --color-warning-400: light-dark(#a64d08, #fbbf24);
 
     --color-info-500: #3498db;
-    --color-info-400: light-dark(#2563eb, #5dade2);
+    --color-info-400: light-dark(#1d4ed8, #5dade2);
 }
 
 /* Theme selection: system by default, pinned by the toggle. A subtree can pin
@@ -115,5 +117,24 @@
        scroll) doesn't remove the scrollbar and shift fixed/centered content. */
     html {
         scrollbar-gutter: stable;
+    }
+
+    /* Kid-sized tap targets (WL-6.4): on touch screens every control is at
+       least 44×44 px (WCAG 2.5.5), chamber items included. `:where` keeps this
+       at zero specificity, so a component can still opt out deliberately. */
+    @media (pointer: coarse) {
+        :where(
+                button,
+                select,
+                nav a,
+                [role="button"],
+                input:not([type="checkbox"], [type="radio"], [type="range"])
+            ) {
+            min-height: 2.75rem;
+        }
+
+        :where(button, [role="button"]) {
+            min-width: 2.75rem;
+        }
     }
 }

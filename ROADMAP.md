@@ -227,8 +227,8 @@ dev M · user low · 🟡
   the analytics range, checkboxes for the OFF opt-in and restock-inherit, a plain
   cycling button for the WL-3.3 theme toggle
 - Candidates are decided by the item that needs them: Switch → WL-6.7
-  (handedness; likely a plain button too), Tooltip → WL-6.6 (onboarding),
-  AlertDialog → WL-6.4
+  (handedness; likely a plain button too), Tooltip → WL-6.6 (onboarding).
+  AlertDialog landed with WL-6.4
 
 - [x] **WL-3.5: UX Polish (round 2)** ✅
 
@@ -446,6 +446,19 @@ that export cleanly to SVG; transparent backgrounds for sprites; no text in
 images. Feed these as prompts to an image/Lottie generator, then tokenize
 colors to the theme.
 
+Hard constraints from WL-6.4 (give these to the generator, don't audit
+afterward):
+
+- **Item tokens**: drawn at about 29–69 px (`clamp(1.8rem, 5.4vh, 4.3rem)`), but each
+  sits in a ≥ 44 × 44 px tap target, so pile density and the floor composition
+  must leave room for that.
+- **Legibility**: sprites sit on the dark chamber, so the silhouette needs ≥ 3:1
+  against it. Any text keeps ≥ 4.5:1, and colors map to the tokens that
+  `contrast.test.ts` already checks.
+- **Labels**: art is decorative to screen readers. Anything that carries meaning,
+  such as the guardian's mood or a badge, keeps its text label, so no
+  information may live only in the image.
+
 - **Chamber scene (background, per level).** "A cozy underground stone pantry
   and treasure chamber, warm torchlight, wooden shelves along the walls, stone
   floor, soft golden glow, painterly storybook style, flat front-on view, empty
@@ -495,12 +508,15 @@ dev S · user med · 🟡
 - [x] Same for profiles: `GET /profiles/{id}` (archived ones resolve; unknown id → 404) replaced the three `profiles.list(true)` + find sites — `refreshProfile()` and the `/profile/[id]` load and post-redeem refetch
 - [ ] Page loads refetch whole lists on every `$effect` run (chamber, inventory, activity). Harmless at household scale; revisit only if it becomes visible
 
-- [ ] **WL-6.4: Accessibility & Legibility** ⬜
+- [x] **WL-6.4: Accessibility & Legibility** ✅
 
 dev S · user med · 🟡
 
-- [ ] Contrast audit of both themes (the WL-3.3 light values are a first pass — e.g. `danger-500` text on a light card is ~3.8:1; the gold Pantry-dex card border is faint on light); larger tap targets for small hands; screen-reader labels (chamber decorative emojis, stat tables)
-- [ ] Destructive confirms (activity delete, inventory delete/merge, category delete — today a plain `Modal`) → Bits UI `AlertDialog`: announced as `alertdialog`, initial focus on Cancel so a stray Enter can't delete. Shares `Dialog`'s core, so near-zero bundle cost
+- [x] Contrast audit of both themes: `src/lib/contrast.test.ts` reads the tokens from `app.css` and holds every text/surface pairing to WCAG AA (4.5:1 text, 3:1 UI parts) in light and dark. Fixes: `ink-500`, light `success-300`/`warning-400`/`info-400` deepened; `danger-500`/`success-700` darkened as fills under white text; `gold` became a `light-dark()` pair (the Pantry-dex border was ~1.4:1 on light); error/stock/link text moved off the mid status steps onto the text roles; the reward button and the active inventory filter chip got readable text
+- [x] Larger tap targets: under `(pointer: coarse)` every button, select, input and nav link is at least 44×44 px (WCAG 2.5.5) via a zero-specificity `:where()` rule in `app.css`. That includes chamber items. The inventory camera badge keeps its small look inside a 44 px hit area; the profile back link and the chamber's empty-state CTA got the same height
+- [x] Screen-reader labels: chamber guardian (`role="img"`, mood as label), badges, the stats button, inventory image/camera buttons, category expand (`aria-expanded`) and icon-edit controls; the empty-chamber glyph is `aria-hidden`; the ledger's label cells are `<th scope="row">`; the consume toast is a `status`
+- [x] Destructive confirms (activity delete, inventory delete/merge, category delete) → `ConfirmDialog.svelte` over Bits UI `AlertDialog`: announced as `alertdialog`, initial focus on Cancel, outside taps ignored
+- Left: input and card borders (`bark-600`) are ~1.8:1 on light, below the 3:1 that WCAG 1.4.11 wants for input edges. Retinting them restyles every card, so it goes to the WL-5.5 design pass, with that ratio as a given
 
 - [ ] **WL-6.5: Interactive Test Coverage** ⬜
 

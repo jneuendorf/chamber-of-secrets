@@ -463,7 +463,7 @@
 
     {#if lookupError}
         <div class="text-center my-4">
-            <p class="text-danger-500">{lookupError}</p>
+            <p class="text-danger-300">{lookupError}</p>
             <button
                 type="button"
                 onclick={() => enterManualMode(lastScannedCode)}

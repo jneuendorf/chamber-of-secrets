@@ -4,8 +4,8 @@
 
     import { ApiError, api, type Category, type Product } from '$lib/api/client'
     import CategoryPicker from '$lib/components/CategoryPicker.svelte'
+    import ConfirmDialog from '$lib/components/ConfirmDialog.svelte'
     import FuzzySearchOverlay from '$lib/components/FuzzySearchOverlay.svelte'
-    import Modal from '$lib/components/Modal.svelte'
     import Select from '$lib/components/Select.svelte'
     import { refreshProfile } from '$lib/progression'
     import {
@@ -274,7 +274,7 @@
 {#if loading}
     <p>{$_('common.loading')}</p>
 {:else if error}
-    <p class="text-danger-500">{error}</p>
+    <p class="text-danger-300">{error}</p>
 {:else if products.length === 0}
     <p class="text-center text-ink-500 my-12">
         {$_('inventory.empty')} <a href="/scan">{$_('inventory.scanCta')}</a>
@@ -338,12 +338,17 @@
                                     ? 'inventory.changeImage'
                                     : 'inventory.addImage',
                             )}
+                            aria-label={$_(
+                                product.image_url
+                                    ? 'inventory.changeImage'
+                                    : 'inventory.addImage',
+                            )}
                             onclick={() => triggerGallery(product.id)}
                         >
                             {#if product.image_url}
                                 <img
                                     src={product.image_url}
-                                    alt={product.name}
+                                    alt=""
                                     class="w-12 h-12 rounded-lg object-cover"
                                 />
                             {:else}
@@ -358,9 +363,10 @@
                             type="button"
                             class="camera-btn"
                             title={$_('scanner.camera')}
+                            aria-label={$_('scanner.camera')}
                             onclick={() => triggerCamera(product.id)}
                         >
-                            📷
+                            <span class="camera-badge">📷</span>
                         </button>
                     </div>
                     <div class="flex-1 min-w-0">
@@ -458,42 +464,28 @@
     </div>
 {/if}
 
-<Modal
+<ConfirmDialog
     open={deletingProduct !== null}
     title={$_('inventory.deleteProduct')}
+    confirmLabel={$_('inventory.deleteProduct')}
+    onconfirm={confirmDeleteProduct}
     onclose={() => (deletingProduct = null)}
 >
-    {#if deletingProduct}
-        <p class="mt-0 text-ink-200">
-            {$_('inventory.deleteConfirm', {
-                values: { name: deletingProduct.name },
-            })}
-        </p>
-        <div class="mt-4 flex justify-end gap-2">
-            <button
-                type="button"
-                onclick={() => (deletingProduct = null)}
-                class="px-3 py-2 text-sm rounded-lg border border-bark-600 bg-bark-850 text-ink-200"
-            >
-                {$_('common.cancel')}
-            </button>
-            <button
-                type="button"
-                onclick={confirmDeleteProduct}
-                class="px-3 py-2 text-sm rounded-lg border-0 bg-danger-500 text-white"
-            >
-                {$_('inventory.deleteProduct')}
-            </button>
-        </div>
-    {/if}
-</Modal>
+    {$_('inventory.deleteConfirm', {
+        values: { name: deletingProduct?.name ?? '' },
+    })}
+</ConfirmDialog>
 
-<Modal
+<ConfirmDialog
     open={mergingProduct !== null}
     title={mergingProduct
         ? $_('inventory.mergeTitle', { values: { name: mergingProduct.name } })
         : ''}
+    confirmLabel={$_('inventory.mergeConfirm')}
+    onconfirm={confirmMerge}
     onclose={closeMerge}
+    disabled={mergeTargetId === 'none'}
+    tone="primary"
 >
     {#if mergingProduct}
         <p class="mt-0 text-ink-250 text-sm">
@@ -508,25 +500,8 @@
                 class="rounded-lg border border-bark-600 bg-bark-850 px-3 py-2 text-ink-100"
             />
         </label>
-        <div class="mt-4 flex justify-end gap-2">
-            <button
-                type="button"
-                onclick={closeMerge}
-                class="px-3 py-2 text-sm rounded-lg border border-bark-600 bg-bark-850 text-ink-200"
-            >
-                {$_('common.cancel')}
-            </button>
-            <button
-                type="button"
-                onclick={confirmMerge}
-                disabled={mergeTargetId === 'none'}
-                class="px-3 py-2 text-sm rounded-lg border-0 bg-accent-900 text-white disabled:opacity-50"
-            >
-                {$_('inventory.mergeConfirm')}
-            </button>
-        </div>
     {/if}
-</Modal>
+</ConfirmDialog>
 
 <style>
     .heading-row {
@@ -589,7 +564,7 @@
     .filter-chip.active {
         background: var(--color-warning-550);
         border-color: var(--color-warning-550);
-        color: var(--color-ink-900);
+        color: var(--color-accent-900);
     }
 
     .image-group {
@@ -606,22 +581,32 @@
         border-radius: 0.5rem;
     }
 
+    /* A 44px tap target centered on the small corner badge (WL-6.4). */
     .camera-btn {
         display: none;
         position: absolute;
-        bottom: -4px;
-        right: -4px;
-        width: 1.3rem;
-        height: 1.3rem;
-        border-radius: 50%;
+        bottom: -1rem;
+        right: -1rem;
+        width: 2.75rem;
+        height: 2.75rem;
         border: none;
-        background: rgba(0, 0, 0, 0.75);
-        font-size: 0.65rem;
-        line-height: 1;
+        background: none;
         cursor: pointer;
         align-items: center;
         justify-content: center;
         padding: 0;
+    }
+
+    .camera-badge {
+        display: flex;
+        width: 1.3rem;
+        height: 1.3rem;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.75);
+        font-size: 0.65rem;
+        line-height: 1;
+        align-items: center;
+        justify-content: center;
     }
 
     @media (hover: none) {
@@ -666,16 +651,16 @@
     .stock {
         font-size: 1.5rem;
         font-weight: 700;
-        color: var(--color-success-600);
+        color: var(--color-success-300);
         min-width: 2.25rem;
         text-align: center;
     }
 
     .stock.low {
-        color: var(--color-warning-550);
+        color: var(--color-warning-400);
     }
 
     .stock.out {
-        color: var(--color-danger-500);
+        color: var(--color-danger-300);
     }
 </style>

@@ -269,7 +269,8 @@
     }
 
     .nav-link {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         color: var(--color-ink-250);
         text-decoration: none;
         padding: 0.35rem 0.7rem;

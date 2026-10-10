@@ -314,7 +314,7 @@
     {/if}
 
     {#if error && !modalOpen}
-        <p class="text-danger-500 text-sm">{error}</p>
+        <p class="text-danger-300 text-sm">{error}</p>
     {/if}
 </div>
 
@@ -358,7 +358,7 @@
 
         <!-- Camera selector + error -->
         {#if error}
-            <p class="text-danger-500 text-sm text-center">{error}</p>
+            <p class="text-danger-300 text-sm text-center">{error}</p>
         {/if}
 
         {#if cameras.length > 1}

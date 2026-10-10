@@ -586,7 +586,7 @@
     }
 
     .error {
-        color: var(--color-danger-500);
+        color: var(--color-danger-300);
     }
 
     .empty {
