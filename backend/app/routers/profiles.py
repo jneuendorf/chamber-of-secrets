@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Profile
-from app.schemas import ProfileCreate, ProfileRead, ProfileUpdate
+from app.models import InventoryTransaction, Profile
+from app.schemas import PantryDexEntry, ProfileCreate, ProfileRead, ProfileUpdate
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -31,6 +32,31 @@ def list_profiles(
 @router.get("/{profile_id}", response_model=ProfileRead)
 def get_profile(profile_id: int, db: Session = Depends(get_db)) -> Profile:
     return get_profile_or_404(profile_id, db)
+
+
+@router.get("/{profile_id}/pantry-dex", response_model=list[PantryDexEntry])
+def get_pantry_dex(profile_id: int, db: Session = Depends(get_db)) -> list[PantryDexEntry]:
+    """Products this profile has stocked (WL-5.4), in the order they were first
+    collected. Derived from attributed `in` movements, so nothing is stored."""
+    get_profile_or_404(profile_id, db)
+    first_collected = func.min(InventoryTransaction.transacted_at)
+    rows = db.execute(
+        select(
+            InventoryTransaction.product_id,
+            first_collected,
+            func.count(InventoryTransaction.id),
+        )
+        .where(
+            InventoryTransaction.profile_id == profile_id,
+            InventoryTransaction.type == "in",
+        )
+        .group_by(InventoryTransaction.product_id)
+        .order_by(first_collected, InventoryTransaction.product_id),
+    ).all()
+    return [
+        PantryDexEntry(product_id=product_id, first_collected_at=first_at, times_stocked=times)
+        for product_id, first_at, times in rows
+    ]
 
 
 @router.post("/", response_model=ProfileRead, status_code=201)

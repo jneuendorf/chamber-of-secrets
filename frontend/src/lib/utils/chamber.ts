@@ -211,13 +211,14 @@ export function emojiFor(name: string, category: string | null): string {
     return '📦'
 }
 
-interface ResolvedIcon {
+export interface ResolvedIcon {
     emoji: string
     isUrl: boolean
     src: string
 }
 
-function iconFor(product: Product, allCategories: Category[]): ResolvedIcon {
+/** A product's glyph: its category's custom icon/image, else a name-guessed emoji. */
+export function iconFor(product: Product, allCategories: Category[]): ResolvedIcon {
     const catIcon = resolveIcon(product.category, allCategories)
     if (catIcon && isUrl(catIcon)) {
         return { emoji: '', isUrl: true, src: catIcon }

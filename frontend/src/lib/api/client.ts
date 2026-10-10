@@ -16,6 +16,7 @@ export type Category = Schemas['CategoryRead']
 export type EANLookupResult = Schemas['EANLookupResult']
 export type AvatarConfig = Schemas['AvatarConfig']
 export type Profile = Schemas['ProfileRead']
+export type PantryDexEntry = Schemas['PantryDexEntry']
 export type Transaction = Schemas['TransactionRead']
 export type RewardTier = Schemas['RewardTierRead']
 export type SpendingByCategory = Schemas['SpendingByCategory']
@@ -216,6 +217,9 @@ export const api = {
             ),
         /** Archived profiles resolve too; an unknown id is a 404 `ApiError`. */
         get: (id: number) => request<Profile>(`/profiles/${id}`),
+        /** Products the profile has stocked, in first-collected order (WL-5.4). */
+        pantryDex: (id: number) =>
+            request<PantryDexEntry[]>(`/profiles/${id}/pantry-dex`),
         create: (data: {
             name: string
             avatar_config?: AvatarConfig

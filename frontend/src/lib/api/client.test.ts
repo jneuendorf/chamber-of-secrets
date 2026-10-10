@@ -232,6 +232,12 @@ describe('api.profiles', () => {
             expect(lastCall(fetch).url).toEndWith('/profiles/3')
             expect(lastCall(fetch).options?.method).toBeUndefined()
         }))
+
+    test('pantryDex(id) calls GET /profiles/:id/pantry-dex', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            await api.profiles.pantryDex(3)
+            expect(lastCall(fetch).url).toEndWith('/profiles/3/pantry-dex')
+        }))
 })
 
 describe('api.analytics', () => {

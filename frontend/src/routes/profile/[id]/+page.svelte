@@ -6,11 +6,20 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n'
 
-    import { ApiError, api, type Profile, type RewardTier } from '$lib/api/client'
+    import {
+        ApiError,
+        api,
+        type Category,
+        type PantryDexEntry,
+        type Product,
+        type Profile,
+        type RewardTier,
+    } from '$lib/api/client'
     import Avatar from '$lib/components/Avatar.svelte'
     import StreakFlame from '$lib/components/StreakFlame.svelte'
     import { activeProfileId } from '$lib/profiles'
     import { ACHIEVEMENT_KEYS, achievementGlyph, xpForLevel } from '$lib/progression'
+    import { iconFor } from '$lib/utils/chamber'
 
     let { data }: { data: { id: number } } = $props()
 
@@ -24,12 +33,27 @@
     let newDescription = $state('')
     let rewardError = $state('')
 
+    // Pantry-dex (WL-5.4): every product in the household is a card slot, in a
+    // fixed (creation) order; the ones this profile has stocked are collected.
+    let products = $state<Product[]>([])
+    let categories = $state<Category[]>([])
+    let dex = $state(new Map<number, PantryDexEntry>())
+
     $effect(() => {
         loading = true
-        Promise.all([api.profiles.get(data.id), api.rewards.list()])
-            .then(([found, tiers]) => {
+        Promise.all([
+            api.profiles.get(data.id),
+            api.rewards.list(),
+            api.profiles.pantryDex(data.id),
+            api.products.list(),
+            api.categories.list(),
+        ])
+            .then(([found, tiers, entries, productList, categoryList]) => {
                 profile = found
                 rewards = tiers
+                dex = new Map(entries.map((entry) => [entry.product_id, entry]))
+                products = productList.toSorted((left, right) => left.id - right.id)
+                categories = categoryList
             })
             .catch((err: unknown) => {
                 // A 404 falls through to the localized "not found" state.
@@ -260,6 +284,47 @@
                 <p class="text-sm text-danger-300">{rewardError}</p>
             {/if}
         </section>
+
+        <section class="flex flex-col gap-3">
+            <div class="flex items-baseline justify-between">
+                <h2 class="text-lg font-semibold text-ink-100">
+                    {$_('profile.pantryDex')}
+                </h2>
+                <span class="text-sm text-ink-400"
+                    >{$_('profile.pantryDexCount', {
+                        values: { collected: dex.size, total: products.length },
+                    })}</span
+                >
+            </div>
+            <p class="text-sm text-ink-400">{$_('profile.pantryDexHint')}</p>
+            <ul class="dex-grid">
+                {#each products as product (product.id)}
+                    {@const entry = dex.get(product.id)}
+                    {@const icon = iconFor(product, categories)}
+                    {@const image = product.image_url ?? (icon.isUrl ? icon.src : null)}
+                    <li class="dex-card" class:locked={!entry}>
+                        <span class="dex-visual">
+                            {#if image}
+                                <img src={image} alt="" />
+                            {:else}
+                                {icon.emoji}
+                            {/if}
+                        </span>
+                        {#if entry}
+                            <span class="dex-name">{product.name}</span>
+                            <span class="dex-meta"
+                                >{$_('profile.pantryDexStocked', {
+                                    values: { count: entry.times_stocked },
+                                })}</span
+                            >
+                        {:else}
+                            <span class="dex-name" aria-hidden="true">???</span>
+                            <span class="sr-only">{$_('profile.locked')}</span>
+                        {/if}
+                    </li>
+                {/each}
+            </ul>
+        </section>
     {/if}
 </main>
 
@@ -331,6 +396,66 @@
 
     .badge-desc {
         font-size: 0.75rem;
+        color: var(--color-ink-400);
+    }
+
+    .dex-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+        gap: 0.75rem;
+    }
+
+    .dex-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        text-align: center;
+        background: var(--color-bark-850);
+        border: 1px solid var(--color-gold);
+        border-radius: 0.75rem;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .dex-card.locked {
+        border-color: var(--color-bark-730);
+    }
+
+    .dex-visual {
+        display: grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 2.25rem;
+        line-height: 1;
+    }
+
+    .dex-visual img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 0.375rem;
+    }
+
+    /* Uncollected: a silhouette, like an unseen entry in a field guide. */
+    .dex-card.locked .dex-visual {
+        filter: brightness(0);
+        opacity: 0.3;
+    }
+
+    .dex-name {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--color-ink-100);
+        overflow-wrap: anywhere;
+    }
+
+    .dex-card.locked .dex-name {
+        color: var(--color-ink-400);
+    }
+
+    .dex-meta {
+        font-size: 0.7rem;
         color: var(--color-ink-400);
     }
 

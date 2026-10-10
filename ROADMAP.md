@@ -389,7 +389,7 @@ Depends: WL-5.3 · leaderboard depends on WL-9.2
 - [x] Configurable real-life rewards per tier ("Level 5 → pick movie night") — household-wide `reward_tiers` (level + text); whoever reaches the level unlocks it. Configured and viewed on the profile page (add/remove, unlocked vs locked per profile). **Redeeming is per profile** (`profile_rewards`): mark/un-mark "✓ Redeemed" on your own active-profile page only (login-less UX guard — backend validates the reward is unlocked but can't enforce whose tap it is); others see a read-only redeemed tag. Idempotent, reversible, cascades on tier delete. The level-up "reward unlocked!" toast is its own item — WL-5.7
 - [ ] **Avatar compositor** — render `avatar_config.layers: [{slot, part}]` over the base part, replacing today's emoji stand-in with real SVG. WL-5.1, `FEATURES.md` §2.9 and `schemas.py` all name WL-5.4 as its owner, so it belongs here. Additive on a JSON column — no migration. The art itself comes from WL-5.5
 - [ ] Achievements / levels unlock avatar equipment (`ProfileUnlock`) — what the compositor renders, and the reason to keep earning
-- [ ] "Pantry-dex": a collectible card per product scanned (gotta scan 'em all)
+- [x] "Pantry-dex": a collectible card per product, per profile (gotta scan 'em all) — `GET /profiles/{id}/pantry-dex` derives the collection from the profile's attributed `in` movements (first-collected time + times stocked; nothing stored). Shown on the profile page: every household product in fixed order, collected cards with photo/icon + name, uncollected as "???" silhouettes. Card art (frames, rarity) is WL-5.5
 - [ ] Leaderboard / "Scanner of the Week" once multi-user lands (WL-9.2)
 - Deferred: the **"Cleared the List"** badge needs a shopping list — owned by WL-7.1, lands there
 - Deferred: the **Zero-Waste Week** badge (nothing expired) needs expiry dates — owned by WL-7.2, lands there
@@ -499,7 +499,7 @@ dev S · user med · 🟡
 
 dev S · user med · 🟡
 
-- [ ] Contrast audit of both themes (the WL-3.3 light values are a first pass — e.g. `danger-500` text on a light card is ~3.8:1); larger tap targets for small hands; screen-reader labels (chamber decorative emojis, stat tables)
+- [ ] Contrast audit of both themes (the WL-3.3 light values are a first pass — e.g. `danger-500` text on a light card is ~3.8:1; the gold Pantry-dex card border is faint on light); larger tap targets for small hands; screen-reader labels (chamber decorative emojis, stat tables)
 - [ ] Destructive confirms (activity delete, inventory delete/merge, category delete — today a plain `Modal`) → Bits UI `AlertDialog`: announced as `alertdialog`, initial focus on Cancel so a stray Enter can't delete. Shares `Dialog`'s core, so near-zero bundle cost
 
 - [ ] **WL-6.5: Interactive Test Coverage** ⬜

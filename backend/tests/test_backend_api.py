@@ -681,6 +681,35 @@ class BackendAPITestCase(unittest.TestCase):
     def test_get_profile_not_found(self) -> None:
         self.assertEqual(self.client.get("/api/profiles/999999").status_code, 404)
 
+    def test_pantry_dex_collects_stocked_products_once(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Zoe"}).json()
+        other = self.client.post("/api/profiles/", json={"name": "Max"}).json()
+        milk = self._create_product("Milk")
+        bread = self._create_product("Bread")
+        eggs = self._create_product("Eggs")
+        movements = [
+            (milk, profile, "in"),
+            (bread, profile, "in"),
+            (milk, profile, "in"),
+            (eggs, profile, "out"),  # using up doesn't collect
+            (eggs, other, "in"),  # someone else's card
+        ]
+        for product, owner, kind in movements:
+            self.client.post(
+                "/api/transactions/",
+                json={"product_id": product["id"], "profile_id": owner["id"], "type": kind},
+            )
+
+        res = self.client.get(f"/api/profiles/{profile['id']}/pantry-dex")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(
+            [(entry["product_id"], entry["times_stocked"]) for entry in res.json()],
+            [(milk["id"], 2), (bread["id"], 1)],
+        )
+
+    def test_pantry_dex_profile_not_found(self) -> None:
+        self.assertEqual(self.client.get("/api/profiles/999999/pantry-dex").status_code, 404)
+
     def test_patch_profile_not_found(self) -> None:
         res = self.client.patch("/api/profiles/999999", json={"name": "Nope"})
         self.assertEqual(res.status_code, 404)
@@ -931,11 +960,15 @@ class BackendAPITestCase(unittest.TestCase):
         ).json()
 
         self.assertEqual(
-            self.client.post(f"/api/rewards/999999/redemption?profile_id={profile['id']}").status_code,
+            self.client.post(
+                f"/api/rewards/999999/redemption?profile_id={profile['id']}",
+            ).status_code,
             404,
         )
         self.assertEqual(
-            self.client.post(f"/api/rewards/{reward['id']}/redemption?profile_id=999999").status_code,
+            self.client.post(
+                f"/api/rewards/{reward['id']}/redemption?profile_id=999999",
+            ).status_code,
             404,
         )
 

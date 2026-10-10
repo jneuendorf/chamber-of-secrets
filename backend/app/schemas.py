@@ -225,6 +225,15 @@ class ProfileUpdate(BaseModel):
         return value
 
 
+class PantryDexEntry(BaseModel):
+    """One collected card in a profile's Pantry-dex (WL-5.4): a product this
+    profile has stocked at least once."""
+
+    product_id: int
+    first_collected_at: datetime
+    times_stocked: int
+
+
 class ProfileRead(BaseModel):
     id: int
     name: str

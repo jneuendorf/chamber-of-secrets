@@ -211,6 +211,12 @@ emerges from knowing what's in stock:
   the next level, day streak, and the full badge grid showing earned badges
   alongside still-locked ones. A standalone route so a later navigation redesign
   can place it freely.
+- **Pantry-dex**: the progress page also holds a collectible card for every
+  product in the household, in a fixed order. A product becomes this profile's
+  card the first time they stock it (an attributed `in`); the card shows its
+  photo or icon, name, and how often they've stocked it. Uncollected cards are
+  dark silhouettes with "???" — gotta scan 'em all. Derived from movements, so
+  nothing extra is stored.
 
 ### 2.9c Real-Life Rewards
 
@@ -350,6 +356,7 @@ cascades its redemptions.
 | GET | `/api/analytics/restock-overview` | Products needing restock by category |
 | GET | `/api/profiles/` | List profiles (optional `include_archived`) |
 | GET | `/api/profiles/{id}` | Get one profile (archived ones too; 404 if unknown) |
+| GET | `/api/profiles/{id}/pantry-dex` | Products the profile has stocked, first-collected first (WL-5.4) |
 | POST | `/api/profiles/` | Create a profile |
 | PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
 | GET | `/api/rewards/` | List household reward tiers (sorted by level) |
