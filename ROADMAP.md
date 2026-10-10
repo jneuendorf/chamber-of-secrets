@@ -546,6 +546,30 @@ dev S · user med · 🟡
 - [ ] Handedness toggle in settings, persisted in `localStorage` (default:
       right); a CSS-var/`dir`-style flip, not duplicated markup
 
+- [ ] **WL-6.8: End-to-End Smoke Tests** ⬜
+
+dev S · user — · ⚪
+Pairs with: WL-6.2 (land just before or alongside it)
+
+Unit, API and component tests (WL-3.2, WL-6.5) stop at the seams. Their fake
+backend can't drift in *shape* (types are generated) but can in *behavior*, and
+some bugs only exist in the deployed stack: the nginx 1 MB body limit (found in
+WL-6.1) silently capped photo uploads. Others need a real browser: cross-route
+navigation, real layout, and soon the WL-6.2 service worker and offline queue.
+
+- [ ] Playwright behind a separate `just e2e` recipe, **not** part of
+      `just check` (slow, needs a browser download, and there's no CI to run it)
+- [ ] Runs against the real backend with a throwaway seeded database plus the
+      frontend
+- [ ] Four or five journeys, the ones that would hurt most if broken:
+      scan → stock-in → the item arcs into the chamber, then undo; chamber
+      consume + undo; product delete through `ConfirmDialog` (Cancel focused,
+      gone only after confirming); backup download → restore
+- [ ] Optional: one journey through the compose stack (nginx), to catch proxy
+      and config bugs like the body limit
+- Keep it a smoke suite: new behavior gets unit/component tests first; a journey
+  is added only for a seam those can't see
+
 ---
 
 ## Milestone 7 — Smart Shopping List ⬜
