@@ -338,6 +338,7 @@ cascades its redemptions.
 | POST | `/api/profiles/` | Create a profile |
 | PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
 | GET | `/api/rewards/` | List household reward tiers (sorted by level) |
+| GET | `/api/profiles/{id}` | Get one profile (archived ones too; 404 if unknown) |
 | POST | `/api/rewards/` | Create a reward tier (level ≥ 2 + description) |
 | DELETE | `/api/rewards/{id}` | Delete a reward tier (cascades redemptions) |
 | POST | `/api/rewards/{id}/redemption?profile_id=` | Mark a reward redeemed for a profile (idempotent; 409 if not unlocked) |

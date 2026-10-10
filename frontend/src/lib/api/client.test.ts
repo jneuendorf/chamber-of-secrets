@@ -225,6 +225,15 @@ describe('api.categories', () => {
         ))
 })
 
+describe('api.profiles', () => {
+    test('get(id) calls GET /profiles/:id', () =>
+        withMockedApi(async ({ api, fetch }) => {
+            await api.profiles.get(3)
+            expect(lastCall(fetch).url).toEndWith('/profiles/3')
+            expect(lastCall(fetch).options?.method).toBeUndefined()
+        }))
+})
+
 describe('api.analytics', () => {
     test('spending() calls GET /analytics/spending', () =>
         withMockedApi(async ({ api, fetch }) => {

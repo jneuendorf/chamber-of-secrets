@@ -466,7 +466,7 @@ colors to the theme.
 
 ---
 
-## Milestone 6 — Robustness & Trust ⬜
+## Milestone 6 — Robustness & Trust 🚧
 
 Goal: the add-ons that make the core dependable on a Pi.
 
@@ -484,12 +484,13 @@ dev M · user med · 🟢
 - [ ] Make the existing manifest installable; service worker for offline shell
 - [ ] Queue scans/movements while offline, sync when back online (scan in the garage on bad wifi)
 
-- [ ] **WL-6.3: Performance Pass** ⬜
+- [ ] **WL-6.3: Performance Pass** 🚧
 
 dev S · user med · 🟡
 
 - Already capped: WL-5.2 shipped `DOT_CAP = 8` (`frontend/src/lib/utils/chamber.ts`), so no single product renders more than 8 dots. What's left is the total across a large pantry — a much smaller concern than per-product growth
-- [ ] Drop the list-and-find pattern: four call sites fetch a whole collection to resolve one record — `products.list()` twice in the scan flow (find-by-EAN), `profiles.list(true)` in `lib/progression.ts` and in `routes/profile/[id]` after a redemption. Wants a local by-EAN product lookup and `GET /profiles/{id}`; the `ponytail:` note in `progression.ts` marks the deliberate version
+- [ ] Drop the list-and-find pattern for products: `products.list()` runs twice in the scan flow just to find one product by EAN. Wants a by-EAN lookup
+- [x] Same for profiles: `GET /profiles/{id}` (archived ones resolve; unknown id → 404) replaced the three `profiles.list(true)` + find sites — `refreshProfile()` and the `/profile/[id]` load and post-redeem refetch
 - [ ] Page loads refetch whole lists on every `$effect` run (chamber, inventory, activity). Harmless at household scale; revisit only if it becomes visible
 
 - [ ] **WL-6.4: Accessibility & Legibility** ⬜

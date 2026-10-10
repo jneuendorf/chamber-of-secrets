@@ -130,6 +130,7 @@ chamber-of-secrets/
 | GET | `/api/analytics/timeseries` | Spending over time |
 | GET | `/api/analytics/restock-overview` | Products needing restock by category |
 | GET | `/api/profiles/` | List profiles (optional `include_archived`) |
+| GET | `/api/profiles/{id}` | Get one profile (archived ones too; 404 if unknown) |
 | POST | `/api/profiles/` | Create a profile |
 | PATCH | `/api/profiles/{id}` | Update a profile (rename, avatar, archive) |
 | GET | `/api/rewards/` | List household reward tiers (sorted by level) |

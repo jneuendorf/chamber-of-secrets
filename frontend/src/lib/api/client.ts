@@ -214,6 +214,8 @@ export const api = {
             request<Profile[]>(
                 `/profiles/${includeArchived ? '?include_archived=true' : ''}`,
             ),
+        /** Archived profiles resolve too; an unknown id is a 404 `ApiError`. */
+        get: (id: number) => request<Profile>(`/profiles/${id}`),
         create: (data: {
             name: string
             avatar_config?: AvatarConfig

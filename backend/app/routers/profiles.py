@@ -8,6 +8,15 @@ from app.schemas import ProfileCreate, ProfileRead, ProfileUpdate
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
 
+def get_profile_or_404(profile_id: int, db: Session) -> Profile:
+    """Archived profiles count: a saved link or a device's stale picker id may
+    still point at one. Shared by every router that takes a profile id."""
+    profile = db.get(Profile, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+
 @router.get("/", response_model=list[ProfileRead])
 def list_profiles(
     include_archived: bool = Query(False),
@@ -17,6 +26,11 @@ def list_profiles(
     if not include_archived:
         query = query.filter(Profile.is_archived.is_(False))
     return query.all()
+
+
+@router.get("/{profile_id}", response_model=ProfileRead)
+def get_profile(profile_id: int, db: Session = Depends(get_db)) -> Profile:
+    return get_profile_or_404(profile_id, db)
 
 
 @router.post("/", response_model=ProfileRead, status_code=201)
@@ -34,9 +48,7 @@ def update_profile(
     data: ProfileUpdate,
     db: Session = Depends(get_db),
 ) -> Profile:
-    profile = db.get(Profile, profile_id)
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+    profile = get_profile_or_404(profile_id, db)
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(profile, key, value)
     db.commit()

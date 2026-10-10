@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models import InventoryTransaction, Product, Profile
+from app.models import InventoryTransaction, Product
+from app.routers.profiles import get_profile_or_404
 from app.schemas import TransactionCreate, TransactionRead, TransactionUpdate
 from app.services.achievements import check_progress
 from app.services.progression import award_transaction
@@ -39,9 +40,9 @@ def create_transaction(
     # SQLite doesn't enforce the FK (pragma off), so attribution is checked here.
     # Existence only — an archived profile is still a valid target, since a device
     # may hold a stale selection until its next reload.
-    profile = db.get(Profile, data.profile_id) if data.profile_id is not None else None
-    if data.profile_id is not None and profile is None:
-        raise HTTPException(status_code=404, detail="Profile not found")
+    profile = (
+        get_profile_or_404(data.profile_id, db) if data.profile_id is not None else None
+    )
 
     if data.type == "out":
         current_stock = sum(

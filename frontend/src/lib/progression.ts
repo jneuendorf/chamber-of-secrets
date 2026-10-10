@@ -9,7 +9,7 @@
  */
 import { derived, get, writable } from 'svelte/store'
 
-import { api, type Profile, type RewardTier } from './api/client'
+import { ApiError, api, type Profile, type RewardTier } from './api/client'
 import { activeProfileId } from './profiles'
 
 /** The active profile with its live xp/level/streaks. `null` = none selected. */
@@ -39,9 +39,13 @@ export async function refreshProfile(): Promise<void> {
         activeProfile.set(null)
         return
     }
-    // ponytail: no GET /profiles/{id} — the list is a handful of rows on a home LAN.
-    const profiles = await api.profiles.list(true)
-    const found = profiles.find((profile) => profile.id === id) ?? null
+    // A stored id whose profile is gone (e.g. a reset database) means "none selected".
+    const found = await api.profiles.get(id).catch((err: unknown) => {
+        if (err instanceof ApiError && err.isNotFound) {
+            return null
+        }
+        throw err
+    })
     // Diffed here rather than returned by the mutation: every award path
     // (transactions, OFF contributions) lands in the same refresh.
     const { crossing, earned } = progressSince(get(activeProfile), found)

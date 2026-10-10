@@ -1,14 +1,19 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, spyOn, test } from 'bun:test'
+
+import { get } from 'svelte/store'
 
 import type { Profile, RewardTier } from './api/client'
 import en from './i18n/en.json'
+import { activeProfileId } from './profiles'
 import {
     ACHIEVEMENT_KEYS,
     achievementGlyph,
+    activeProfile,
     CHAMBER_STAGES,
     chamberStage,
     guardianMood,
     progressSince,
+    refreshProfile,
     rewardsUnlockedBetween,
     xpForLevel,
 } from './progression'
@@ -164,5 +169,37 @@ describe('guardianMood', () => {
     test('content in the middle, sparse when most items run low', () => {
         expect(guardianMood(10, 4, 12)).toBe('content')
         expect(guardianMood(10, 7, 8)).toBe('sparse')
+    })
+})
+
+describe('refreshProfile', () => {
+    async function refreshWith(response: Response) {
+        const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(response)
+        activeProfileId.set(7)
+        try {
+            await refreshProfile()
+        } finally {
+            fetchSpy.mockRestore()
+            activeProfileId.set(null)
+        }
+    }
+
+    test('loads the active profile by id', async () => {
+        await refreshWith(Response.json({ id: 7, level: 2, achievements: [] }))
+        expect(get(activeProfile)?.id).toBe(7)
+    })
+
+    test('a stored id whose profile is gone clears the selection', async () => {
+        activeProfile.set({ id: 7 } as Profile)
+        await refreshWith(
+            Response.json({ detail: 'Profile not found' }, { status: 404 }),
+        )
+        expect(get(activeProfile)).toBeNull()
+    })
+
+    test('other errors propagate', async () => {
+        await expect(
+            refreshWith(Response.json({ detail: 'boom' }, { status: 500 })),
+        ).rejects.toThrow('boom')
     })
 })

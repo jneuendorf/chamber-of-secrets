@@ -669,6 +669,18 @@ class BackendAPITestCase(unittest.TestCase):
         all_ids = {p["id"] for p in self.client.get("/api/profiles/?include_archived=true").json()}
         self.assertIn(gone["id"], all_ids)
 
+    def test_get_profile_by_id_includes_archived(self) -> None:
+        profile = self.client.post("/api/profiles/", json={"name": "Ivy"}).json()
+        self.client.patch(f"/api/profiles/{profile['id']}", json={"is_archived": True})
+
+        res = self.client.get(f"/api/profiles/{profile['id']}")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["name"], "Ivy")
+        self.assertTrue(res.json()["is_archived"])
+
+    def test_get_profile_not_found(self) -> None:
+        self.assertEqual(self.client.get("/api/profiles/999999").status_code, 404)
+
     def test_patch_profile_not_found(self) -> None:
         res = self.client.patch("/api/profiles/999999", json={"name": "Nope"})
         self.assertEqual(res.status_code, 404)

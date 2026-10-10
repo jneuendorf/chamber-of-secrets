@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Profile, ProfileReward, RewardTier, level_for_xp
+from app.models import ProfileReward, RewardTier, level_for_xp
+from app.routers.profiles import get_profile_or_404
 from app.schemas import RewardTierCreate, RewardTierRead
 
 router = APIRouter(prefix="/rewards", tags=["rewards"])
@@ -40,9 +41,7 @@ def redeem_reward(reward_id: int, profile_id: int, db: Session = Depends(get_db)
     reward = db.get(RewardTier, reward_id)
     if not reward:
         raise HTTPException(status_code=404, detail="Reward not found")
-    profile = db.get(Profile, profile_id)
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+    profile = get_profile_or_404(profile_id, db)
     if level_for_xp(profile.xp) < reward.level:
         raise HTTPException(status_code=409, detail="Reward not unlocked yet")
 

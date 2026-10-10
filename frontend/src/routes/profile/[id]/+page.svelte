@@ -25,15 +25,16 @@
 
     $effect(() => {
         loading = true
-        // ponytail: no GET /profiles/{id} — reuse the list (a handful of rows).
-        // include_archived so a direct link still resolves an archived profile.
-        Promise.all([api.profiles.list(true), api.rewards.list()])
-            .then(([profiles, tiers]) => {
-                profile = profiles.find((entry) => entry.id === data.id) ?? null
+        Promise.all([api.profiles.get(data.id), api.rewards.list()])
+            .then(([found, tiers]) => {
+                profile = found
                 rewards = tiers
             })
             .catch((err: unknown) => {
-                error = err instanceof ApiError ? err.detail : String(err)
+                // A 404 falls through to the localized "not found" state.
+                if (!(err instanceof ApiError && err.isNotFound)) {
+                    error = err instanceof ApiError ? err.detail : String(err)
+                }
             })
             .finally(() => {
                 loading = false
@@ -70,8 +71,7 @@
                 ? api.rewards.unredeem(rewardId, data.id)
                 : api.rewards.redeem(rewardId, data.id))
             // Re-read the profile so its redeemed_rewards reflects the change.
-            const profiles = await api.profiles.list(true)
-            profile = profiles.find((entry) => entry.id === data.id) ?? profile
+            profile = await api.profiles.get(data.id)
         } catch (err: unknown) {
             rewardError = err instanceof ApiError ? err.detail : String(err)
         }
